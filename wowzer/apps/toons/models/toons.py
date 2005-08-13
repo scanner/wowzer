@@ -23,6 +23,50 @@ class Realm(meta.Model):
     def __repr__(self):
         return self.name
 
+#############################################################################
+#
+class Faction(meta.Model):
+    """
+    """
+
+    fields = (
+        meta.CharField('name', maxlength = 128),
+        )
+    
+    #########################################################################
+    #
+    def __repr__(self):
+        return self.name
+
+#############################################################################
+#
+class Race(meta.Model):
+    """
+    """
+
+    fields = (
+        meta.CharField('name', maxlength = 128),
+        )
+    
+    #########################################################################
+    #
+    def __repr__(self):
+        return self.name
+
+#############################################################################
+#
+class Class(meta.Model):
+    """
+    """
+
+    fields = (
+        meta.CharField('name', maxlength = 128),
+        )
+    
+    #########################################################################
+    #
+    def __repr__(self):
+        return self.name
 
 #############################################################################
 #
@@ -47,8 +91,11 @@ class Toon(meta.Model):
 
     fields = (
         meta.CharField('name', maxlength = 128),
-        meta.ForeignKey(Guild, null = True, blank = True),
         meta.ForeignKey(Realm),
+        meta.ForeignKey(Faction),
+        meta.ForeignKey(Race),
+        meta.ForeignKey(Class),
+        meta.ForeignKey(Guild, null = True, blank = True),
         )
     
     #########################################################################

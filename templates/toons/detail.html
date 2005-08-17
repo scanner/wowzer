@@ -1,0 +1,41 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Details for {{ toon }}</title>
+  </head>
+
+  <body>
+    <h1>Details for {{ toon }}</h1>
+    <P>
+      Name: {{ toon.name }}<br>
+      {% if toon.get_race %}
+      Race: {{ toon.get_race }}<br>
+      {% endif %}
+      {% if toon.get_class %}
+      Class: {{ toon.get_class }}<br>
+      {% endif %}
+      Realm: {{ toon.get_realm }}<br>
+      Faction: {{ toon.get_faction }}<br>
+      {% if toon.get_guild %}
+      Guild: {{ toon.get_guild }}<br>
+      {% endif %}
+    </P>
+    {% if aucts %}
+    <P>
+      Auctions that this character has created:
+    <UL>
+      {% for auction in aucts %}
+      <LI> <a href="../../../madhouse/detail/{{ auction.id }}/">{{ auction.get_item }}</a> Last seen: {{ auction.last_seen }}</LI>
+      {% endfor %}
+    </UL>
+    </P>
+    {% endif %}
+
+    <hr>
+    <address><a href="mailto:scanner@apricot.com">Scanner</a></address>
+<!-- Created: Wed Aug 17 14:00:37 PDT 2005 -->
+<!-- hhmts start -->
+Last modified: Wed Aug 17 14:19:23 PDT 2005
+<!-- hhmts end -->
+  </body>
+</html>

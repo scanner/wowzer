@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Auction Detail</title>
+  </head>
+
+  <body>
+    <h1>Auction Detail: {{ item }} by <a href="../../../toons/detail/{{ owner.id }}/">{{ owner }}</a></h1>
+    <P>
+      Number of items: {{ auction.count }}<br>
+      
+      Minimum starting bid: {{ auction.min_bid }}<br>
+      Minimum starting bid for one: {{ auction.min_bid_for_one }}<br>
+      Buyout: {{ auction.buyout }}<br>
+      Minimum buyout for one: {{ auction.buyout_for_one }}<br>
+      Initially seen at: {{ auction.initial_seen }}<br>
+      Last seen at: {{ auction.last_seen }}<br>
+    </P>
+    <P>
+      {% if bids %}
+          Recorded bidding history:
+          <UL>
+          {% for bid in bids %}
+              <LI> {{ bid }} </LI>
+          {% endfor %}
+          </UL>
+      {% else %}
+          No recorded bids.
+      {% endif %}
+    </P>
+    {% if other_aucts %}
+    <P>
+      Auctions that this character has created:
+    <UL>
+      {% for auction in other_aucts %}
+      <LI> <a href="../../../madhouse/detail/{{ auction.id }}/">{{ auction.get_item }}</a> Last seen: {{ auction.last_seen }}</LI>
+      {% endfor %}
+    </UL>
+    </P>
+    {% endif %}
+    <P>
+      List of twenty most recent <a href="../../">auctions</a>
+    </P>
+
+    <hr>
+    <address><a href="mailto:scanner@apricot.com">Scanner</a></address>
+<!-- Created: Wed Aug 17 13:25:32 PDT 2005 -->
+<!-- hhmts start -->
+Last modified: Wed Aug 17 14:23:14 PDT 2005
+<!-- hhmts end -->
+  </body>
+</html>

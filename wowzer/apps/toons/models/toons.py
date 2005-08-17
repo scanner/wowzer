@@ -6,6 +6,7 @@
 #   This app and its models represent the player characters and their realms.
 #
 from django.core import meta
+from django.models.auth import User
 
 #############################################################################
 #
@@ -20,6 +21,8 @@ class RealmType(meta.Model):
         meta.CharField('description', maxlength = 1024),
         )
 
+    admin = meta.Admin()
+    
     #########################################################################
     #
     def __repr__(self):
@@ -35,13 +38,16 @@ class Realm(meta.Model):
 
     fields = (
         meta.CharField('name', maxlength = 128),
-        meta.ForeignKey(RealmType),
+        meta.ForeignKey(RealmType, blank = True, null = True),
         )
     
+    admin = meta.Admin()
+
     #########################################################################
     #
     def __repr__(self):
         return self.name
+
 
 #############################################################################
 #
@@ -58,6 +64,8 @@ class Faction(meta.Model):
         meta.CharField('description', maxlength = 1024),
         )
     
+    admin = meta.Admin()
+
     #########################################################################
     #
     def __repr__(self):
@@ -74,7 +82,9 @@ class Race(meta.Model):
         meta.CharField('name', maxlength = 128),
         meta.CharField('description', maxlength = 1024),
         )
-    
+
+    admin = meta.Admin()
+
     #########################################################################
     #
     def __repr__(self):
@@ -91,7 +101,11 @@ class Class(meta.Model):
         meta.CharField('name', maxlength = 128),
         meta.CharField('description', maxlength = 1024),
         )
-    
+
+    admin = meta.Admin()
+
+    verbose_name_plural = 'classes'
+
     #########################################################################
     #
     def __repr__(self):
@@ -105,8 +119,12 @@ class Guild(meta.Model):
 
     fields = (
         meta.CharField('name', maxlength = 128),
+        meta.ForeignKey(Realm),
+        meta.ForeignKey(Faction),
         )
-    
+
+    admin = meta.Admin()
+
     #########################################################################
     #
     def __repr__(self):
@@ -119,16 +137,22 @@ class Toon(meta.Model):
     """
 
     fields = (
-        meta.CharField('name', maxlength = 128),
+        meta.CharField('name', maxlength = 256),
         meta.ForeignKey(Realm),
         meta.ForeignKey(Faction),
-        meta.ForeignKey(Race),
-        meta.ForeignKey(Class),
+        meta.ForeignKey(Race, null = True, blank = True),
+        meta.ForeignKey(Class, null = True, blank = True),
         meta.ForeignKey(Guild, null = True, blank = True),
+        meta.CharField('guild_rank', maxlength = 256, null = True,
+                       blank = True),
+        meta.ForeignKey(User, null = True, blank = True),
         )
+
+    admin = meta.Admin()
+    ordering = ['name']
     
     #########################################################################
     #
     def __repr__(self):
-        return "%s of %s" (self.name, self.get_realm())
+        return "%s of %s" % (self.name, self.get_realm().name)
 

@@ -32,6 +32,8 @@ class Category(meta.Model):
         meta.CharField('name', maxlength = 128),
         meta.CharField('description', maxlength = 1024),
         )
+
+    verbose_name_plural = 'categories'
     
     #########################################################################
     #
@@ -74,11 +76,11 @@ class Item(meta.Model):
         # argue for a data model that uses some of these numbers as a foreign
         # key and even have our name somewhat generated from that.
         #
-        meta.CharField('wow-id', maxlength = 32),
+        meta.CharField('wow_id', maxlength = 32, db_index = True),
 
         # The name of this kind of item, aka: "Rod of Arcane Wrath"
         #
-        meta.CharField('name', maxlength = 512),
+        meta.CharField('name', maxlength = 512, db_index = True),
 
         meta.BooleanField('player_made'),
 
@@ -86,9 +88,10 @@ class Item(meta.Model):
         #
         meta.ForeignKey(Category),
 
-        # An item is the same item even across realms
+        # XXX Maybe we should store foreign keys for the wow_id elements.
+        #     But not sure if I want to look up how man "Foobar"'s there are.
+        #     or how many have the mighty spirit enchant.
         #
-        meta.ManyToManyField(Realm),
         )
 
     #########################################################################
@@ -113,6 +116,6 @@ class ItemInstance(meta.Model):
     fields = (
         meta.ForeignKey(Item),
         meta.ForeignKey(Realm),
-        meta.IntegerField("unique_id"),
+        meta.IntegerField("item_instance_id", db_index = True),
         )
         

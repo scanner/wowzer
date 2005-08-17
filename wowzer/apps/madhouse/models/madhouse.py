@@ -2,19 +2,10 @@
 # $Id$
 #
 # Description:
-#   This defines the model's for the "objects" app in wowzer.
-#   This app and its models represent objects in wow, like the "Rod of Arcane
-#   Wrath"
-#
-#   This model is not used for auction house tracking stuff. That is in the
-#   madhouse app. That app uses these models.
-#
-#   Yes, this basically duplicates thottbot data. We needed the basic
-#   information anyways to map to the things in the auction house.
-#   There is a LOT more data on thott (and where we can we link to thott's
-#   info)
+#   This defines the model's for tracking auction house pricing and such.
 #
 from django.core import meta
+from django.models.auth import User
 
 from wowzer.apps.toons.models.toons import Realm, Toon, Faction
 from wowzer.apps.items.models.items import Item, ItemInstance
@@ -34,7 +25,8 @@ class Auction(meta.Model):
     """
 
     fields = (
-        meta.ForeignKey(Toon, rel_name = "owner"),
+        meta.ForeignKey(Toon, name = "owner_id", rel_name = "owner"),
+        meta.CharField("auction_key", maxlength = 128, db_index = True),
 
         meta.ForeignKey(Item),         # We have both Item and ItemInstance
         meta.ForeignKey(ItemInstance,  # relations because even though Item is
@@ -55,19 +47,11 @@ class Auction(meta.Model):
 
         meta.ForeignKey(Realm),
         meta.ForeignKey(Faction),
-        meta.ForeignKey(Toon, rel_name = "high_bidder"),
-        meta.ManyToManyField(Toon, rel_name = "bidders"), # Unordered relation
-                                                          # of toons that have
-                                                          # bidded on this
-                                                          # auction
-        meta.IntegerField("buyout"),         # 0 for no buyout
-        meta.IntegerField("buyout_for_one"), # ditto
+        meta.IntegerField("buyout", db_index = True),         # 0 for no buyout
+        meta.IntegerField("buyout_for_one", db_index = True), # ditto
 
-        meta.IntegerField("min_bid"),
-        meta.IntegerField("min_bid_for_one"),
-
-        meta.IntegerField("cur_bid"),        # 0 if not cur bid
-        meta.IntegerField("cur_bid_for_one"),# ditto
+        meta.IntegerField("min_bid", db_index = True),
+        meta.IntegerField("min_bid_for_one", db_index = True),
 
         meta.IntegerField("count"),     # How many of this item (eg: 20xSilk)
                                         # Used to calc. the "for_one" prices
@@ -76,11 +60,13 @@ class Auction(meta.Model):
         meta.DateTimeField("initial_seen"),
         )
 
+    ordering = ['initial_seen']
+
     #########################################################################
     #
     def __repr__(self):
         return "auction of %s by %s" % (self.get_item().name,
-                                        self.get_toon().name)
+                                        self.get_owner().name)
     
 #############################################################################
 #
@@ -116,21 +102,51 @@ class Bid(meta.Model):
     """
 
     fields = (
-        meta.ForeignKey(Item),
-        meta.ForeignKey(Auction),
-        meta.DateTimeField("time"),
-        meta.IntegerField("bid"),
+        meta.ForeignKey(Item, db_index = True),
+        meta.ForeignKey(Auction, db_index = True),
+        meta.DateTimeField("initial_seen"),
+        meta.DateTimeField("last_seen"),
+        meta.IntegerField("bid", db_index = True),
         meta.IntegerField("bid_for_one"),
-#        meta.ForeignKey(Toon), # Debatable - who made this bid. Moot since
-#        auction does not give us this data.
         )
 
-    ordering = ['time']
+    ordering = ['initial_seen', 'last_seen']
     
     #########################################################################
     #
     def __repr__(self):
-        toon = self.get_toon()
-        return "%d by %s of %s at %s" % (self.bid, toon.name, toon.realm,
-                                         self.time)
+        return "%d last seen at: %s" % (self.bid, self.last_seen)
+
+#############################################################################
+#
+class UploadData(meta.Model):
+    """This class is used to hold a pointer to an uploaded file from one of our
+    remote upload clients.
+
+    The basic process is a remote client is expected to snip out of a
+    SavedVariables.lua file the data we care about for madhouse. They then
+    compress and upload this file to our server.
+
+    This causes an UploadData object to be created. Some other process will
+    then process all of the UploadData objects parsing out the lua variable
+    declrations and filling in the madhouse structures based on this
+    information.
+    """
+
+    fields = (
+        meta.FileField('filename', maxlength = 1024,
+                       upload_to = "/var/tmp/wowzer-uploads/madhouse/" \
+                       "auction-data-%Y.%m.%d-%H:%M:%S"),
+        meta.DateTimeField('uploaded_at'),
+        meta.BooleanField('processed', default = False),
+        meta.DateTimeField('when_processed', null = True, blank = True),
+        meta.ForeignKey(User, null = True, blank = True),
+        )
+
+    ordering = ['uploaded_at']
+
+    #########################################################################
+    #
+    def __repr__(self):
+        return self.filename
 

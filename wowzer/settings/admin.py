@@ -4,10 +4,12 @@ from main import *
 
 TEMPLATE_DIRS = (
     '/System/Library/Frameworks/Python.framework/Versions/2.3/lib/python2.3/site-packages/django/conf/admin_templates',
+    '/usr/local/lib/python2.4/site-packages/django/conf/admin_templates'
     # Put strings here, like "/home/html/django_templates".
 )
 ROOT_URLCONF = 'wowzer.settings.urls.admin'
 MIDDLEWARE_CLASSES = (
+    'django.middleware.sessions.SessionMiddleware',
     'django.middleware.admin.AdminUserRequired',
     'django.middleware.common.CommonMiddleware',
 )

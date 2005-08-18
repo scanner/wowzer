@@ -49,3 +49,22 @@ def submit(request):
         print "Ooops. Unable to wake up the madhouse maintenance thread."
     
     return HttpResponse("Thank you for your submission.")
+
+#############################################################################
+#
+def poke_ud_queue(request):
+    """The 'submit' view is there for uploading data to the server and then
+    poking the worker thread that processes the queue. The queue will run
+    checks at four hour intervals but sometimes we may want to force the queue
+    to check immediately. Poking this URL will cause that to happen.
+    """
+
+    # Now poke the auctioneer importer object in to wakefullness so it will
+    # process any new datums we have.
+    #
+    try:
+        wowzer.apps.madhouse.maintenance.auctioneer_import_thread.wakeup()
+    except:
+        print "Ooops. Unable to wake up the madhouse maintenance thread."
+    return HttpResponse("The queue has been poked..")
+

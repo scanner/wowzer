@@ -9,6 +9,8 @@ import zlib
 import os.path
 from datetime import datetime
 
+import wowzer.apps.madhouse.maintenance
+
 from django.models.madhouse import uploaddatas
 from django.utils.httpwrappers import HttpResponse
 
@@ -37,4 +39,13 @@ def submit(request):
     ud = uploaddatas.UploadData(filename = full_path, uploaded_at = time,
                                 processed = False)
     ud.save()
+
+    # Now poke the auctioneer importer object in to wakefullness so it will
+    # process any new datums we have.
+    #
+    try:
+        wowzer.apps.madhouse.maintenance.auctioneer_import_thread.wakeup()
+    except:
+        print "Ooops. Unable to wake up the madhouse maintenance thread."
+    
     return HttpResponse("Thank you for your submission.")

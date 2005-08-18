@@ -29,7 +29,8 @@ def index(request):
     that item have the lowest mid_bid_for_one price.
     """
 
-    auction_list = auctions.get_list(limit = 20)
+    auction_list = auctions.get_list(limit = 20,
+                                     order_by = ('-last_seen',))
     t = template_loader.get_template('madhouse/index')
     c = Context(request, {
         'auction_list' : auction_list,

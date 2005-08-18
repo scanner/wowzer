@@ -389,7 +389,7 @@ class AuctioneerImporter(threading.Thread):
             # Wait for the event to be raised, or until it times out (in 14400
             # seconds, ie: 4 hours.)
             #
-            self.new_data_event.wait(60.0)
+            self.new_data_event.wait(14400.0)
             self.new_data_event.clear()
             
             # If we are not running exit.

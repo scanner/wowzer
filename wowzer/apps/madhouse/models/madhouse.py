@@ -134,9 +134,7 @@ class UploadData(meta.Model):
     """
 
     fields = (
-        meta.FileField('filename', maxlength = 1024,
-                       upload_to = "/var/tmp/wowzer-uploads/madhouse/" \
-                       "auction-data-%Y.%m.%d-%H:%M:%S"),
+        meta.CharField('filename', maxlength = 1024),
         meta.DateTimeField('uploaded_at'),
         meta.BooleanField('processed', default = False),
         meta.DateTimeField('when_processed', null = True, blank = True),

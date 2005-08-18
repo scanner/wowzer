@@ -4,7 +4,7 @@ urlpatterns = patterns(
     'wowzer.apps.madhouse.views',
     (r'^$', 'madhouse.index'),
     (r'^detail/(?P<auction_id>\d+)/$', 'auction.detail'),
-    #(r'^submit/')
+    (r'^submit/', 'submit.submit'),
     # Example:
     # (r'^wowzer/', include('wowzer.apps.foo.urls.foo')),
 )

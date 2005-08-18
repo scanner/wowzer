@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 #
+# File: $Id$
+#
 """'ecs' stands for 'Extract Compress and Send.' These are a series of scripts
 to extract relevant variable declarations from the named file (usually
 SavedVariables.lua), compress it, and then send it to the specified wowzer app
@@ -20,6 +22,8 @@ import string
 import exceptions
 import optparse
 import re
+import urlparse
+import md5
 
 # We map the verbosity level strings in to an integer. Makes for easier
 # comparisons "if verbosity > verbose_levels['terse']:"
@@ -31,19 +35,100 @@ verbose_levels = {
     "debug"   : 15,
     }
 
-############################################################################
+
+import httplib, mimetypes
+
+#######################
+#######################
+#
+# This code on how to upload data via post was cribbed directly from:
+#
+# http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/146306
+#
+#
+# Eventually the 'post' functionality, the command parser, and the generic
+# variable extractor will probably get rolled in to their own module.
+#
+# Leaving this script "call default option parser setup, call extractor with
+# variable names, call url poster"
+#
+############################################################################   
+#
+def get_content_type(filename):
+    return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+
+############################################################################   
+#
+# The function encode_multipart_formdata() shown here takes a more direct
+# approach to creating the mime data, and fairly closely mimics the data sent
+# by Internet Explorer 5.5.
+#
+def encode_multipart_formdata(fields, files):
+    """
+    fields is a sequence of (name, value) elements for regular form fields.
+    files is a sequence of (name, filename, value) elements for data to be
+    uploaded as files
+
+    Return (content_type, body) ready for httplib.HTTP instance
+    """
+    BOUNDARY = '----------ThIs_Is_tHe_bouNdaRY_$'
+    CRLF = '\r\n'
+    L = []
+    for (key, value) in fields:
+        L.append('--' + BOUNDARY)
+        L.append('Content-Disposition: form-data; name="%s"' % key)
+        L.append('')
+        L.append(value)
+    for (key, filename, value) in files:
+        L.append('--' + BOUNDARY)
+        L.append('Content-Disposition: form-data; name="%s"; filename="%s"' % (key, filename))
+        L.append('Content-Type: %s' % get_content_type(filename))
+        L.append('')
+        L.append(value)
+    L.append('--' + BOUNDARY + '--')
+    L.append('')
+    body = CRLF.join(L)
+    content_type = 'multipart/form-data; boundary=%s' % BOUNDARY
+    return content_type, body
+
+############################################################################   
 #
 def post_multipart(host, selector, fields, files):
+    """
+    Post fields and files to an http host as multipart/form-data.
+    fields is a sequence of (name, value) elements for regular form fields.
+    files is a sequence of (name, filename, value) elements for data to be
+    uploaded as files.
+    Return the server's response page.
+    """
     content_type, body = encode_multipart_formdata(fields, files)
     h = httplib.HTTPConnection(host)  
     headers = {
-        'User-Agent': 'INSERT USERAGENTNAME',
+        'User-Agent': 'ecs-auction-data',
         'Content-Type': content_type
         }
     h.request('POST', selector, body, headers)
     res = h.getresponse()
     return res.read()
 
+############################################################################
+#
+def posturl(url, fields, files):
+    """This allows you to specify the form as a url and not worry about host
+    and selector."""
+    
+    urlparts = urlparse.urlsplit(url)
+    return post_multipart(urlparts[1], urlparts[2], fields,files)
+
+############################################################################
+#
+def post_data(url, user, password, data):
+
+    
+    repl = posturl(url, [('user', user),
+                         ('password_md5', md5.new(password).hexdigest())],
+                   [('auction_data', 'auction_data', data)])
+    print "The server replies to us with: %s" % repr(repl)
 
 ############################################################################
 #
@@ -88,7 +173,7 @@ def run(filename, submit_url, user, password, verbosity = 5):
 
         try:
             start = re_start.search(data).start()
-            end = self.re_endbrace.search(data, start).end()
+            end = re_endbrace.search(data, start).end()
             extracted += data[start:end] + "\n"
         except:
             # Should really be prepared for an re to fail here and do something
@@ -109,7 +194,7 @@ def run(filename, submit_url, user, password, verbosity = 5):
     compressed = zlib.compress(extracted)
 
     if verbosity >= 10:
-        print "Done comrpessing data."
+        print "Done compressing data."
 
     # We can flush the extracted data too now. All that matters is the
     # compressed data.
@@ -117,9 +202,13 @@ def run(filename, submit_url, user, password, verbosity = 5):
     del extracted
 
     # And finally we submit our data to the web app.
-        
-    
-    
+    if verbosity >= 5:
+        print "Sending data to wowzer."
+    post_data(submit_url, user, password, compressed)
+    if verbosity >= 10:
+        print "Done sending data."
+    return
+
 ############################################################################
 #
 def setup_option_parser():
@@ -132,35 +221,37 @@ def setup_option_parser():
                                    version = "%prog 1.0")
     parser.add_option("-v", "--verbosity", type="choice", dest="verbosity",
                       default="terse", choices = verbose_levels.keys(),
-                      help = """Controls how talkative the script is about what
-                      it is doing. In 'verbose' mode it will tell you
-                      every track it finds. In 'terse' mode it will only tell
-                      you about tracks that are changed, added or removed.
-                      In 'quiet' mode it will say nothing. DEFAULT:
-                      '%default'""")
+                      help = "Controls how talkative the script is about what"\
+                      " it is doing. In 'verbose' mode it will tell you " \
+                      "every track it finds. In 'terse' mode it will only " \
+                      "tell you about tracks that are changed, added or " \
+                      "removed. In 'quiet' mode it will say nothing. " \
+                      "DEFAULT: '%default'")
     parser.add_option("-f", "--file", type="string", dest="filename",
-                      default="SavedVariables.lua", help = """Designates the
-                      file to load and extract variables to send to the wowzer
-                      server. This file MUST be in the format saved by World of
-                      Warcraft as the 'SavedVariables.lua' file. DEFAULT:
-                      '%default'""")
+                      default="SavedVariables.lua", help = "Designates the " \
+                      "file to load and extract variables to send to the " \
+                      "wowzer server. This file MUST be in the format saved " \
+                      "by World of Warcraft as the 'SavedVariables.lua' " \
+                      "file. DEFAULT: '%default'")
     parser.add_option("-s", "--submit", type="string", dest="submit_url",
-                      default="http://wowzer.apricot.com/madhouse/submit",
-                      help = """The url to which the extracted and compressed
-                      variables are sent. DEFAULT: '%default'""")
-    parser.add_otpion("-u", "--user", type="string", dest="wowzer_user",
+                      default="http://64.32.190.61:8000/madhouse/submit/",
+                      help = "The url to which the extracted and compressed " \
+                      "variables are sent. DEFAULT: '%default'")
+    parser.add_option("-u", "--user", type="string", dest="wowzer_user",
                       default = "noone",
-                      help = """The user to send this batch of data to the
-                      server as. Right now this is not used but in the future
-                      we will only allow specific trusted users to submit
-                      data.""")
+                      help = "The user to send this batch of data to the " \
+                      "server as. Right now this is not used but in the " \
+                      "future we will only allow specific trusted users to " \
+                      "submit data. DEFAULT: '%default'")
     parser.add_option("-p", "--password", type="string", dest="wowzer_pw",
                       default = "nopassword",
-                      help = """Along with a user name the submitter must have
-                      a password to authenticate to the server with. Right now
-                      this is not used but in the future we will only allow
-                      specific trusted users to submit data.""")
-
+                      help = "Along with a user name the submitter must " \
+                      "have a password to authenticate to the server with. " \
+                      "Right now this is not used but in the future we will " \
+                      "only allow specific trusted users to submit data. " \
+                      "NOTE: We send the md5 hash of your password across " \
+                      "the net not the password itself not that this is " \
+                      "any security for this script. NEED TO FIX THIS")
     return parser
 
 ############################################################################   
@@ -183,10 +274,11 @@ def main():
     verbosity = verbose_levels[opts.verbosity]
     if verbosity >= 3:
         print "Processing file: '%s'" % opts.filename
-        print "Submitting as %s to: %s" % (opts.user, opts.submit_url)
+        print "Submitting as %s to: %s" % (opts.wowzer_user, opts.submit_url)
     
     run(filename = opts.filename, submit_url = opts.submit_url, user =
-        opts.user, password = opts.password, verbosity = verbosity)
+        opts.wowzer_user, password = opts.wowzer_pw,
+        verbosity = verbosity)
 
     print "All done."
 

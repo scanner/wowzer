@@ -36,5 +36,3 @@ def index(request):
         'auction_list' : auction_list,
         })
     return HttpResponse(t.render(c))
-
-

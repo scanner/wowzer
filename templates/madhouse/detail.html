@@ -10,10 +10,10 @@
     <P>
       Number of items: {{ auction.count }}<br>
       
-      Minimum starting bid: {{ auction.min_bid }}<br>
-      Minimum starting bid for one: {{ auction.min_bid_for_one }}<br>
-      Buyout: {{ auction.buyout }}<br>
-      Minimum buyout for one: {{ auction.buyout_for_one }}<br>
+      Minimum starting bid: {{ auction.min_bid|num_to_gold:"t" }}<br>
+      Minimum starting bid for one: {{ auction.min_bid_for_one|num_to_gold:"t" }}<br>
+      Buyout: {{ auction.buyout|num_to_gold:"t" }}<br>
+      Minimum buyout for one: {{ auction.buyout_for_one|num_to_gold:"t" }}<br>
       Initially seen at: {{ auction.initial_seen }}<br>
       Last seen at: {{ auction.last_seen }}<br>
     </P>
@@ -47,7 +47,7 @@
     <address><a href="mailto:scanner@apricot.com">Scanner</a></address>
 <!-- Created: Wed Aug 17 13:25:32 PDT 2005 -->
 <!-- hhmts start -->
-Last modified: Fri Aug 19 02:15:27 PDT 2005
+Last modified: Fri Aug 19 02:17:29 PDT 2005
 <!-- hhmts end -->
   </body>
 </html>

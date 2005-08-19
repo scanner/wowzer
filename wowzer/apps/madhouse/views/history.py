@@ -8,7 +8,7 @@ for looking at historical auction data.
 # Utility routines..
 #
 from wowzer.apps.madhouse.helpers import average, mode
-from wowzer.apps.items.templatetags.helpers import doit_ntg
+from wowzer.apps.items.templatetags.helpers import doit_ntg, num_to_gold
 
 # django specific imports
 #
@@ -97,13 +97,13 @@ def for_realm_for_faction(request, item_id, realm_id, faction_id):
         datum = { 'date'         : date,
                   'num_auctions' : len(auct_data[date]['buyout']),
                   'buyout_avg'   : auct_data[date]['buyout_avg'],
-                  'buyout_mode'  : auct_data[date]['buyout_mode'],
-                  'buyout_range' : '%s-%s' % (doit_ntg(min(auct_data[date]['buyout']),"t"),
-                                              doit_ntg(max(auct_data[date]['buyout']),"t")),
+                  'buyout_mode'  : ', '.join(num_to_gold(auct_data[date]['buyout_mode'])),
+                  'buyout_range' : '%s - %s' % (doit_ntg(min(auct_data[date]['buyout']),"t"),
+                                                doit_ntg(max(auct_data[date]['buyout']),"t")),
                   'minbid_avg'   : auct_data[date]['minbid_avg'],
-                  'minbid_mode'  : auct_data[date]['minbid_mode'],
-                  'minbid_range' : '%s-%s' % (doit_ntg(min(auct_data[date]['minbid']),"t"),
-                                              doit_ntg(max(auct_data[date]['minbid']),"t")),
+                  'minbid_mode'  : ', '.join(num_to_gold(auct_data[date]['minbid_mode'])),
+                  'minbid_range' : '%s - %s' % (doit_ntg(min(auct_data[date]['minbid']),"t"),
+                                                doit_ntg(max(auct_data[date]['minbid']),"t")),
                   }
         auct_result.append(datum)
 
@@ -116,8 +116,8 @@ def for_realm_for_faction(request, item_id, realm_id, faction_id):
         'auction_result' : auct_result,
         'buyout_avg'     : total_buyout_average,
         'minbid_avg'     : total_minbid_average,
-        'buyout_mode'    : total_buyout_mode,
-        'minbid_mode'    : total_minbid_mode,
+        'buyout_mode'    : ', '.join(num_to_gold(total_buyout_mode)),
+        'minbid_mode'    : ', '.join(num_to_gold(total_minbid_mode)),
         'num_auctions'   : len(auct_list)
         })
     return HttpResponse(t.render(c))

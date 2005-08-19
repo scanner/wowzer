@@ -19,9 +19,9 @@
           <th>Date</th><th># auctions</th><th>Buyout avg.</th><th>Buyout mode</th>
           <th>Buyout range</th><th>Min bid avg.</th><th>Min bid mode</th><th>Min bid range</th></tr>
       {% for auct in auction_result %}
-    <tr><td>{{ auct.date }}</td><td align=center>{{ auct.num_auctions }}</td><td>{{ auct.buyout_avg|num_to_gold:"t" }}</td>
-      <td>{{ auct.buyout_mode|num_to_gold:"t" }}</td><td>{{ auct.buyout_range }}</td><td>{{ auct.minbid_avg|num_to_gold:"t" }}</td>
-      <td>{{ auct.minbid_mode|num_to_gold:"t" }}</td><td>{{ auct.minbid_range }}</td></tr>
+    <tr><td>{{ auct.date }}</td><td align=center>{{ auct.num_auctions }}</td><td align=center>{{ auct.buyout_avg|num_to_gold:"t" }}</td>
+      <td align=center>{{ auct.buyout_mode }}</td><td align=center>{{ auct.buyout_range }}</td><td align=center>{{ auct.minbid_avg|num_to_gold:"t" }}</td>
+      <td align=center>{{ auct.minbid_mode }}</td><td align=center>{{ auct.minbid_range }}</td></tr>
       {% endfor %}
 </table>
     </P>
@@ -30,9 +30,9 @@
     <UL>
       <LI><b>Number of auctions</b>: {{ num_auctions }} </LI>
       <LI> <b>Buyout average</b>: {{ buyout_avg|num_to_gold:"t" }} </LI>
-      <LI> <b>Buyout mode</b>: {{ buyout_mode|num_to_gold:"t" }} </LI>
+      <LI> <b>Buyout mode</b>: {{ buyout_mode }} </LI>
       <LI> <b>Min bid average</b>: {{ minbid_avg|num_to_gold:"t" }} </LI>
-      <LI> <b>Min bid mode</b>: {{ minbid_mode|num_to_gold:"t" }} </LI>
+      <LI> <b>Min bid mode</b>: {{ minbid_mode }} </LI>
     </UL>
     </P>
       <P>
@@ -61,7 +61,7 @@
     <address><a href="mailto:scanner@apricot.com">Scanner</a></address>
 <!-- Created: Thu Aug 18 14:52:46 PDT 2005 -->
 <!-- hhmts start -->
-Last modified: Thu Aug 18 19:07:47 PDT 2005
+Last modified: Thu Aug 18 19:45:58 PDT 2005
 <!-- hhmts end -->
   </body>
 </html>

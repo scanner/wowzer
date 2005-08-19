@@ -38,7 +38,7 @@ def detail(request, toon_id):
 
     aucts = auctions.get_list(owner_id__exact = toon_id,
                               order_by = ('-last_seen',),
-                              limit = 20)
+                              limit = 50)
 
     t = template_loader.get_template('toons/detail')
     c = Context(request, {

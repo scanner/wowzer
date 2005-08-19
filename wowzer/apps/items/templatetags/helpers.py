@@ -38,7 +38,7 @@ def doit_ntg(value, arg):
 
 #############################################################################
 #
-def num_to_gold(value, arg):
+def num_to_gold(value, arg = "t"):
     """This function will convert a raw value in to g/c/s standard used in
     World of Warcraft.
 

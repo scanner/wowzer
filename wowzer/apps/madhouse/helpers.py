@@ -9,19 +9,15 @@ app. Things like computing the average, mode, range of lists of numbers.
 #
 def average(values):
     """Given a list of numbers return the arithmetic mean."""
-
-    sum = 0.0
-    for val in values:
-        sum += val
-
-    return sum / len(values)
+    return sum(values) / len(values)
 
 #############################################################################
 #
-def mode(values):
-    """Given a list of values determine the mode. The mode is simply the number
-    that appears the most often in the set. A set can have more than one
-    mode. This function returns a list."""
+def mode(values, size = 2):
+    """Given a list of values determine the mode. The mode is simply
+    the number that appears the most often in the set. A set can have
+    more than one mode. This function returns a list. The size is the
+    maximum # of elements in the mode list we allow."""
 
     mode_dict = {}
     for val in values:
@@ -39,6 +35,9 @@ def mode(values):
         if mode_dict[val] == max:
             mode.append(val)
 
+    mode.sort(reverse = True)
+    if len(mode) > size:
+        mode = mode[:size]
     return mode
 
     

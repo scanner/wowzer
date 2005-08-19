@@ -33,7 +33,7 @@
       Auctions that this character has created:
     <UL>
       {% for auction in other_aucts %}
-      <LI> <a href="../../../madhouse/detail/{{ auction.id }}/">{{ auction.get_item }}</a> Last seen: {{ auction.last_seen }}</LI>
+            <li><a href="../../detail/{{ auction.id }}/">Auction</a> of <a href="../../../items/detail/{{ auction.get_item.id }}/">{{ auction.get_item }}</a> by <a href="../../../toons/detail/{{ auction.get_owner.id }}/">{{ auction.get_owner }}</a>, last seen: {{ auction.last_seen }}, (<a href="../../history/{{ auction.get_item.id }}/{{ auction.get_realm.id }}/{{ auction.get_faction.id }}/">history</a>)</li>
       {% endfor %}
     </UL>
     </P>
@@ -46,7 +46,7 @@
     <address><a href="mailto:scanner@apricot.com">Scanner</a></address>
 <!-- Created: Wed Aug 17 13:25:32 PDT 2005 -->
 <!-- hhmts start -->
-Last modified: Wed Aug 17 14:23:14 PDT 2005
+Last modified: Thu Aug 18 20:00:53 PDT 2005
 <!-- hhmts end -->
   </body>
 </html>

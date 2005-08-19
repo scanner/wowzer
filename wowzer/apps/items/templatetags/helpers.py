@@ -10,24 +10,18 @@ import django.core.template
 
 #############################################################################
 #
-def num_to_gold(value, arg):
-    """This function will convert a raw value in to g/c/s standard used in
-    World of Warcraft.
-
-    The basic rule is: 100c to 1s, 100s to 1g.
-
-    If 'compact' is true we will not display g/c/s if they are 0.
+def doit_ntg(value, arg):
+    """num_to_gold the filter can handle ints, strings, floats and lists of
+    those things. This is the sub-function that does the acutal work in case
+    of a list.
     """
-
-    # First we need to round up this number to a solid integer.
-    #
     value = int(round(float(value)))
 
     (gold, rem) = divmod(value, 10000)
     (silver, copper) = divmod(rem, 100)
 
-    compact = compact.lower()
-    if compact[0] == "f":
+    arg = arg.lower()
+    if arg[0] == "f":
         return "%dg%ds%dc" % (gold, silver, copper)
 
     # Otherwise we have to be a little trickier.
@@ -41,6 +35,28 @@ def num_to_gold(value, arg):
         res += "%dc" % copper
 
     return res
+
+#############################################################################
+#
+def num_to_gold(value, arg):
+    """This function will convert a raw value in to g/c/s standard used in
+    World of Warcraft.
+
+    The basic rule is: 100c to 1s, 100s to 1g.
+
+    If 'arg' is true we will not display g/c/s if they are 0.
+    """
+
+    # If this is a list then we create a new list that is each individual
+    # value converted. Otherwise we just conver the single value and pass it
+    # back.
+    if isinstance(value, list):
+        result = []
+        for val in value:
+            result.append(doit_ntg(val, arg))
+        return result
+    else:
+        return doit_ntg(value, arg)
 
 # Now we have this function to make it truly useful we register it as a filter
 # thus it can be used in our html template files directly as <9000>|num_to_gold

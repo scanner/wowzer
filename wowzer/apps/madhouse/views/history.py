@@ -8,7 +8,7 @@ for looking at historical auction data.
 # Utility routines..
 #
 from wowzer.apps.madhouse.helpers import average, mode
-from wowzer.apps.helpers import *
+from wowzer.apps.items.templatetags.helpers import doit_ntg
 
 # django specific imports
 #
@@ -98,12 +98,12 @@ def for_realm_for_faction(request, item_id, realm_id, faction_id):
                   'num_auctions' : len(auct_data[date]['buyout']),
                   'buyout_avg'   : auct_data[date]['buyout_avg'],
                   'buyout_mode'  : auct_data[date]['buyout_mode'],
-                  'buyout_range' : '%s-%s' % (min(auct_data[date]['buyout']),
-                                              max(auct_data[date]['buyout'])),
+                  'buyout_range' : '%s-%s' % (doit_ntg(min(auct_data[date]['buyout']),"t"),
+                                              doit_ntg(max(auct_data[date]['buyout']),"t")),
                   'minbid_avg'   : auct_data[date]['minbid_avg'],
                   'minbid_mode'  : auct_data[date]['minbid_mode'],
-                  'minbid_range' : '%s-%s' % (min(auct_data[date]['minbid']),
-                                              max(auct_data[date]['minbid'])),
+                  'minbid_range' : '%s-%s' % (doit_ntg(min(auct_data[date]['minbid']),"t"),
+                                              doit_ntg(max(auct_data[date]['minbid']),"t")),
                   }
         auct_result.append(datum)
 

@@ -22,11 +22,6 @@ from django.models.toons import *
 
 #############################################################################
 #
-def auction(request):
-    return HttpResponse("Hello, world. You're at the madhouse auction index.")
-
-#############################################################################
-#
 def auction_by_owner_name(request, owner_name):
 
     # Look up the owner id and just call auction_by_owner_id

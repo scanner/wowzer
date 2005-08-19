@@ -6,7 +6,7 @@ apps. This includes things like formating monetary values as strings with 'g',
 's', and 'c' designations. Thus: 50000 is 5g0c0s
 """
 
-import django.core.template
+from django.core.template import register_filter
 
 #############################################################################
 #
@@ -61,4 +61,4 @@ def num_to_gold(value, arg = "t"):
 # Now we have this function to make it truly useful we register it as a filter
 # thus it can be used in our html template files directly as <9000>|num_to_gold
 #
-django.core.template.register_filter('num_to_gold', num_to_gold, True)
+register_filter('num_to_gold', num_to_gold, True)

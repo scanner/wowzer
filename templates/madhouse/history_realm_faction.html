@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Auction history of {{ item.name }} for {{ faction.name }} on {{ realm.name }}</title>
+  </head>
+
+  <body>
+    <h1>Auction history of <a href="../../items/detail/{{ item.id }}/">{{ item.name }}</a> for {{ faction.name }} on {{ realm.name }}</h1>
+    <P>
+      NOTE: We only scan back up to {{ limit }} auctions for a specific item
+      so the max number of auctions you will see is {{ limit }}.
+    </P>
+    {% if auction_result %}
+    <P>
+      Auction data - from older dates to new dates:
+      <table>
+          <th><td>Date</td><td># auctions</td><td>Buyout avg.</td><td>Buyout mode</td>
+          <td>Buyout range</td><td>Min bid avg.</td><td>Min bid mode</td><td>Min bid range</td></th>
+      {% for auct in auction_result %}
+    <tr><td>{{ auct.date }}</td><td>{{ auct.num_auctions }}</td><td>{{ auct.buyout_avg }}</td>
+      <td>{{ auct.buyout_mode }}</td><td>{{ auct.buyout_range }}</td><td>{{ auct.minbid_avg }}</td>
+      <td>{{ auct.minbid_mode }}</td><td>{{ auct.minbid_range }}</td></tr>
+      {% endfor %}
+</table>
+    </P>
+    <P>
+      Totals:
+    <UL>
+      <LI><b>Number of auctions</b>: {{ num_auctions }} </LI>
+      <LI> <b>Buyout average</b>: {{ buyout_average }} </LI>
+      <LI> <b>Buyout mode</b>: {{ buyout_mode }} </LI>
+      <LI> <b>Min bid average</b>: {{ minbid_avg }} </LI>
+      <LI> <b>Min bid mode</b>: {{ minbid_mode }} </LI>
+    </UL>
+    </P>
+      <P>
+      Keys:
+      <dl>
+        <dt>Date
+        <dd>The date/time recorded by auctioneer when an auction was
+          scanned. This is the <b>last</b> time this auction was seen.
+        <dt># auctions
+        <dd>The number of auctions for this item that were seen at the same time.
+        <dt>average
+        <dd>We mean the arithmetic mean, ie: sum of the prices divided by the number of prices.
+        <dt>mode
+        <dd>The price that occurs most often. There may be more than one mode for a given set of auctions.
+        <dt>range
+        <dd>The minimum and maximum prices.
+      </dl>
+
+      </P>
+    {% else %}
+    <P>
+      No auction data found for {{ item.name }}
+    </P>
+    {% endif %}
+    <hr>
+    <address><a href="mailto:scanner@apricot.com">Scanner</a></address>
+<!-- Created: Thu Aug 18 14:52:46 PDT 2005 -->
+<!-- hhmts start -->
+Last modified: Thu Aug 18 17:08:35 PDT 2005
+<!-- hhmts end -->
+  </body>
+</html>

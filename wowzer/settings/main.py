@@ -20,11 +20,11 @@ SITE_ID = 1
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = '/usr/local/www/wowzer/media/media/'
 
 # URL that handles the media served from MEDIA_ROOT.
 # Example: "http://media.lawrence.com"
-MEDIA_URL = ''
+MEDIA_URL = 'http://wow.apricot.com/media'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '59%=o6!mzu2jl^ig)55-lt3xfwwiyc6(_zcg=0!1$ty$@q-#06'
@@ -33,6 +33,7 @@ ROOT_URLCONF = 'wowzer.settings.urls.main'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates".
+    "/usr/local/www/wowzer/templates",
     "/home/scanner/src/wowzer/templates",
 )
 

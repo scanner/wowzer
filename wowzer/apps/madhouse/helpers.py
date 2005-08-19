@@ -26,9 +26,9 @@ def mode(values):
     mode_dict = {}
     for val in values:
         if mode_dict.has_key(val):
-            mode_dict[key] += 1
+            mode_dict[val] += 1
         else:
-            mode_dict[key] = 1
+            mode_dict[val] = 1
 
     mode = []
     max = 0.0

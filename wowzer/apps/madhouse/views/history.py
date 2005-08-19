@@ -8,6 +8,7 @@ for looking at historical auction data.
 # Utility routines..
 #
 from wowzer.apps.madhouse.helpers import average, mode
+from wowzer.apps.helpers import *
 
 # django specific imports
 #
@@ -51,6 +52,10 @@ def for_realm_for_faction(request, item_id, realm_id, faction_id):
                                   limit = limit,
                                   order_by = ('-last_seen',))
 
+    item = items.get_object(pk = item_id)
+    realm = realms.get_object(pk = realm_id)
+    faction = factions.get_object(pk = faction_id)
+    
     # okay, now we create a dictionary. The key is the date. The value is
     # another dictionary with keys "buyout" and "minbid" - the values of those
     # keys is a list of the values at that date.
@@ -59,11 +64,13 @@ def for_realm_for_faction(request, item_id, realm_id, faction_id):
     all_buyouts = []
     all_minbids = []
     for auct in auct_list:
-        if not auct_data.has_key(auct.last_seen):
-            auct_data[auct.last_seen]['buyout'] = []
-            auct_data[auct.last_seen]['minbid'] = []
-        auct_data[auct.last_seen]['buyout'].append(auct.buyout_for_one)
-        auct_data[auct.last_seen]['minbid'].append(auct.min_bid_for_one)
+        last_seen = str(auct.last_seen)
+        if not auct_data.has_key(last_seen):
+            auct_data[last_seen] = {}
+            auct_data[last_seen]['buyout'] = []
+            auct_data[last_seen]['minbid'] = []
+        auct_data[last_seen]['buyout'].append(auct.buyout_for_one)
+        auct_data[last_seen]['minbid'].append(auct.min_bid_for_one)
         all_buyouts.append(auct.buyout_for_one)
         all_minbids.append(auct.min_bid_for_one)
 

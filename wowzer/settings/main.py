@@ -3,6 +3,7 @@
 DEBUG = True
 
 ADMINS = (
+    ('Scanner', 'scanner@apricot.com'),
     # ('Your Name', 'your_email@domain.com'),
 )
 

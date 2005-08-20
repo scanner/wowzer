@@ -6,6 +6,7 @@ SavedVariables.lua file."""
 import string
 import lex
 import yacc
+import sys
 import os
 import os.path
 

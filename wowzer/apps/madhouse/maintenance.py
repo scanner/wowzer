@@ -3,13 +3,13 @@
 """This module handles maintenance tasks for the madhouse app.
 Other modules call in to this module to inform recurring tasks of new data.
 
-We have a central module for this so we can have some persistent state for
-things like threads that need to be around always doing things - cases like
-processing uploaded Auctioneer data. We need to make sure that _only one_
-thread is processing this information so we do not get duplicates.
+THis used to have in it a threading object that would import stuff
+from SavedVariable.lua files that had been sent to us. But threading did not
+work so well with mod_python so that function has been pushed out to
+a separate process.
 
-This is done in this module by having it hold on to the thread and have the
-messaging API other modules use to tell this thread to do things.
+If we can figure out how to do the threading stuff it may come back. However
+this module is currently unused.
 """
 
 import sys
@@ -432,8 +432,8 @@ class AuctioneerImporter(threading.Thread):
 # When this module is read in this code down here will execute! This will
 # create an auctioneer importer and start it up.
 #
-auctioneer_import_thread = AuctioneerImporter()
-auctioneer_import_thread.start()
+##auctioneer_import_thread = AuctioneerImporter()
+##auctioneer_import_thread.start()
 
 
 

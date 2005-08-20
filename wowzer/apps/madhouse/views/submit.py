@@ -9,7 +9,9 @@ import zlib
 import os.path
 from datetime import datetime
 
-import wowzer.apps.madhouse.maintenance
+# We do not support the in-django threading stuff at this time. Breaks under
+# mod_python
+##import wowzer.apps.madhouse.maintenance
 
 from django.models.madhouse import uploaddatas
 from django.utils.httpwrappers import HttpResponse
@@ -41,12 +43,14 @@ def submit(request):
     ud.save()
 
     # Now poke the auctioneer importer object in to wakefullness so it will
-    # process any new datums we have.
+    # process any new datums we have. We will bring this back when we support
+    # something like this.. perhaps a forked subprocess? Hmmm.. that might
+    # do it.
     #
-    try:
-        wowzer.apps.madhouse.maintenance.auctioneer_import_thread.wakeup()
-    except:
-        print "Ooops. Unable to wake up the madhouse maintenance thread."
+##    try:
+##        wowzer.apps.madhouse.maintenance.auctioneer_import_thread.wakeup()
+##    except:
+##        print "Ooops. Unable to wake up the madhouse maintenance thread."
     
     return HttpResponse("Thank you for your submission.")
 
@@ -60,11 +64,13 @@ def poke_ud_queue(request):
     """
 
     # Now poke the auctioneer importer object in to wakefullness so it will
-    # process any new datums we have.
+    # process any new datums we have. We will bring this back when we support
+    # something like this.. perhaps a forked subprocess? Hmmm.. that might
+    # do it.
     #
-    try:
-        wowzer.apps.madhouse.maintenance.auctioneer_import_thread.wakeup()
-    except:
-        print "Ooops. Unable to wake up the madhouse maintenance thread."
+##    try:
+##        wowzer.apps.madhouse.maintenance.auctioneer_import_thread.wakeup()
+##    except:
+##        print "Ooops. Unable to wake up the madhouse maintenance thread."
     return HttpResponse("The queue has been poked..")
 

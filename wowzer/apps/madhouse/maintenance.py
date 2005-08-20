@@ -67,7 +67,8 @@ class AuctioneerImporter(threading.Thread):
         #
         self.parser = wowzer.apps.savedvarparser.ParseSavedVariables()
 
-        print "Woot! New AuctioneerImporter Initialized!"
+        sys.stderr.write("Woot! New AuctioneerImporter Initialized!\n")
+        sys.stderr.flush()
         return
 
     #########################################################################
@@ -124,7 +125,8 @@ class AuctioneerImporter(threading.Thread):
             else:
                 (name, count, minbid, buyout, item_instance_id) = parts[3:]
         except:
-            print "Problem spitting auction key: '%s'" % auction_key
+            sys.stderr.write("Problem spitting auction key: '%s'\n" % auction_key)
+            sys.stderr.flush()
             raise
         
         item_class_id = int(item_class_id)
@@ -304,16 +306,18 @@ class AuctioneerImporter(threading.Thread):
         models for users, items, and auctions from this information.
         """
 
-        print "Reading in Auctioneer variable declaration file %s" % \
-              uploaddatum.filename
+        sys.stderr.write("Reading in Auctioneer variable declaration file %s\n" %  uploaddatum.filename)
+        sys.stderr.flush()
         f = open(uploaddatum.filename, 'r')
         data = f.read()
         f.close()
-        print "Done reading in file. Searching for expressions we care about."
+        sys.stderr.write("Done reading in file. Searching for expressions we care about.\n")
+        sys.stderr.flush()
         
         self.parser.process(data)
 
-        print "Done parsing in file. Next we update the db"
+        sys.stderr.write("Done parsing in file. Next we update the db\n")
+        sys.stderr.flush()
 
         # There are two variables we care about in this data: AHSnapshot is
         # what drives our data mining. It has the keys that we can then use to
@@ -329,8 +333,8 @@ class AuctioneerImporter(threading.Thread):
         # these.
         if not self.parser.variables.has_key('AHSnapshot') or \
                not self.parser.variables.has_key('AuctionPrices'):
-            print "Error! File %s was missing one of our Auctioneer " \
-                  "variables" % uploaddatum.filename
+            sys.stderr.write("Error! File %s was missing one of our Auctioneer  variables\n" % uploaddatum.filename)
+            sys.stderr.flush()
             return
         
         for realm_faction in self.parser.variables['AHSnapshot'].keys():
@@ -383,7 +387,8 @@ class AuctioneerImporter(threading.Thread):
         After we have done that we go back to waiting for an event.
         """
 
-        print "AuctioneerImporter is now running!"
+        sys.stderr.write("AuctioneerImporter is now running!\n")
+        sys.stderr.flush()
 
         while True and self.running:
             # Wait for the event to be raised, or until it times out (in 14400
@@ -399,9 +404,11 @@ class AuctioneerImporter(threading.Thread):
             # Otherwise get the list of UploadData objects
             uploaddata = uploaddatas.get_list(processed__exact = False)
 
-            print "We have %d UploadData to process" % len(uploaddata)
+            sys.stderr.write("We have %d UploadData to process\n" % len(uploaddata))
+            sys.stderr.flush()
             for uploaddatum in uploaddata:
-                print "Processing file: %s" % uploaddatum.filename
+                sys.stderr.write("Processing file: %s\n" % uploaddatum.filename)
+                sys.stderr.flush()
                 self.process_uploaded_data(uploaddatum)
 
                 # After we have processed a file we delete the datum
@@ -413,7 +420,8 @@ class AuctioneerImporter(threading.Thread):
                 #uploaddatum.delete()
                 #os.unlink(filename)
 
-            print "Done processing uploaded data. Waiting for more."
+            sys.stderr.write("Done processing uploaded data. Waiting for more.\n")
+            sys.stderr.flush()
 
             # And that is it.. we loop back to the top and we wait for more
             # events.

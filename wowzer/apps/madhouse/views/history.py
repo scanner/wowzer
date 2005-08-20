@@ -5,6 +5,8 @@
 for looking at historical auction data.
 """
 
+from datetime import datetime, timedelta
+
 # Utility routines..
 #
 from wowzer.apps.madhouse.helpers import average, mode
@@ -38,18 +40,19 @@ def for_realm_for_faction(request, item_id, realm_id, faction_id):
     Finally we will also produce: for all the auctions listed the average
     buyout, average minbid, mode of the buyout and mode of the minbid.
 
-    We limit the number of auctions we look up to be 100.
+    We limit the number of auctions we look up to be in the past 60 days
     """
 
     # Modify this to change how many auctions we look up
     #
-    limit = 100
+    limit = datetime.now() - timedelta(days = 60)
+    
     # Get a number of auctions for the specific item within a realm & faction
     #
     auct_list = auctions.get_list(item_id__exact = item_id, buyout__gt = 0,
                                   realm_id__exact = realm_id,
                                   faction_id__exact = faction_id,
-                                  limit = limit,
+                                  initial_seen__gte = limit,
                                   order_by = ('-last_seen',))
 
     item = items.get_object(pk = item_id)

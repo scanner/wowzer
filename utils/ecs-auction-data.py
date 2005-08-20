@@ -234,7 +234,7 @@ def setup_option_parser():
                       "by World of Warcraft as the 'SavedVariables.lua' " \
                       "file. DEFAULT: '%default'")
     parser.add_option("-s", "--submit", type="string", dest="submit_url",
-                      default="http://64.32.190.61:8000/madhouse/submit/",
+                      default="http://wow.apricot.com/madhouse/submit/",
                       help = "The url to which the extracted and compressed " \
                       "variables are sent. DEFAULT: '%default'")
     parser.add_option("-u", "--user", type="string", dest="wowzer_user",

@@ -269,10 +269,13 @@ class AuctioneerImporter(object):
 
         # And finally we create our update our auction object.
         #
-        self.create_or_update_auction(my_auction_key, item, owner, realm,
-                                      faction, buyout, minbid, count,
-                                      last_seen, initial_seen,
-                                      auction_data['bidamount'])
+        self.create_or_update_auction(auction_key = my_auction_key,
+                                      item = item, owner = owner,
+                                      realm = realm, faction = faction,
+                                      buyout = buyout, minbid = minbid,
+                                      count = count, last_seen = last_seen,
+                                      initial_seen = initial_seen,
+                                      bid_amount = auction_data['bidamount'])
         # and that is it.
         #
         return
@@ -291,7 +294,7 @@ class AuctioneerImporter(object):
         """
 
         sys.stderr.write("Reading in Auctioneer variable declaration " \
-                         "file %s\n" %  uploaddatum.filename)
+                         "file %s\n" %  os.path.basename(uploaddatum.filename))
         sys.stderr.flush()
         f = open(uploaddatum.filename, 'r')
         data = f.read()
@@ -336,10 +339,11 @@ class AuctioneerImporter(object):
             realm = find_or_create_realm(realm_name)
             faction = find_or_create_faction(faction_name)
 
+            print "Processing auction entries for %s on %s" % \
+                  (realm.name, faction.name)
             # Loop through all the auction in this (realm, faction)'s auction
             # house.
             #
-            loop_count = 0
             for auction_key in \
                     self.parser.variables['AHSnapshot'][realm_faction].keys():
 
@@ -350,15 +354,6 @@ class AuctioneerImporter(object):
                                      self.parser.variables['AHSnapshot']\
                                      [realm_faction][auction_key],
                                      realm, faction)
-                # If loop_count > 100 sleep for 0.2 seconds to give the
-                # database engine a bit of a rest (this is a hack. It is not
-                # right that these inserts push postgres to the wall.)
-                #
-                if loop_count > 100:
-                    time.sleep(0.2)
-                    loop_count = 0
-                else:
-                    loop_count += 1
 
         # Now that we have processed all the auctions we need to make this
         # uploaddatum as processed and when we finished processing it.

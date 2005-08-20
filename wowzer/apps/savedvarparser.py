@@ -6,6 +6,8 @@ SavedVariables.lua file."""
 import string
 import lex
 import yacc
+import os
+import os.path
 
 #############################################################################
 #
@@ -165,13 +167,24 @@ class ParseSavedVariables:
 
     ########################################################################
     #
-    def __init__(self):
+    def __init__(self, output_dir = None):
         """This will initialize our lexer and parser and define the dictionary
         used to hold the results of our parsing.
         """
+
+        # We dump our parser table in to the media top directory of the wowzer
+        # app.. we can reverse engineer where that is from where this file is.
+        #
+        if output_dir is None:
+            output_dir = os.path.join(os.path.dirname(__file__) , "..", "..",
+                                      "media")
+            sys.stderr.write("SavedParser - parse tables will be in: %s " % \
+                             output_dir)
+            sys.stderr.flush()
+
         self.variables = {}
         self.lexer = lex.lex(module = self)
-        self.parser = yacc.yacc(module = self)
+        self.parser = yacc.yacc(module = self, outputdir = output_dir)
         # self.parser = yacc.yacc(module = self, write_tables = 0)
 
         return

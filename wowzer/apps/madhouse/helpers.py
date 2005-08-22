@@ -9,7 +9,10 @@ app. Things like computing the average, mode, range of lists of numbers.
 #
 def average(values):
     """Given a list of numbers return the arithmetic mean."""
-    return sum(values) / len(values)
+    try:
+        return sum(values) / len(values)
+    except: ZeroDivisionError:
+        return 0
 
 #############################################################################
 #

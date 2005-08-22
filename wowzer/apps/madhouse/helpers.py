@@ -11,7 +11,7 @@ def average(values):
     """Given a list of numbers return the arithmetic mean."""
     try:
         return sum(values) / len(values)
-    except: ZeroDivisionError:
+    except ZeroDivisionError:
         return 0
 
 #############################################################################

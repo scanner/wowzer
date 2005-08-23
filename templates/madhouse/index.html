@@ -9,7 +9,7 @@
     {% if auction_list %}
         <ul>
         {% for auction in auction_list %}
-            <li><a href="detail/{{ auction.id }}/">Auction</a> of <a href="../items/detail/{{ auction.get_item.id }}/">{{ auction.get_item }}</a> by <a href="../toons/detail/{{ auction.get_owner.id }}/">{{ auction.get_owner }}</a>, last seen: {{ auction.last_seen }}, (<a href="history/{{ auction.get_item.id }}/{{ auction.get_realm.id }}/{{ auction.get_faction.id }}/">history</a>)</li>
+            <Li><a href="detail/{{ auction.id }}/">Auction</a> of <a href="../items/detail/{{ auction.get_item.id }}/">{{ auction.get_item }}</a> by <a href="../toons/detail/{{ auction.get_owner.id }}/">{{ auction.get_owner }}</a>, last seen: {{ auction.last_seen }}, (<a href="history/{{ auction.get_item.id }}/{{ auction.get_realm.id }}/{{ auction.get_faction.id }}/">history</a>) (<a href="{{ auction.get_item.name|name_to_thotturl }}">Thottbot</a>)</li>
         {% endfor %}
         </ul>
     {% else %}
@@ -20,7 +20,7 @@
     <address><a href="mailto:scanner@apricot.com">Scanner</a></address>
 <!-- Created: Wed Aug 17 13:15:55 PDT 2005 -->
 <!-- hhmts start -->
-Last modified: Thu Aug 18 14:36:34 PDT 2005
+Last modified: Tue Aug 23 12:24:43 PDT 2005
 <!-- hhmts end -->
   </body>
 </html>

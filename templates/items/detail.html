@@ -10,7 +10,8 @@
     {% if item.player_made %}
       {{ item }} is player made.<br>
     {% endif %}
-      Category: {{ item.get_category.name }}
+      Category: {{ item.get_category.name }}<br>
+      Link on <a href="{{ item.name|name_to_thotturl }}">Thottbot</a><br>
     </P>
     {% if auction_list %}
     <P>
@@ -27,7 +28,7 @@
     <address><a href="mailto:scanner@apricot.com">Scanner</a></address>
 <!-- Created: Thu Aug 18 14:23:17 PDT 2005 -->
 <!-- hhmts start -->
-Last modified: Thu Aug 18 17:42:29 PDT 2005
+Last modified: Tue Aug 23 12:16:57 PDT 2005
 <!-- hhmts end -->
   </body>
 </html>

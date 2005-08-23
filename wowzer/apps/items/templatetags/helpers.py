@@ -5,6 +5,7 @@
 apps. This includes things like formating monetary values as strings with 'g',
 's', and 'c' designations. Thus: 50000 is 5g0c0s
 """
+import urllib
 
 from django.core.template import register_filter
 
@@ -58,7 +59,19 @@ def num_to_gold(value, arg = "t"):
     else:
         return doit_ntg(value, arg)
 
+#############################################################################
+#
+def name_to_thotturl(value, _):
+    """Given an item name translate it in to a URL that should locate the item
+    on thottbot.
+
+    This means convert spaces to +, at least.. and I am sure some other things,
+    and prefix it with 'http://www.thottbot.com/?s='
+    """
+    return 'http://www.thottbot.com/?s=' + urllib.quote_plus(value)
+    
 # Now we have this function to make it truly useful we register it as a filter
 # thus it can be used in our html template files directly as <9000>|num_to_gold
 #
 register_filter('num_to_gold', num_to_gold, True)
+register_filter('name_to_thotturl', name_to_thotturl, False)

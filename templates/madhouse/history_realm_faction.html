@@ -8,7 +8,8 @@
   <body>
     <h1>Auction history of <a href="../../../../../items/detail/{{ item.id }}/">{{ item.name }}</a> for {{ faction.name }} on {{ realm.name }}</h1>
     <P>
-      NOTE: We only scan back up to the date {{ limit }} for a specific item.
+      NOTE: We only scan back up to the date {{ limit }} for a specific item.<br>
+      Item on <a href="{{ item.name|name_to_thotturl }}">Thottbot</a>
     </P>
     {% if auction_result %}
     <P>
@@ -60,7 +61,7 @@
     <address><a href="mailto:scanner@apricot.com">Scanner</a></address>
 <!-- Created: Thu Aug 18 14:52:46 PDT 2005 -->
 <!-- hhmts start -->
-Last modified: Fri Aug 19 21:26:46 PDT 2005
+Last modified: Tue Aug 23 12:08:49 PDT 2005
 <!-- hhmts end -->
   </body>
 </html>

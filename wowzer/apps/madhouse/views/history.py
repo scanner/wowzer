@@ -53,7 +53,7 @@ def for_realm_for_faction(request, item_id, realm_id, faction_id):
                                   realm_id__exact = realm_id,
                                   faction_id__exact = faction_id,
                                   initial_seen__gte = limit,
-                                  order_by = ('-last_seen',))
+                                  order_by = ('realm', 'faction','-last_seen'))
 
     item = items.get_object(pk = item_id)
     realm = realms.get_object(pk = realm_id)

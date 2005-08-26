@@ -38,7 +38,8 @@ def mode(values, size = 2):
         if mode_dict[val] == max:
             mode.append(val)
 
-    mode.sort(reverse = True)
+    mode.sort()
+    mode.reverse()
     if len(mode) > size:
         mode = mode[:size]
     return mode

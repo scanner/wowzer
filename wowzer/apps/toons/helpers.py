@@ -42,8 +42,8 @@ def find_or_create_toon(name, realm, faction):
     try:
         toon = toons.get_object(name__exact = name)
     except toons.ToonDoesNotExist:
-        toon = toons.Toon(name = name, realm_id = realm.id,
-                          faction_id = faction.id)
+        toon = toons.Toon(name = name, realm = realm,
+                          faction = faction)
         toon.save()
 
     return toon

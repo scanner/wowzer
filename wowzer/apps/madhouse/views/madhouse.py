@@ -26,11 +26,12 @@ def index(request):
     """This will display the twenty last seen auctions.
 
     What I really want to do here is display the top twenty auctions that for
-    that item have the lowest mid_bid_for_one price.
+    that item have the lowest min_bid_for_one price.
     """
 
     auction_list = auctions.get_list(limit = 100,
-                                     order_by = ('-last_seen',))
+                                     order_by = ('realm', 'faction',
+                                                 '-last_seen',))
     t = template_loader.get_template('madhouse/index')
     c = Context(request, {
         'auction_list' : auction_list,

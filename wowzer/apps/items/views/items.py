@@ -36,7 +36,7 @@ def detail(request, item_id):
     """
 
     item = items.get_object(pk = item_id)
-    auction_list = auctions.get_list(item_id__exact = item_id, limit = 20,
+    auction_list = auctions.get_list(item__id__exact = item_id, limit = 20,
                                      order_by = ('-last_seen',))
 
     t = template_loader.get_template('items/detail')

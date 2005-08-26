@@ -36,7 +36,7 @@ def detail(request, toon_id):
     except toons.ToonDoesNotExist:
         raise Http404
 
-    aucts = auctions.get_list(owner_id__exact = toon_id,
+    aucts = auctions.get_list(owner__id__exact = toon_id,
                               order_by = ('-last_seen',),
                               limit = 50)
 

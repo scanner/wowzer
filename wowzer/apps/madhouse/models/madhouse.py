@@ -24,49 +24,60 @@ class Auction(meta.Model):
     The 'min_bid' is simply the lowest bid we have seen for an auction.
     """
 
-    fields = (
-        meta.ForeignKey(Toon, name = "owner_id", rel_name = "owner"),
-        meta.CharField("auction_key", maxlength = 128, db_index = True),
+    owner = meta.ForeignKey(Toon)
+    auction_key = meta.CharField(maxlength = 128, db_index = True)
+    item = meta.ForeignKey(Item)                 # We have both Item and
+                                                 # ItemInstance
+    iteminstance = meta.ForeignKey(ItemInstance, # relations because even
+                                                 # though Item is
+                                   blank = True, # contained via ItemInstance
+                                                 # we want to
+                                   null = True)  # be able to make it easy
+                                                 # to say "Give me all the
+                                                 # auctions of LBS's that we
+                                                 # know about so I can plot
+                                                 # their buyout
+                                                 # price over time.
+                                                 #
+                                                 # ItemInstance is here so we
+                                                 # can say 'how many times
+                                                 # has this specific item
+                                                 # instance been auctioned?
+                                                 # Of dubious use. The idea
+                                                 # is to track items that
+                                                 # get flipped a lot.
+                                                 #
+                                                 # NOTE: Some things like linen
+                                                 # and such have no instance id
+                                                 # ever.
 
-        meta.ForeignKey(Item),         # We have both Item and ItemInstance
-        meta.ForeignKey(ItemInstance,  # relations because even though Item is
-                        blank = True,  # contained via ItemInstance we want to
-                        null = True),  # be able to make it easy to say "Give
-                                       # me all the auctions of LBS's that we
-                                       # know about so I can plot their buyout
-                                       # price over time.
-                                       #
-                                       # ItemInstance is here so we can say
-                                       # 'how many times has this specific item
-                                       # instance been auctioned? Of dubious
-                                       # use. The idea is to track items that
-                                       # get flipped a lot.
-                                       #
-                                       # NOTE: Some things like linen and such
-                                       # have no instance id ever.
+    realm = meta.ForeignKey(Realm)
+    faction = meta.ForeignKey(Faction)
+    buyout = meta.IntegerField()         # 0 for no buyout
+    buyout_for_one = meta.IntegerField() # ditto
 
-        meta.ForeignKey(Realm),
-        meta.ForeignKey(Faction),
-        meta.IntegerField("buyout", db_index = True),         # 0 for no buyout
-        meta.IntegerField("buyout_for_one", db_index = True), # ditto
+    min_bid = meta.IntegerField()
+    min_bid_for_one = meta.IntegerField()
 
-        meta.IntegerField("min_bid", db_index = True),
-        meta.IntegerField("min_bid_for_one", db_index = True),
+    count = meta.IntegerField()     # How many of this item (eg: 20xSilk)
+                                    # Used to calc. the "for_one" prices
 
-        meta.IntegerField("count"),     # How many of this item (eg: 20xSilk)
-                                        # Used to calc. the "for_one" prices
+    last_seen = meta.DateTimeField()
+    initial_seen = meta.DateTimeField("initial_seen")
 
-        meta.DateTimeField("last_seen"),
-        meta.DateTimeField("initial_seen"),
-        )
-
-    ordering = ['initial_seen']
+    class META:
+        ordering = ['initial_seen']
 
     #########################################################################
     #
     def __repr__(self):
         return "auction of %s by %s" % (self.get_item().name,
                                         self.get_owner().name)
+
+    #########################################################################
+    #
+    def get_absolute_url(self):
+        return "/madhouse/detail/%d/" % self.id
     
 #############################################################################
 #
@@ -101,16 +112,15 @@ class Bid(meta.Model):
     and add an additional relation for that.
     """
 
-    fields = (
-        meta.ForeignKey(Item, db_index = True),
-        meta.ForeignKey(Auction, db_index = True),
-        meta.DateTimeField("initial_seen"),
-        meta.DateTimeField("last_seen"),
-        meta.IntegerField("bid", db_index = True),
-        meta.IntegerField("bid_for_one"),
-        )
+    item = meta.ForeignKey(Item, db_index = True)
+    auction = meta.ForeignKey(Auction, db_index = True)
+    initial_seen = meta.DateTimeField()
+    last_seen = meta.DateTimeField()
+    bid = meta.IntegerField(db_index = True)
+    bid_for_one = meta.IntegerField()
 
-    ordering = ['initial_seen', 'last_seen']
+    class META:
+        ordering = ['initial_seen', 'last_seen']
     
     #########################################################################
     #
@@ -133,18 +143,16 @@ class UploadData(meta.Model):
     information.
     """
 
-    fields = (
-        meta.CharField('filename', maxlength = 1024),
-        meta.DateTimeField('uploaded_at'),
-        meta.BooleanField('processed', default = False),
-        meta.DateTimeField('when_processed', null = True, blank = True),
-        meta.ForeignKey(User, null = True, blank = True),
-        )
+    filename = meta.CharField(maxlength = 1024)
+    uploaded_at = meta.DateTimeField()
+    processed = meta.BooleanField(default = False)
+    when_processed = meta.DateTimeField(null = True, blank = True)
+    meta.ForeignKey(User, null = True, blank = True)
 
-    ordering = ['uploaded_at']
+    class META:
+        ordering = ['uploaded_at']
 
     #########################################################################
     #
     def __repr__(self):
         return self.filename
-

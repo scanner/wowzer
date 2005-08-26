@@ -49,9 +49,9 @@ def for_realm_for_faction(request, item_id, realm_id, faction_id):
     
     # Get a number of auctions for the specific item within a realm & faction
     #
-    auct_list = auctions.get_list(item_id__exact = item_id, buyout__gt = 0,
-                                  realm_id__exact = realm_id,
-                                  faction_id__exact = faction_id,
+    auct_list = auctions.get_list(item__id__exact = item_id, buyout__gt = 0,
+                                  realm__id__exact = realm_id,
+                                  faction__id__exact = faction_id,
                                   initial_seen__gte = limit,
                                   order_by = ('realm', 'faction','-last_seen'))
 
@@ -96,7 +96,9 @@ def for_realm_for_faction(request, item_id, realm_id, faction_id):
     # dictionary. The list is built in date order.
     #
     auct_result = []
-    for date in sorted(auct_data.keys()):
+    ad_keys = auct_data.keys()
+    ad_keys.sort()
+    for date in ad_keys:
         datum = { 'date'         : date,
                   'num_auctions' : len(auct_data[date]['buyout']),
                   'buyout_avg'   : auct_data[date]['buyout_avg'],

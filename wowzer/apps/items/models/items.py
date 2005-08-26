@@ -28,12 +28,11 @@ class Category(meta.Model):
     does.
     """
 
-    fields = (
-        meta.CharField('name', maxlength = 128),
-        meta.CharField('description', maxlength = 1024),
-        )
+    name = meta.CharField(maxlength = 128)
+    description = meta.CharField(maxlength = 1024)
 
-    verbose_name_plural = 'categories'
+    class META:
+        verbose_name_plural = 'categories'
     
     #########################################################################
     #
@@ -63,41 +62,44 @@ class Item(meta.Model):
     different items. If we change something it is likely to be that.
     """
 
-    fields = (
-        # The 'wow-id' is a string that is three integers separated by colons.
-        # Both auctioneer & lootlink represent an object in WoW using this
-        # although they differ on the order of int's 2 & 3.
-        #
-        # Since we mostly care about auctioneer we are using its definitions.
-        #
-        # The ints are (in order): item id, random property, enchant
-        #
-        # XXX The name is derived from these fields to some extent. We could
-        # argue for a data model that uses some of these numbers as a foreign
-        # key and even have our name somewhat generated from that.
-        #
-        meta.CharField('wow_id', maxlength = 32, db_index = True),
+    # The 'wow-id' is a string that is three integers separated by colons.
+    # Both auctioneer & lootlink represent an object in WoW using this
+    # although they differ on the order of int's 2 & 3.
+    #
+    # Since we mostly care about auctioneer we are using its definitions.
+    #
+    # The ints are (in order): item id, random property, enchant
+    #
+    # XXX The name is derived from these fields to some extent. We could
+    # argue for a data model that uses some of these numbers as a foreign
+    # key and even have our name somewhat generated from that.
+    #
+    wow_id = meta.CharField(maxlength = 32, db_index = True)
 
-        # The name of this kind of item, aka: "Rod of Arcane Wrath"
-        #
-        meta.CharField('name', maxlength = 512, db_index = True),
+    # The name of this kind of item, aka: "Rod of Arcane Wrath"
+    #
+    name = meta.CharField(maxlength = 512, db_index = True)
 
-        meta.BooleanField('player_made'),
+    player_made = meta.BooleanField()
 
-        # An item may only be in one category (armor, weapon, reagent)
-        #
-        meta.ForeignKey(Category),
+    # An item may only be in one category (armor, weapon, reagent)
+    #
+    category = meta.ForeignKey(Category)
 
-        # XXX Maybe we should store foreign keys for the wow_id elements.
-        #     But not sure if I want to look up how man "Foobar"'s there are.
-        #     or how many have the mighty spirit enchant.
-        #
-        )
+    # XXX Maybe we should store foreign keys for the wow_id elements.
+    #     But not sure if I want to look up how man "Foobar"'s there are.
+    #     or how many have the mighty spirit enchant.
+    #
 
     #########################################################################
     #
     def __repr__(self):
         return self.name
+
+    #########################################################################
+    #
+    def get_absolute_url(self):
+        return "/items/detail/%d/" % self.id
     
 #############################################################################
 #
@@ -113,9 +115,11 @@ class ItemInstance(meta.Model):
     purposes.
     """
 
-    fields = (
-        meta.ForeignKey(Item),
-        meta.ForeignKey(Realm),
-        meta.IntegerField("item_instance_id", db_index = True),
-        )
-        
+    item = meta.ForeignKey(Item)
+    realm = meta.ForeignKey(Realm)
+    item_instance_id = meta.IntegerField(db_index = True)
+
+    #########################################################################
+    #
+    def __repr__(self):
+        return self.get_item().name

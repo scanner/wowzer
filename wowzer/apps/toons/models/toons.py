@@ -16,12 +16,11 @@ class RealmType(meta.Model):
     a little class-happy.
     """
 
-    fields = (
-        meta.CharField('type', maxlength = 32),
-        meta.CharField('description', maxlength = 1024),
-        )
+    type = meta.CharField(maxlength = 32)
+    description = meta.CharField(maxlength = 1024)
 
-    admin = meta.Admin()
+    class META:
+        admin = meta.Admin()
     
     #########################################################################
     #
@@ -36,12 +35,11 @@ class Realm(meta.Model):
     azeroth. A specific player can only exist on a single realm.
     """
 
-    fields = (
-        meta.CharField('name', maxlength = 128),
-        meta.ForeignKey(RealmType, blank = True, null = True),
-        )
-    
-    admin = meta.Admin()
+    name = meta.CharField(maxlength = 128)
+    meta.ForeignKey(RealmType, blank = True, null = True)
+
+    class META:
+        admin = meta.Admin()
 
     #########################################################################
     #
@@ -59,12 +57,11 @@ class Faction(meta.Model):
     realm. However, the same factions occur on all realms.
     """
 
-    fields = (
-        meta.CharField('name', maxlength = 128),
-        meta.CharField('description', maxlength = 1024),
-        )
-    
-    admin = meta.Admin()
+    name = meta.CharField(maxlength = 128)
+    description = meta.CharField(maxlength = 1024)
+
+    class META:
+        admin = meta.Admin()
 
     #########################################################################
     #
@@ -78,12 +75,11 @@ class Race(meta.Model):
     on all servers.
     """
 
-    fields = (
-        meta.CharField('name', maxlength = 128),
-        meta.CharField('description', maxlength = 1024),
-        )
+    name = meta.CharField(maxlength = 128)
+    description = meta.CharField(maxlength = 1024)
 
-    admin = meta.Admin()
+    class META:
+        admin = meta.Admin()
 
     #########################################################################
     #
@@ -97,14 +93,12 @@ class Class(meta.Model):
     classes exist on all realms.
     """
 
-    fields = (
-        meta.CharField('name', maxlength = 128),
-        meta.CharField('description', maxlength = 1024),
-        )
+    name = meta.CharField(maxlength = 128)
+    description = meta.CharField(maxlength = 1024)
 
-    admin = meta.Admin()
-
-    verbose_name_plural = 'classes'
+    class META:
+        admin = meta.Admin()
+        verbose_name_plural = 'classes'
 
     #########################################################################
     #
@@ -117,18 +111,22 @@ class Guild(meta.Model):
     """
     """
 
-    fields = (
-        meta.CharField('name', maxlength = 128),
-        meta.ForeignKey(Realm),
-        meta.ForeignKey(Faction),
-        )
+    name = meta.CharField(maxlength = 128)
+    realm = meta.ForeignKey(Realm)
+    faction = meta.ForeignKey(Faction)
 
-    admin = meta.Admin()
+    class META:
+        admin = meta.Admin()
 
     #########################################################################
     #
     def __repr__(self):
         return self.name
+
+    #########################################################################
+    #
+    def get_absolute_url(self):
+        return "/toons/guild/%d/" % self.id
 
 #############################################################################
 #
@@ -136,23 +134,26 @@ class Toon(meta.Model):
     """
     """
 
-    fields = (
-        meta.CharField('name', maxlength = 256),
-        meta.ForeignKey(Realm),
-        meta.ForeignKey(Faction),
-        meta.ForeignKey(Race, null = True, blank = True),
-        meta.ForeignKey(Class, null = True, blank = True),
-        meta.ForeignKey(Guild, null = True, blank = True),
-        meta.CharField('guild_rank', maxlength = 256, null = True,
-                       blank = True),
-        meta.ForeignKey(User, null = True, blank = True),
-        )
+    name = meta.CharField(maxlength = 256)
+    realm = meta.ForeignKey(Realm)
+    faction = meta.ForeignKey(Faction)
+    race = meta.ForeignKey(Race, null = True, blank = True)
+    klass = meta.ForeignKey(Class, db_column = "class_id",
+                            null = True, blank = True)
+    guild = meta.ForeignKey(Guild, null = True, blank = True)
+    guild_rank = meta.CharField(maxlength = 256, null = True, blank = True)
+    user = meta.ForeignKey(User, null = True, blank = True)
 
-    admin = meta.Admin()
-    ordering = ['name']
+    class META:
+        admin = meta.Admin()
+        ordering = ['name']
     
     #########################################################################
     #
     def __repr__(self):
         return "%s of %s" % (self.name, self.get_realm().name)
 
+    #########################################################################
+    #
+    def get_absolute_url(self):
+        return "/toons/toon/%d/" % self.id

@@ -66,7 +66,7 @@ def detail(request, auction_id):
     item = auction.get_item()
     bids = auction.get_bid_list()
     realm = auction.get_realm()
-    other_aucts = auctions.get_list(owner_id__exact = owner.id,
+    other_aucts = auctions.get_list(owner__id__exact = owner.id,
                                     order_by = ('-last_seen',),
                                     limit = 20)
     t = template_loader.get_template('madhouse/detail')

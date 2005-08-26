@@ -30,7 +30,7 @@ def find_or_create_item(item_class_id, rand_prop_id, enchant_id,
         item = items.get_object(wow_id__exact = item_key)
     except items.ItemDoesNotExist:
         item = items.Item(wow_id = item_key, name = name,
-                          player_made = player_made, category_id = category.id)
+                          player_made = player_made, category = category)
         item.save()
     return item
 
@@ -41,12 +41,12 @@ def find_or_create_item_instance(item_instance_id, item, realm):
     try:
         item_instance = iteminstances.get_object(item_instance_id__exact = \
                                                  item_instance_id,
-                                                 realm_id__exact = realm.id)
+                                                 realm__id__exact = realm.id)
     except iteminstances.ItemInstanceDoesNotExist:
         item_instance = iteminstances.ItemInstance(item_instance_id = \
                                                    item_instance_id,
-                                                   item_id = item.id,
-                                                   realm_id = realm.id)
+                                                   item = item,
+                                                   realm = realm)
         item_instance.save()
     return item_instance
 

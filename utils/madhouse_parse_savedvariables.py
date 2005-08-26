@@ -44,12 +44,6 @@ class AuctioneerImporter(object):
         #
         self.running = True
 
-        # This class is what holds on to the single reference to our parser
-        # object that can parse the declarations in a SavedVariables.lua
-        # file in to python dictionaries.
-        #
-        self.parser = ParseSavedVariables(output_dir = "/var/tmp/")
-
         sys.stderr.write("Woot! New AuctioneerImporter Initialized!\n")
         sys.stderr.flush()
         return
@@ -303,8 +297,14 @@ class AuctioneerImporter(object):
                          "we care about.\n")
         sys.stderr.flush()
         
-        self.parser.process(data)
+        # This class is what holds on to the single reference to our parser
+        # object that can parse the declarations in a SavedVariables.lua
+        # file in to python dictionaries.
+        #
+        self.parser = ParseSavedVariables(output_dir = "/var/tmp/")
 
+        self.parser.process(data)
+        del data
         sys.stderr.write("Done parsing in file. Next we update the db\n")
         sys.stderr.flush()
 
@@ -358,6 +358,8 @@ class AuctioneerImporter(object):
         # Now that we have processed all the auctions we need to make this
         # uploaddatum as processed and when we finished processing it.
         #
+        self.parser = None
+        del self.parser
         uploaddatum.processed = True
         uploaddatum.when_processed = datetime.now()
         uploaddatum.save()

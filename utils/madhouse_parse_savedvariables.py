@@ -149,8 +149,7 @@ class AuctioneerImporter(object):
             # that bids last_seen_time. If it does not create a new bid.
             #
             if bid_amount > 0:
-                bid_list = bids.get_list(auction_id__exact = auction.id,
-                                         bid__exact = bid_amount)
+                bid_list = auction.get_bid_list(bid__exact = bid_amount)
                 if len(bid_list) == 0:
                     # No bids at this price, make a new one.
                     #

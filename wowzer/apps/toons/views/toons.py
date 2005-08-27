@@ -36,9 +36,8 @@ def detail(request, toon_id):
     except toons.ToonDoesNotExist:
         raise Http404
 
-    aucts = auctions.get_list(owner__id__exact = toon_id,
-                              order_by = ('-last_seen',),
-                              limit = 50)
+    aucts = toon.get_madhouse_auction_list(order_by = ('-last_seen',),
+                                           limit = 50)
 
     t = template_loader.get_template('toons/detail')
     c = Context(request, {

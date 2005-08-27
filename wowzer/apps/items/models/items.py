@@ -16,7 +16,7 @@
 #
 from django.core import meta
 
-from wowzer.apps.toons.models.toons import Realm
+from django.models.toons import Realm
 
 #############################################################################
 #

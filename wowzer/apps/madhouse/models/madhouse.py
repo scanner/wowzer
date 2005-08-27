@@ -7,8 +7,9 @@
 from django.core import meta
 from django.models.auth import User
 
-from wowzer.apps.toons.models.toons import Realm, Toon, Faction
-from wowzer.apps.items.models.items import Item, ItemInstance
+#from wowzer.apps.toons.models.toons import Realm, Toon, Faction
+from django.models.toons import Realm, Toon, Faction
+from django.models.items import Item, ItemInstance
 
 #############################################################################
 #

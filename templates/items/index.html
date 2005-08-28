@@ -20,7 +20,7 @@
       {% if item_list %}
     <UL>
       {% for item in item_list %}
-      <LI> <a href="item.get_absolute_url">{{ item }}</a> (<a href="{{ auction.get_item.name|name_to_thotturl }}">Thottbot</a>) </LI>
+      <LI> <a href="{{ item.get_absolute_url }}">{{ item }}</a> (<a href="{{ item.name|name_to_thotturl }}">Thottbot</a>) </LI>
       {% endfor %}
     </UL>
     {% else %}
@@ -34,7 +34,7 @@
     <address><a href="mailto:scanner@apricot.com">Scanner</a></address>
 <!-- Created: Sun Aug 28 14:35:39 PDT 2005 -->
 <!-- hhmts start -->
-Last modified: Sun Aug 28 15:17:50 PDT 2005
+Last modified: Sun Aug 28 15:21:12 PDT 2005
 <!-- hhmts end -->
   </body>
 </html>

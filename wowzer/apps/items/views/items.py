@@ -70,7 +70,7 @@ def search(request):
 
     # We should do some quoting to make sure this is a safe request
     #
-    item_search = request.GET['search']
+    item_search = request.GET['item_search']
 
     # Find all the items that match our search. Eventually we should put in
     # pagination so that you can more easily browse the list of what is in the

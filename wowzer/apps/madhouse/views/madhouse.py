@@ -29,11 +29,14 @@ def index(request):
     that item have the lowest min_bid_for_one price.
     """
 
-    auction_list = auctions.get_list(limit = 100,
+    limit = 100
+    auction_list = auctions.get_list(limit = limit,
                                      order_by = ('realm', 'faction',
                                                  '-last_seen',))
     t = template_loader.get_template('madhouse/index')
     c = Context(request, {
+        'limit'        : limit,
         'auction_list' : auction_list,
         })
     return HttpResponse(t.render(c))
+

@@ -23,9 +23,23 @@ from django.models.toons import *
 #############################################################################
 #
 def index(request):
-    """Placeholder for something that lets you search our item db.
+    """Do a simplistic search.. this just puts data up on the page letting
+    people start their own searched.
     """
-    return HttpResponse("Nothing to see here yet. Move along.")
+    limit = 100
+
+    # Find all the items that a simple search. Eventually we should put in
+    # pagination so that you can more easily browse the list of what is in the
+    # db. Probably doing something like 'name__gt <last name on page>'
+    #
+    item_list = items.get_list(limit = 100, order_by = ('name',))
+
+    t = template_loader.get_template('items/index')
+    c = Context(request, {
+        'limit'        : limit,
+        'item_list'    : item_list,
+        })
+    return HttpResponse(t.render(c))
 
 #############################################################################
 #
@@ -45,3 +59,31 @@ def detail(request, item_id):
         'auction_list' : auction_list,
         })
     return HttpResponse(t.render(c))
+
+#############################################################################
+#
+def search(request):
+    """Handles a submission of a form letting people search for auctions by
+    item name. We use the same template that was used by the index, too."""
+
+    limit = 100
+
+    # We should do some quoting to make sure this is a safe request
+    #
+    item_search = request.GET['search']
+
+    # Find all the items that match our search. Eventually we should put in
+    # pagination so that you can more easily browse the list of what is in the
+    # db. Probably doing something like 'name__gt <last name on page>'
+    #
+    item_list = items.get_list(name__icontains = item_search, limit = 100,
+                               order_by = ('name',))
+
+    t = template_loader.get_template('items/index')
+    c = Context(request, {
+        'limit'        : limit,
+        'item_list'    : item_list,
+        'item_search'  : item_search,
+        })
+    return HttpResponse(t.render(c))
+

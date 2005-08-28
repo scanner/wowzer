@@ -156,4 +156,4 @@ class Toon(meta.Model):
     #########################################################################
     #
     def get_absolute_url(self):
-        return "/toons/toon/%d/" % self.id
+        return "/toons/detail/%d/" % self.id

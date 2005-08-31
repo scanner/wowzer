@@ -6,7 +6,7 @@
   </head>
 
   <body>
-    <h1>Auction history of <a href="../../../../../items/detail/{{ item.id }}/">{{ item.name }}</a> for {{ faction.name }} on {{ realm.name }}</h1>
+    <h1>Auction history of <a href="{{ item.get_absolute_url }}">{{ item.name }}</a> for {{ faction.name }} on {{ realm.name }}</h1>
     <P>
       NOTE: We only scan back up to the date {{ limit }} for a specific item.<br>
       Item on <a href="{{ item.name|name_to_thotturl }}">Thottbot</a>
@@ -54,14 +54,14 @@
       </P>
     {% else %}
     <P>
-      No auction data found for <a href="../../../../../items/detail/{{ item.id }}/">{{ item.name }}</a>
+      No auction data found for <a href="{{ item.get_absolute_url }}">{{ item.name }}</a>
     </P>
     {% endif %}
     <hr>
     <address><a href="mailto:scanner@apricot.com">Scanner</a></address>
 <!-- Created: Thu Aug 18 14:52:46 PDT 2005 -->
 <!-- hhmts start -->
-Last modified: Tue Aug 23 19:33:51 PDT 2005
+Last modified: Wed Aug 31 00:34:52 PDT 2005
 <!-- hhmts end -->
   </body>
 </html>

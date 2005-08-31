@@ -6,7 +6,7 @@
   </head>
 
   <body>
-    <h1>Auction Detail: {{ item }} by <a href="../../../toons/detail/{{ owner.id }}/">{{ owner }}</a></h1>
+    <h1>Auction Detail: {{ item }} by <a href="{{ owner.get_absolute_url }}">{{ owner }}</a></h1>
     <P>
       Number of items: {{ auction.count }}<br>
       Minimum starting bid: {{ auction.min_bid|num_to_gold:"t" }}<br>
@@ -34,7 +34,7 @@
       Auctions that this character has created:
     <UL>
       {% for auction in other_aucts %}
-            <li><a href="../../detail/{{ auction.id }}/">Auction</a> of <a href="../../../items/detail/{{ auction.get_item.id }}/">{{ auction.get_item }}</a> by <a href="../../../toons/detail/{{ auction.get_owner.id }}/">{{ auction.get_owner }}</a>, last seen: {{ auction.last_seen }}, (<a href="../../history/{{ auction.get_item.id }}/{{ auction.get_realm.id }}/{{ auction.get_faction.id }}/">history</a>)</li>
+            <li><a href="{{ auction.get_absolute_url }}">Auction</a> of <a href="{{ auction.get_item.get_absolute_url }}">{{ auction.get_item }}</a> by <a href="{{ auction.get_owner.get_absolute_url }}">{{ auction.get_owner }}</a>, last seen: {{ auction.last_seen }}, (<a href="../../history/{{ auction.get_item.id }}/{{ auction.get_realm.id }}/{{ auction.get_faction.id }}/">history</a>)</li>
       {% endfor %}
     </UL>
     </P>
@@ -47,7 +47,7 @@
     <address><a href="mailto:scanner@apricot.com">Scanner</a></address>
 <!-- Created: Wed Aug 17 13:25:32 PDT 2005 -->
 <!-- hhmts start -->
-Last modified: Wed Aug 24 09:45:15 PDT 2005
+Last modified: Wed Aug 31 00:34:34 PDT 2005
 <!-- hhmts end -->
   </body>
 </html>

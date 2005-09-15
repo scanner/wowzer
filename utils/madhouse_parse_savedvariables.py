@@ -328,6 +328,17 @@ class AuctioneerImporter(object):
         
         for realm_faction in self.parser.variables['AHSnapshot'].keys():
 
+            # One of the keys in the AHSnapshot dictionary is going to be the
+            # 'version' of this db. Depending on the version we should do
+            # different things. However, right now we only support version 1.0
+            #
+            if realm_faction == 'version':
+                if self.parser.variables['AHSnapshot']['version'] != '1.0':
+                    sys.stderr.write("Yow! AHSnapshot has version %s, " \
+                                     "expected version 1.0" % \
+                                     self.parser.variables['AHSnapshot']['version'])
+                continue
+
             # Separate out the realm & faction names and look up (create if not
             # found) the realm & faction objects.
             #

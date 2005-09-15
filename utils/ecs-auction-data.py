@@ -228,7 +228,8 @@ def setup_option_parser():
                       "removed. In 'quiet' mode it will say nothing. " \
                       "DEFAULT: '%default'")
     parser.add_option("-f", "--file", type="string", dest="filename",
-                      default="SavedVariables.lua", help = "Designates the " \
+                      default="SavedVariables/Auctioneer.lua",
+                      help = "Designates the " \
                       "file to load and extract variables to send to the " \
                       "wowzer server. This file MUST be in the format saved " \
                       "by World of Warcraft as the 'SavedVariables.lua' " \

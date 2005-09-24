@@ -148,7 +148,7 @@ class UploadData(meta.Model):
     uploaded_at = meta.DateTimeField()
     processed = meta.BooleanField(default = False)
     when_processed = meta.DateTimeField(null = True, blank = True)
-    meta.ForeignKey(User, null = True, blank = True)
+    uploaded_by = meta.ForeignKey(User, null = True, blank = True)
 
     class META:
         ordering = ['uploaded_at']

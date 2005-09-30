@@ -1,0 +1,30 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css" />
+    <title>{% block title %}Wowzer{% endblock %}</title>
+  </head>
+
+  <body>
+    <div id="sidebar">
+        {% block sidebar %}
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/toons/" title="All about player characters, their guilds, classes, trade skills, etc.">Toons</a></li>
+        <LI><a href="/items/" title="All about objects and items in the game.">Items</a></LI>
+        <LI><a href="/madhouse/" title="Historical Auction House data for some realms">Madhouse</a></LI>
+        <LI><a href="/gatherbox/" title="Combined data from multiple player's Gatherer db">Gatherbox</a></LI>
+        </ul>
+        {% endblock %}
+    </div>
+
+    <div id="content">
+        {% block content %}{% endblock %}
+    </div>
+    <div id="footer">
+      <hr>
+      <address><a href="mailto:scanner@apricot.com">Scanner</a></address>
+    </div>
+<!-- Created: Fri Sep 30 14:33:16 PDT 2005 -->
+  </body>
+</html>

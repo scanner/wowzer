@@ -1,0 +1,24 @@
+body {background-attachment: fixed;   
+      text-align: justify;
+      font-family: Arial, Verdana;
+      font-size: 14px;
+      scrollbar-face-color: #979773; 
+      scrollbar-shadow-color: #000000; 
+      scrollbar-highlight-color: #ccdada; 
+      scrollbar-track-color: #305959; 
+      scrollbar-arrow-color: #305959;}
+
+a:link {font-family: Arial; font-size: 14px; text-decoration: none;}
+a:visited {color: #7C7161; font-size: 14px; text-decoration: none;}
+a:hover {color: #000000; text-decoration: none;}
+a:active {color: #B70004; text-decoration: none;}
+
+h1 {font-size: 16; font-weight: bold; color: #305959;}
+
+h2 {font-size: 14; font-weight: bold; color: black;}
+
+div {margin-left: 16px; margin-right: 10px; text-align: justify; font-family: Arial, Verdana; font-size: 14px;}
+
+hr {height: 1px; color: #979773;}
+
+table {font-family: Arial; font-size: 12px; background-color: white;}

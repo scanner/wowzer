@@ -1,3 +1,7 @@
+#sidebar { position:absolute; left:0; top:0; z-Index:0 }
+#content { position:absolute; left:140; top:0; z-Index:1 }
+#footer { position:absolute; left:0; top=500; z-Index:0 }
+
 body {background-attachment: fixed;   
       text-align: justify;
       font-family: Arial, Verdana;

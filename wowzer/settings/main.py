@@ -11,8 +11,9 @@ MANAGERS = ADMINS
 
 LANGUAGE_CODE = 'en-us'
 
-DATABASE_ENGINE = 'postgresql' # 'postgresql', 'mysql', or 'sqlite3'.
-DATABASE_NAME = 'wowzer'       # Or path to database file if using sqlite3.
+DATABASE_ENGINE = 'sqlite3' # 'postgresql', 'mysql', or 'sqlite3'.
+DATABASE_NAME = '/Users/scanner/src/wowzer/data/wowzer.db'       # Or path to database file if using sqlite3.
+#DATABASE_NAME = 'wowzer'       # Or path to database file if using sqlite3.
 DATABASE_USER = 'wowzer'       # Not used with sqlite3.
 DATABASE_PASSWORD = 'ohikoloo' # Not used with sqlite3.
 DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
@@ -36,6 +37,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates".
     "/usr/local/www/wowzer/templates",
     "/home/scanner/src/wowzer/templates",
+    "/Users/scanner/src/wowzer/templates",
 )
 
 INSTALLED_APPS = (

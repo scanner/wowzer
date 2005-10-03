@@ -1,16 +1,84 @@
-#sidebar { position:absolute; left:0; top:0; z-Index:0 }
-#content { position:absolute; left:140; top:0; z-Index:1 }
-#footer { position:absolute; left:0; top=500; z-Index:0 }
+div { border: none; }
 
-body {background-attachment: fixed;   
-      text-align: justify;
-      font-family: Arial, Verdana;
-      font-size: 14px;
-      scrollbar-face-color: #979773; 
-      scrollbar-shadow-color: #000000; 
-      scrollbar-highlight-color: #ccdada; 
-      scrollbar-track-color: #305959; 
-      scrollbar-arrow-color: #305959;}
+#header {
+  margin-left: 10px;
+  color: #000;
+  border-bottom: 1px solid #333;
+  height: 75px;
+}
+	
+	
+#leftcol {
+  float: left;
+  width: 150px;
+  margin-left: 10px;
+  margin-top: 0px;
+  color: #000;
+  padding: 3px;
+}
+
+#rightcol {
+  position: absolute;
+  left: 80%;
+  top: 85px;
+  width: 100px;
+  padding-left: 10px;
+  z-index: 3;
+  color: #000;
+  padding: 3px;
+}
+
+#leftcol p, #leftcol li, #rightcol p {
+  font-size: 11px;
+}
+
+#content {
+  margin: 0px 25% 0 165px;
+  padding: 3px;
+  color: #000;
+}
+
+#footer {
+  clear: both;
+  width: 95%;
+  margin: 10px;
+  text-align: center;
+  font-family: Verdana;
+  font-size: 11px;
+  padding: 3px;
+  border-top: 1px solid #333;
+  color: #000;
+}
+
+#footer .date {
+  float: left;
+  text-align: left;
+}
+
+#footer .contact {
+  float: right;
+  text-align: right;
+}
+
+body {
+  width: 97%;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #fff;
+  color: #000;
+}
+
+p, a {
+  font-family: Verdana;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: Georgia;
+  margin-top: 0px;
+}
 
 a:link {font-family: Arial; font-size: 14px; text-decoration: none;}
 a:visited {color: #7C7161; font-size: 14px; text-decoration: none;}
@@ -21,8 +89,3 @@ h1 {font-size: 16; font-weight: bold; color: #305959;}
 
 h2 {font-size: 14; font-weight: bold; color: black;}
 
-div {margin-left: 16px; margin-right: 10px; text-align: justify; font-family: Arial, Verdana; font-size: 14px;}
-
-hr {height: 1px; color: #979773;}
-
-table {font-family: Arial; font-size: 12px; background-color: white;}

@@ -23,8 +23,9 @@ from django.models.toons import *
 #############################################################################
 #
 def index(request):
-    return HttpResponse("Hello, world. You're at the toons index.")
-
+    t = template_loader.get_template('toons/index')
+    c = Context(request, {})
+    return HttpResponse(t.render(c))
 
 #############################################################################
 #

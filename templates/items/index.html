@@ -1,5 +1,5 @@
 {% extends "base" %}
-{% block title %}Items Index Page{% endblock %}
+{% block header %}<h1>Items Index Page</h1>{% endblock %}
 {% block content %}
     <form action="/items/search/" method="get">
       Item Search: <input type="text" value="{{item_search}}" name="item_search" />
@@ -20,4 +20,10 @@
     No items matched search.
     {% endif %}
     </P>
+{% endblock %}
+{% block page_mod_date %}
+<!-- Created: Fri Sep 30 14:33:16 PDT 2005 -->
+<!-- hhmts start -->
+Last modified: Mon Oct  3 16:04:00 PDT 2005
+<!-- hhmts end -->
 {% endblock %}

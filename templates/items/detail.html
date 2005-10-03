@@ -1,12 +1,6 @@
-{% load items.helpers %}
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-  <head>
-    <title>Item {{ item.name }} detail</title>
-  </head>
-
-  <body>
-    <h1>Item {{ item.name }} detail</h1>
+{% extends "base" %}
+{% block header %}<h1>Item {{ item.name }} detail</h1>{% endblock %}
+{% block content %}
     <P>
     {% if item.player_made %}
       {{ item }} is player made.<br>
@@ -24,12 +18,10 @@
     </UL>
     {% endif %}
     </P>
-
-    <hr>
-    <address><a href="mailto:scanner@apricot.com">Scanner</a></address>
-<!-- Created: Thu Aug 18 14:23:17 PDT 2005 -->
+{% endblock %}
+{% block page_mod_date %}
+<!-- Created: Fri Sep 30 14:33:16 PDT 2005 -->
 <!-- hhmts start -->
-Last modified: Wed Aug 31 00:30:59 PDT 2005
+Last modified: Mon Oct  3 16:04:05 PDT 2005
 <!-- hhmts end -->
-  </body>
-</html>
+{% endblock %}

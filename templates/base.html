@@ -8,10 +8,14 @@
 
   <body>
 <div id="header">
-{% block header %}<h1>Wowzer</h1>{% endblock %}
 <span class="auth">
-
+{% if logged_in %}
+User: {{user_name}}
+{% else %}
+<a href="/wowzer/login/">Login</a>
+{% endif %}
 </span>
+{% block header %}<h1>Wowzer</h1>{% endblock %}
 </div>
 
     <div id="leftcol">
@@ -35,7 +39,7 @@
 {% block page_mod_date %}
 <!-- Created: Fri Sep 30 14:33:16 PDT 2005 -->
 <!-- hhmts start -->
-Last modified: Mon Oct  3 16:03:18 PDT 2005
+Last modified: Mon Oct  3 16:42:41 PDT 2005
 <!-- hhmts end -->
 {% endblock %}
 </span>

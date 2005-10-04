@@ -7,6 +7,10 @@ div { border: none; }
   height: 75px;
 }
 	
+#header .auth {
+  float: right;
+  text-align: right;
+}
 	
 #leftcol {
   float: left;
@@ -79,13 +83,3 @@ h1, h2, h3, h4, h5, h6 {
   font-family: Georgia;
   margin-top: 0px;
 }
-
-a:link {font-family: Arial; font-size: 14px; text-decoration: none;}
-a:visited {color: #7C7161; font-size: 14px; text-decoration: none;}
-a:hover {color: #000000; text-decoration: none;}
-a:active {color: #B70004; text-decoration: none;}
-
-h1 {font-size: 16; font-weight: bold; color: #305959;}
-
-h2 {font-size: 14; font-weight: bold; color: black;}
-

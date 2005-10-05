@@ -350,7 +350,7 @@ class AuctioneerImporter(object):
             faction = find_or_create_faction(faction_name)
 
             print "Processing auction entries for %s on %s" % \
-                  (realm.name, faction.name)
+                  (faction.name, realm.name)
             # Loop through all the auction in this (realm, faction)'s auction
             # house.
             #

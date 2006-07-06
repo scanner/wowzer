@@ -51,8 +51,9 @@ class ParseSavedVariables:
     # We count newlines so we can report parsing errors
     #
     def t_newline(self, t):
-        r'\n+'
+        r'[\r\n]+'
         t.lineno += t.value.count("\n")
+        t.lineno += t.value.count("\r")
 
     def t_error(self, t):
         print "Illegal character '%s' at line: %d" % (t.value[0], t.lineno)

@@ -2,14 +2,12 @@
 #
 #
 import sys
-sys.path.append('/home/scanner/src/dj-ctra')
 import re
+from datetime import datetime
+sys.path.append('.')
 import wowzer.settings
 
-from datetime import datetime
-
-from savedvarparser import ParseSavedVariables
-
+from wowzer.savedvarparser import ParseSavedVariables
 from wowzer.toons.models import Toon, Realm
 from wowzer.raidtracker.models import Raid, JoinLeave
 

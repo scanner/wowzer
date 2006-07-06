@@ -10,7 +10,7 @@ urlpatterns = patterns(
     # Generic list & detail
     #
     (r'^toon/$',
-     'list_detail.object_list', dict(info_dict, paginate_by=30)),
+     'list_detail.object_list', dict(info_dict, paginate_by=40)),
     (r'^toon/(?P<object_id>\d+)/$',
      'list_detail.object_detail', info_dict),
 )

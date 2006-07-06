@@ -1,8 +1,7 @@
-{% load items.helpers %}
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
   <head>
-    <link rel="stylesheet" href="/files/css/base-style.css" />
+    <link rel="stylesheet" href="/media/css/base-style.css" />
     <title>{% block title %}Wowzer{% endblock %}</title>
   </head>
 
@@ -22,10 +21,9 @@ User: {{user_name}}
         {% block leftcol %}
         <ul>
             <li><a href="/">Home</a></li>
-            <li><a href="/toons/" title="All about player characters, their guilds, classes, trade skills, etc.">Toons</a></li>
-        <LI><a href="/items/" title="All about objects and items in the game.">Items</a></LI>
-        <LI><a href="/madhouse/" title="Historical Auction House data for some realms">Madhouse</a></LI>
-        <LI><a href="/gatherbox/" title="Combined data from multiple player's Gatherer db">Gatherbox</a></LI>
+            <li><a href="/toons/toon/" title="Players">Toons</a></li>
+            <li><a href="/raidtracker/raid/" title="Raids">Raids</a></li>
+
         </ul>
         {% endblock %}
     </div>
@@ -39,7 +37,7 @@ User: {{user_name}}
 {% block page_mod_date %}
 <!-- Created: Fri Sep 30 14:33:16 PDT 2005 -->
 <!-- hhmts start -->
-Last modified: Mon Oct  3 16:42:41 PDT 2005
+Last modified: Mon Jul 3 16:42:41 PDT 2006
 <!-- hhmts end -->
 {% endblock %}
 </span>

@@ -73,5 +73,8 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'wowzer.raidtracker',
     'wowzer.toons',
-    'wowzer.items',
+#    'wowzer.items',
+#    'wowzer.madhouse',
+#    'wowzer.gatherbox',
+#    'wowzer.realm',
 )

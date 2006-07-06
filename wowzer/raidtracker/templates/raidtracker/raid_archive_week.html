@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<p>
+{% if object_list %}
+Raids for the week starting {{ week }}:
+<ul>
+{% for obj in object_list %}
+<li><a href="{{ obj.get_absolute_url }}">{{ obj }}</a></li>
+{% endfor %}
+</ul>
+{% else %}
+There are no raids for this week.
+{% endif %}
+</p>
+{% endblock %}

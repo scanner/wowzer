@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<p>
+{% if date_list %}
+Raids by month for  {{ year }}:
+<ul>
+{% for month in date_list %}
+<li><a href="../{{ year }}/{{ month|date:"M"|lower }}/">{{ month|date:"M" }}</a></li>
+{% endfor %}
+</ul>
+{% else %}
+There are no raids.
+{% endif %}
+</p>
+{% endblock %}

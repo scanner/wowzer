@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<p>
+{% if date_list %}
+Raids by year:
+<ul>
+{% for year in date_list %}
+<li><a href="../date/{{ year|date:"Y" }}/">{{ year|date:"Y" }}</a></li>
+{% endfor %}
+</ul>
+{% if latest %}
+Most recent raids:
+<ul>
+{% for obj in latest %}
+<li><a href="{{ obj.get_absolute_url }}">{{ obj }}</a>
+{% endfor %}
+</ul>
+{% endif %}
+{% else %}
+There are no raids.
+{% endif %}
+</p>
+{% endblock %}

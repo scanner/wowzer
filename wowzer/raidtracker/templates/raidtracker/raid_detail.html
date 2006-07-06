@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<p>
+Raid started: {{ object.start_time }}<br>
+Raid ended: {{ object.end_time }}<br>
+Submitter: {{ object.submitter }}<br>
+Max size: {{ object.maximal_size }}<br>
+Notes: {{ object.notes }}<br>
+Players that attended:<br>
+{% if object.members.all %}
+  <ul>
+  {% for player in object.members.all %}
+     <li><a href="{{ player.get_absolute_url }}">{{ player }}</a></li>
+  {% endfor %}
+  </ul>
+{% else %}
+No one attended!<br>
+{% endif %}
+</p>
+{% endblock %}

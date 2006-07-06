@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<p>
+{% if is_paginated %}
+On page {{ page }} of {{ pages }}.<br>
+{% ifnotequal page "1" %}
+<a href="./?page=1">Start</a>
+{% else %}
+Start
+{% endifnotequal %} &lt;&lt;
+{% if has_previous %}
+<a href="./?page={{ previous }}">Previous page</a>
+{% else %}
+Previous page
+{% endif %}
+||
+{% if has_next %}
+<a href="./?page={{ next }}">Next page</a>
+{% else %}
+Next page
+{% endif %} &gt;&gt;
+{% ifnotequal page pages %}
+<a href="./?page={{ pages }}">End</a>
+{% else %}
+End
+{% endifnotequal %}
+{% endif %}
+
+{% if object_list %}
+<ul>
+{% for object in object_list %}
+<li><a href="{{ object.get_absolute_url }}">{{ object }}</a></li>
+{% endfor %}
+</ul>
+{% else %}
+There are no raids.
+{% endif %}
+</p>
+{% endblock %}

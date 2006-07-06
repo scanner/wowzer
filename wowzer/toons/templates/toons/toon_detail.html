@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<p>
+Name: {{ object.name }}<br>
+On realm: {{ object.realm }}<br>
+Home faction: {{ object.faction }}<br>
+Race: {{ object.race }}<br>
+Class: {{ object.cls }}<br>
+
+{% if object.raids_attended %}
+Player has attended {{ object.raids_attended.count }} raids:
+  <ul>
+  {% for raid in object.raids_attended.all %}
+     <li><a href="{{ raid.get_absolute_url }}">{{ raid }}</a></li>
+  {% endfor %}
+  </ul>
+{% endif %}
+</p>
+{% endblock %}

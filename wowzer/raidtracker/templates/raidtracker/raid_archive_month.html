@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<p>
+{% if previous_month %}
+<a href="../{{ previous_month|date:"M"|lower }}/">Previous month</a>
+{% endif %}
+{% if next_month %}
+<a href="../{{ next_month|date:"M"|lower }}/">Next month</a><br>
+{% endif %}
+{% if object_list %}
+Raids for {{ month|date:"F, Y" }}:
+<ul>
+{% for obj in object_list %}
+<li><a href="{{ obj.get_absolute_url }}">{{ obj }}</a></li>
+{% endfor %}
+</ul>
+{% else %}
+There are no raids.
+{% endif %}
+</p>
+{% endblock %}

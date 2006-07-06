@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<p>
+{% if previous_day %}
+<a href="../{{ previous_day|date:"d" }}/">Previous day</a>
+{% else %}
+Previous day
+{% endif %}
+{% if next_month %}
+<a href="../{{ next_day|date:"d" }}/">Next day</a>
+{% else %}
+Next day
+{% endif %}<br>
+{% if object_list %}
+Raids for {{ day }}:
+<ul>
+{% for obj in object_list %}
+<li><a href="{{ obj.get_absolute_url }}">{{ obj }}</a></li>
+{% endfor %}
+</ul>
+{% else %}
+There are no raids for this day.
+{% endif %}
+</p>
+{% endblock %}

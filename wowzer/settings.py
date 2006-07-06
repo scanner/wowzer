@@ -9,12 +9,14 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASE_ENGINE = 'sqlite3'  # 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
-DATABASE_NAME = '/var/tmp/wowzer' # Or path to database file if using sqlite3.
-DATABASE_USER = ''             # Not used with sqlite3.
-DATABASE_PASSWORD = ''         # Not used with sqlite3.
-DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
-DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
+DATABASE_ENGINE = 'postgresql' # 'postgresql', 'mysql', 'sqlite3' 
+DATABASE_NAME = 'wowzer'       # Or path to database file if using sqlite3.
+DATABASE_USER = 'wowzer'       # Not used with sqlite3.
+DATABASE_PASSWORD = 'ohikoloo' # Not used with sqlite3.
+DATABASE_HOST = ''             # Set to empty string for localhost. Not used
+                               # with sqlite3.
+DATABASE_PORT = ''             # Set to empty string for default. Not used
+                               # with sqlite3.
 
 # Local time zone for this installation. All choices can be found here:
 # http://www.postgresql.org/docs/current/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE
@@ -29,11 +31,11 @@ SITE_ID = 1
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = '/usr/local/www/wowzer/media/media/'
 
 # URL that handles the media served from MEDIA_ROOT.
 # Example: "http://media.lawrence.com"
-MEDIA_URL = ''
+MEDIA_URL = 'http://wow.apricot.com/media'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
@@ -60,6 +62,7 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'wowzer.urls'
 
 TEMPLATE_DIRS = (
+    "/usr/local/www/wowzer/templates",
     '/home/scanner/src/dj-ctra/templates'
     # Put strings here, like "/home/html/django_templates".
     # Always use forward slashes, even on Windows.

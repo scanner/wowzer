@@ -40,7 +40,7 @@ MEDIA_URL = 'http://wow.apricot.com/media'
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/media/'
+ADMIN_MEDIA_PREFIX = '/admin_media/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'r6nn&kbn7mldazg=v=gdefl7zadq)$j8h=1@jamops35nx(i)*'

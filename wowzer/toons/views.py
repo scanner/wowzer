@@ -30,7 +30,6 @@ from django.contrib.auth.decorators import login_required
 #
 from wowzer.toons.models import *
 from wowzer.items.models import *
-from wowzer.raids.models import *
 
 #############################################################################
 #

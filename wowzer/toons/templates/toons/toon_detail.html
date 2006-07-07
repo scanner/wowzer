@@ -8,7 +8,14 @@ Race: {{ object.race }}<br>
 Class: {{ object.cls }}<br>
 
 {% if object.raids_attended %}
-Player has attended {{ object.raids_attended.count }} raids:
+Player has attended a total of {{ object.raids_attended.count }} raids.<br>
+Duration of raiding: {{ raiding_duration }}<br>
+<ul>
+{% for attend in attended %}
+   <li>Raids of {{ attend.size }} or less: {{ attend.numattended }}</li
+{% endfor %}
+</ul>
+
   <ul>
   {% for raid in object.raids_attended.all %}
      <li><a href="{{ raid.get_absolute_url }}">{{ raid }}</a></li>

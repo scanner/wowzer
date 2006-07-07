@@ -96,7 +96,7 @@ def detail(request, object_id):
     for bot, top in sizes:
         size = toon.raids_attended.filter(maximal_size__lte = top,
                                           maximal_size__gte = bot).count()
-        attended.append({'size' : top, 'num_attended' : size })
+        attended.append({'size': "%d-%d" % (bot, top), 'num_attended' : size })
 
     # and now find out how long they have been raiding with raids submitted by
     # tamrielo

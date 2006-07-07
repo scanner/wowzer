@@ -13,7 +13,7 @@ Duration of raiding: {{ raiding_duration }}<br>
 Time since last raid: {{ last_raid.start_time|timesince }}<br>
 <ul>
 {% for attend in attended %}
-   <li>Raids of {{ attend.size }} or less: {{ attend.num_attended }}</li
+   <li>Raids of {{ attend.size }}: {{ attend.num_attended }}</li
 {% endfor %}
 </ul>
 

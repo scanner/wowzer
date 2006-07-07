@@ -10,9 +10,10 @@ Class: {{ object.cls }}<br>
 {% if object.raids_attended %}
 Player has attended a total of {{ object.raids_attended.count }} raids.<br>
 Duration of raiding: {{ raiding_duration }}<br>
+Time since last raid: {{ last_raid.start_time|timesince }}<br>
 <ul>
 {% for attend in attended %}
-   <li>Raids of {{ attend.size }} or less: {{ attend.numattended }}</li
+   <li>Raids of {{ attend.size }} or less: {{ attend.num_attended }}</li
 {% endfor %}
 </ul>
 

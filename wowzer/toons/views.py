@@ -9,6 +9,7 @@ We offer a list of auctions by item, by user, or by specific auction key.
 
 # System imports
 #
+import sys
 from datetime import datetime, timedelta
 
 # Django imports
@@ -81,17 +82,17 @@ def client_list(request):
 
 #############################################################################
 #
-def detail(request, toon_id):
+def detail(request, object_id):
     """Displays the details of a single toon."""
 
-    toon = get_object_or_404(Toon, pk = toon_id)
+    toon = get_object_or_404(Toon, pk = object_id)
 
     # Pull out the number of raids above certain sizes that they have been in
     #
     # we go for: 1-15, 15-25, 25-30, 30->
     #
     attended = []
-    sizes = ((1,15),(16-25),(26-30),(31-100))
+    sizes = ((1,15),(16,25),(26,30),(31,100))
     for bot, top in sizes:
         size = toon.raids_attended.filter(maximal_size__lte = top,
                                           maximal_size__gte = bot).count()

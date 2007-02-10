@@ -9,7 +9,7 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASE_ENGINE = 'postgresql' # 'postgresql', 'mysql', 'sqlite3' 
+DATABASE_ENGINE = 'postgresql_psycopg2' # 'postgresql', 'mysql', 'sqlite3' 
 DATABASE_NAME = 'wowzer'       # Or path to database file if using sqlite3.
 DATABASE_USER = 'wowzer'       # Not used with sqlite3.
 DATABASE_PASSWORD = 'ohikoloo' # Not used with sqlite3.
@@ -77,6 +77,7 @@ INSTALLED_APPS = (
     'wowzer.toons',
     'wowzer.items',
     'wowzer.raidtracker',
+    'wowzer.asforums',
 #    'wowzer.madhouse',
 #    'wowzer.gatherbox',
 #    'wowzer.realm',

@@ -36,6 +36,7 @@ class Forum(models.Model):
 
     class Meta:
         row_level_permissions = True
+        permissions = (("view_forum", "Can see the forum"),)
 
     #########################################################################
     #

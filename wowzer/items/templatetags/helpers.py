@@ -5,15 +5,15 @@
 apps. This includes things like formating monetary values as strings with 'g',
 's', and 'c' designations. Thus: 50000 is 5g0c0s
 """
-import urllib
+from django import template
 
-from django.core.template import register_filter
+register = template.Library()
 
 #############################################################################
 #
 def doit_ntg(value, arg):
     """num_to_gold the filter can handle ints, strings, floats and lists of
-    those things. This is the sub-function that does the acutal work in case
+    those things. This is the sub-function that does the actual work in case
     of a list.
     """
     value = int(round(float(value)))
@@ -39,6 +39,7 @@ def doit_ntg(value, arg):
 
 #############################################################################
 #
+@register.filter
 def num_to_gold(value, arg = "t"):
     """This function will convert a raw value in to g/c/s standard used in
     World of Warcraft.
@@ -61,7 +62,8 @@ def num_to_gold(value, arg = "t"):
 
 #############################################################################
 #
-def name_to_thotturl(value, _):
+@register.filter
+def name_to_thotturl(value):
     """Given an item name translate it in to a URL that should locate the item
     on thottbot.
 
@@ -70,8 +72,4 @@ def name_to_thotturl(value, _):
     """
     return 'http://www.thottbot.com/?s=' + urllib.quote_plus(value)
     
-# Now we have this function to make it truly useful we register it as a filter
-# thus it can be used in our html template files directly as <9000>|num_to_gold
-#
-register_filter('num_to_gold', num_to_gold, True)
-register_filter('name_to_thotturl', name_to_thotturl, False)
+    

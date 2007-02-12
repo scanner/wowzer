@@ -59,7 +59,7 @@ class WDBItem(models.Model):
     ReqRank2 = models.IntegerField()
     ReqFaction = models.CharField(maxlength = 32)
     ReqFactionLvL = models.IntegerField()
-    isUnique = models.IntegerField()
+    isUnique = models.CharField(maxlength=32)
     StackAmount = models.IntegerField()
     ContainerSlots = models.IntegerField()
     Stat1 = models.IntegerField()

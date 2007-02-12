@@ -43,6 +43,15 @@ div { border: none; }
   color: #000;
 }
 
+#content .objlist-table { font-size:10px; }
+#content .header { background:#ddb; }
+#content .highlight { background:#bdd; }
+#content .even { background:#eeb; }
+#content .odd { background:#eee; }
+#content .even2 { background:#bee; }
+#content .odd2 { background:#ddd; }
+#content .blank { background:#fff; }
+
 #footer {
   clear: both;
   width: 95%;

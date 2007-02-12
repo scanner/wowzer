@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load wowzertags %}
+{% block content %}
+<p>
+Total number of {{ objtype }} objects in listing: {{ hits }}<br>
+{% if is_paginated %}<div class="paginator">{% paginator %}</div>{% endif %}
+</p>
+{% block list %}
+{% endblock %}
+{% endblock %}

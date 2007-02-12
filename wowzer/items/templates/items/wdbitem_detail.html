@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load helpers %}
+{% block content %}
+<p>
+ItemID : {{ object.ItemID }}<br>
+Entry Size : {{ object.EntrySize }}<br>
+ItemClassID : {{ object.ItemClassID }}<br>
+ItemSubClassID : {{ object.ItemSubClassID }}<br>
+Name 1 : {{ object.Name1 }}<br>
+Name 2 : {{ object.Name2 }}<br>
+Name 3 : {{ object.Name3 }}<br>
+Name 4 : {{ object.Name4 }}<br>
+ItemDisplayID : {{ object.ItemDisplayID }}<br>
+Quality : {{ object.Quality }}<br>
+Type Flags : {{ object.TypeFlags }}<br>
+Buy Price : {{ object.BuyPrice|num_to_gold }}<br>
+Sell Price : {{ object.SellPrice|num_to_gold }}<br>
+Inventory Slot : {{ object.InventorySlot }}<br>
+Class Flags : {{ object.ClassFlags }}<br>
+Race Flags : {{ object.RaceFlags }}<br>
+Item Level : {{ object.ItemLevel }}<br>
+Req Level : {{ object.ReqLevel }}<br>
+Req Skill : {{ object.ReqSkill }}<br>
+Req Skill Level : {{ object.ReqSkillLevel }}<br>
+Req Spell : {{ object.ReqSpell }}<br>
+Req Rank : {{ object.ReqRank }}<br>
+Req Rank2 : {{ object.ReqRank2 }}<br>
+Req Faction : {{ object.ReqFaction }}<br>
+Req Faction LvL : {{ object.ReqFactionLvL }}<br>
+isUnique : {{ object.isUnique }}<br>
+Stack Amount : {{ object.StackAmount }}<br>
+Container Slots : {{ object.ContainerSlots }}<br>
+Stat1 : {{ object.Stat1 }}<br>
+Stat1 Val : {{ object.Stat1Val }}<br>
+Stat2 : {{ object.Stat2 }}<br>
+Stat2 Val : {{ object.Stat2Val }}<br>
+Stat3 : {{ object.Stat3 }}<br>
+Stat3 Val : {{ object.Stat3Val }}<br>
+Stat4 : {{ object.Stat4 }}<br>
+Stat4 Val : {{ object.Stat4Val }}<br>
+Stat5 : {{ object.Stat5 }}<br>
+Stat5 Val : {{ object.Stat5Val }}<br>
+Stat6 : {{ object.Stat6 }}<br>
+Stat6 Val : {{ object.Stat6Val }}<br>
+Stat7 : {{ object.Stat7 }}<br>
+Stat7 Val : {{ object.Stat7Val }}<br>
+Stat8 : {{ object.Stat8 }}<br>
+Stat8 Val : {{ object.Stat8Val }}<br>
+Stat9 : {{ object.Stat9 }}<br>
+Stat9 Val : {{ object.Stat9Val }}<br>
+Stat10 : {{ object.Stat10 }}<br>
+Stat10 Val : {{ object.Stat10Val }}<br>
+Damage1 Min : {{ object.Damage1Min }}<br>
+Damage1 Max : {{ object.Damage1Max }}<br>
+Damage1 Type : {{ object.Damage1Type }}<br>
+Damage2 Min : {{ object.Damage2Min }}<br>
+Damage2 Max : {{ object.Damage2Max }}<br>
+Damage2 Type : {{ object.Damage2Type }}<br>
+Damage3 Min : {{ object.Damage3Min }}<br>
+Damage3 Max : {{ object.Damage3Max }}<br>
+Damage3 Type : {{ object.Damage3Type }}<br>
+Damage4 Min : {{ object.Damage4Min }}<br>
+Damage4 Max : {{ object.Damage4Max }}<br>
+Damage4 Type : {{ object.Damage4Type }}<br>
+Damage5 Min : {{ object.Damage5Min }}<br>
+Damage5 Max : {{ object.Damage5Max }}<br>
+Damage5 Type : {{ object.Damage5Type }}<br>
+Physical Resist : {{ object.PhysicalResist }}<br>
+Holy Resist : {{ object.HolyResist }}<br>
+Fire Resist : {{ object.FireResist }}<br>
+Nature Resist : {{ object.NatureResist }}<br>
+Frost Resist : {{ object.FrostResist }}<br>
+Shadow Resist : {{ object.ShadowResist }}<br>
+Arcane Resist : {{ object.ArcaneResist }}<br>
+Weapon Delay : {{ object.WeaponDelay }}<br>
+Ammo Type : {{ object.AmmoType }}<br>
+Range Mod : {{ object.RangeMod }}<br>
+Spell1 ID : {{ object.Spell1ID }}<br>
+Spell1 Trigger : {{ object.Spell1Trigger }}<br>
+Spell1 Charges : {{ object.Spell1Charges }}<br>
+Spell1 Cooldown : {{ object.Spell1Cooldown }}<br>
+Spell1 Category : {{ object.Spell1Category }}<br>
+Spell1 Category Cooldown : {{ object.Spell1CategoryCooldown }}<br>
+Spell2 ID : {{ object.Spell2ID }}<br>
+Spell2 Trigger : {{ object.Spell2Trigger }}<br>
+Spell2 Charges : {{ object.Spell2Charges }}<br>
+Spell2 Cooldown : {{ object.Spell2Cooldown }}<br>
+Spell2 Category : {{ object.Spell2Category }}<br>
+Spell2 Category Cooldown : {{ object.Spell2CategoryCooldown }}<br>
+Spell3 ID : {{ object.Spell3ID }}<br>
+Spell3 Trigger : {{ object.Spell3Trigger }}<br>
+Spell3 Charges : {{ object.Spell3Charges }}<br>
+Spell3 Cooldown : {{ object.Spell3Cooldown }}<br>
+Spell3 Category : {{ object.Spell3Category }}<br>
+Spell3 Category Cooldown : {{ object.Spell3CategoryCooldown }}<br>
+Spell4 ID : {{ object.Spell4ID }}<br>
+Spell4 Trigger : {{ object.Spell4Trigger }}<br>
+Spell4 Charges : {{ object.Spell4Charges }}<br>
+Spell4 Cooldown : {{ object.Spell4Cooldown }}<br>
+Spell4 Category : {{ object.Spell4Category }}<br>
+Spell4 Category Cooldown : {{ object.Spell4CategoryCooldown }}<br>
+Spell5 ID : {{ object.Spell5ID }}<br>
+Spell5 Trigger : {{ object.Spell5Trigger }}<br>
+Spell5 Charges : {{ object.Spell5Charges }}<br>
+Spell5 Cooldown : {{ object.Spell5Cooldown }}<br>
+Spell5 Category : {{ object.Spell5Category }}<br>
+Spell5 Category Cooldown : {{ object.Spell5CategoryCooldown }}<br>
+BondID : {{ object.BondID }}<br>
+Description : {{ object.Description }}<br>
+BookTextID : {{ object.BookTextID }}<br>
+Book Pages : {{ object.BookPages }}<br>
+BookStationaryID : {{ object.BookStationaryID }}<br>
+BeginQuestID : {{ object.BeginQuestID }}<br>
+reqLockPickSkill : {{ object.reqLockPickSkill }}<br>
+Material : {{ object.Material }}<br>
+SheathID : {{ object.SheathID }}<br>
+RandomPropertyID : {{ object.RandomPropertyID }}<br>
+Block Value : {{ object.BlockValue }}<br>
+ItemSetID : {{ object.ItemSetID }}<br>
+Durability : {{ object.Durability }}<br>
+ItemAreaID : {{ object.ItemAreaID }}<br>
+ItemMapID : {{ object.ItemMapID }}<br>
+Bag Family : {{ object.BagFamily }}<br>
+</p>
+{% endblock %}

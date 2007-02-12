@@ -1,49 +1,76 @@
+#
+# File: $Id$
+#
+#
 # Django settings for wowzer project.
+#
 
-DEBUG = True
-TEMPLATE_DEBUG = DEBUG
+# The settings are partially specified in this file and partially
+# sucked in from a config file. The things that are different between
+# installations are expected to be captured in the config file which is
+# not under source control.
+#
+import os
+from ConfigParser import RawConfigParser
 
-ADMINS = (
-    # ('Your Name', 'your_email@domain.com'),
-)
+config = RawConfigParser()
 
-MANAGERS = ADMINS
+if 'DJANGO_CONFIG_FILE' in os.environ:
+    config.read([os.environ['DJANGO_CONFIG_FILE']])
+else:
+    if os.path.exists("etc/test-config.ini"):
+        config.read(["etc/test-config.ini"])
+    elif os.path.exists("../etc/test-config.ini"):
+        config.read(["../etc/test-config.ini"])
+    else:
+        raise "Unable to load a test configuration"
+    
+# We should do some checks to make sure the config file we read
+# has the necessary sections and items in those sections.
+#
+DEBUG = config.getboolean('debug','DEBUG')
+TEMPLATE_DEBUG = config.getboolean('debug','TEMPLATE_DEBUG')
 
-DATABASE_ENGINE = 'postgresql_psycopg2' # 'postgresql', 'mysql', 'sqlite3' 
-DATABASE_NAME = 'wowzer'       # Or path to database file if using sqlite3.
-DATABASE_USER = 'wowzer'       # Not used with sqlite3.
-DATABASE_PASSWORD = 'ohikoloo' # Not used with sqlite3.
-DATABASE_HOST = ''             # Set to empty string for localhost. Not used
-                               # with sqlite3.
-DATABASE_PORT = ''             # Set to empty string for default. Not used
-                               # with sqlite3.
+ADMINS = tuple(config.items('error mail'))
+MANAGERS = tuple(config.items('404 mail'))
 
-# Local time zone for this installation. All choices can be found here:
-# http://www.postgresql.org/docs/current/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE
-TIME_ZONE = 'EST5EDT'
+# Make this unique, and don't share it with anybody.
+#
+SECRET_KEY = config.get('secrets','SECRET_KEY')
 
-# Language code for this installation. All choices can be found here:
-# http://www.w3.org/TR/REC-html40/struct/dirlang.html#langcodes
-# http://blogs.law.harvard.edu/tech/stories/storyReader$15
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = config.get('locale', 'LANGUAGE_CODE')
+TIME_ZONE = config.get('locale', 'TIME_ZONE')
 
-SITE_ID = 1
-
-# Absolute path to the directory that holds media.
-# Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = '/usr/local/www/wowzer/media/media/'
-
-# URL that handles the media served from MEDIA_ROOT.
-# Example: "http://media.lawrence.com"
-MEDIA_URL = 'http://wow.apricot.com/media'
+DATABASE_USER = config.get('database', 'DATABASE_USER')
+DATABASE_PASSWORD = config.get('database', 'DATABASE_PASSWORD')
+DATABASE_HOST = config.get('database', 'DATABASE_HOST')
+DATABASE_PORT = config.get('database', 'DATABASE_PORT')
+DATABASE_ENGINE = config.get('database', 'DATABASE_ENGINE')
+DATABASE_NAME = config.get('database', 'DATABASE_NAME')
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/admin_media/'
+ADMIN_MEDIA_PREFIX = config.get('directories', 'ADMIN_MEDIA_PREFIX')
+MEDIA_ROOT = config.get('directories', 'MEDIA_ROOT')
 
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = 'r6nn&kbn7mldazg=v=gdefl7zadq)$j8h=1@jamops35nx(i)*'
+# URL that handles the media served from MEDIA_ROOT.
+# Example: "http://media.lawrence.com"
+MEDIA_URL = config.get('directories', 'MEDIA_URL')
+
+TEMPLATE_DIRS = []
+TEMPLATE_DIRS.append(config.get('directories', 'TEMPLATES'))
+
+###########################################################################
+###########################################################################
+#
+# That is it for configurable items.
+#
+SITE_ID = 1
+
+# If you set this to False, Django will make some optimizations so as not
+# to load the internationalization machinery.
+USE_I18N = True
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -63,7 +90,7 @@ ROOT_URLCONF = 'wowzer.urls'
 
 TEMPLATE_DIRS = (
     "/usr/local/www/wowzer/templates",
-    '/home/scanner/src/dj-ctra/templates'
+    '/home/scanner/src/wowzer/templates'
     # Put strings here, like "/home/html/django_templates".
     # Always use forward slashes, even on Windows.
 )
@@ -74,10 +101,12 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.admin',
+    'wowzer.main',
     'wowzer.toons',
     'wowzer.items',
     'wowzer.raidtracker',
     'wowzer.asforums',
+    'wowzer.main',
 #    'wowzer.madhouse',
 #    'wowzer.gatherbox',
 #    'wowzer.realm',

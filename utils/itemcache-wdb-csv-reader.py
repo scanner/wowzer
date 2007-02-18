@@ -2,7 +2,7 @@
 import sys
 import os
 
-sys.path.insert(0,'/extra1/home/scanner/src/wowzer')
+sys.path.insert(0,'/home/scanner/src/wowzer')
 os.environ['DJANGO_SETTINGS_MODULE'] = 'wowzer.settings'
 
 from wowzer.items.models import *

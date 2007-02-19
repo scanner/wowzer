@@ -79,6 +79,14 @@ TEMPLATE_LOADERS = (
 #     'django.template.loaders.eggs.load_template_source',
 )
 
+TEMPLATE_CONTEXT_PROCESSORS = (
+    "django.core.context_processors.auth",
+    "django.core.context_processors.debug",
+    "django.core.context_processors.i18n",
+    "django.core.context_processors.request",
+    "wowzer.utils.media_context",
+    )
+
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -87,13 +95,6 @@ MIDDLEWARE_CLASSES = (
 )
 
 ROOT_URLCONF = 'wowzer.urls'
-
-TEMPLATE_DIRS = (
-    "/usr/local/www/wowzer/templates",
-    '/home/scanner/src/wowzer/templates'
-    # Put strings here, like "/home/html/django_templates".
-    # Always use forward slashes, even on Windows.
-)
 
 INSTALLED_APPS = (
     'django.contrib.auth',

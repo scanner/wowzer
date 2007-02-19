@@ -1,0 +1,47 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <link rel="stylesheet" href="{{ MEDIA_URL }}css/base-style.css" />
+    <title>{% block title %}Wowzer{% endblock %}</title>
+  </head>
+
+  <body>
+<div id="header">
+<span class="auth">
+{% if logged_in %}
+User: {{user_name}}
+{% else %}
+<a href="/wowzer/login/">Login</a>
+{% endif %}
+</span>
+{% block header %}<h1>Wowzer</h1>{% endblock %}
+</div>
+
+    <div id="leftcol">
+        {% block leftcol %}
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/toons/toon/" title="Players">Toons</a></li>
+            <li><a href="/raidtracker/raid/" title="Raids">Raids</a></li>
+
+        </ul>
+        {% endblock %}
+    </div>
+
+    <div id="content">
+        {% block content %}{% endblock %}
+    </div>
+<div id="rightcol">{% block rightcol %}{% endblock %}</div>
+    <div id="footer">
+<span class="date">
+{% block page_mod_date %}
+<!-- Created: Fri Sep 30 14:33:16 PDT 2005 -->
+<!-- hhmts start -->
+Last modified: Mon Jul 3 16:42:41 PDT 2006
+<!-- hhmts end -->
+{% endblock %}
+</span>
+      <address class="contact"><a href="mailto:scanner@apricot.com">Scanner</a></address>
+    </div>
+  </body>
+</html>

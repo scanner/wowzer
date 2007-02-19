@@ -1,5 +1,6 @@
 #
-# Models for wowzer 'raidtracker' app
+# Models for 'asforums' app. These  are meant to be part of a
+# project-independent "forum" application.
 #
 # $Id$
 #
@@ -24,11 +25,13 @@ class Forum(models.Model):
     """A forum is a collection of discussions
     """
 
-    name = models.CharField(maxlength = 128, db_index = True)
-    slug = models.SlugField(maxlength = 20, prepopulate_from = ("name",))
-    creator = models.ForeignKey(User)
+    name = models.CharField(maxlength = 128, db_index = True, unique = True,
+                            blank = False)
+    slug = models.SlugField(maxlength = 20, prepopulate_from = ("name",),
+                            db_index = True, unique = True, blank = False)
+    creator = models.ForeignKey(User, db_index = True)
     created_at = models.DateTimeField(auto_now_add = True, editable = False)
-    last_post_at = models.DateTimeField(null = True)
+    last_post_at = models.DateTimeField(null = True, db_index = True)
 
     class Admin:
         # prepopulated_fields = {'slug' : ('name',)} # Newformsadmin branch
@@ -54,7 +57,7 @@ class Discussion(models.Model):
     """Discussions, in a forum.
     """
 
-    name = models.CharField(maxlength = 128, db_index = True)
+    name = models.CharField(maxlength = 128, db_index = True, blank = False)
     slug = models.SlugField(prepopulate_from = ("name",))
     forum = models.ForeignKey(Forum)
     creator = models.ForeignKey(User, db_index = True)
@@ -68,7 +71,8 @@ class Discussion(models.Model):
 
     class Meta:
         row_level_permissions = True
-
+        unique_together = (("name", "forum"), ("slug", "forum"))
+        
     #########################################################################
     #
     def __str__(self):

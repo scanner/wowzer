@@ -464,12 +464,13 @@ form
   background: #705735;
 }
 
+/* @group Copyright */
+
 #copyright
 {
   background: #372b1a;
   color: #DDA;
   border-top: 1px solid;
-  height: 1.7em;
 }
 
 #copyright a
@@ -482,6 +483,8 @@ form
 
   text-align: right;
 }
+
+/* @end */
 
 /* @end */
 

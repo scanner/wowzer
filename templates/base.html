@@ -15,8 +15,9 @@
       <div class="container">
         {% block allbutfooter %}
         <div id="searchBar">
+          {% block searchbar %}
           <div class="head"> &nbsp;search</div>
-          <div class="content"><form action="#" method="post"><input name="search_button" type="image" class="button" src="{{ MEDIA_URL }}img/tb/search.gif" /><input type="text" name="search" class="search" /></form></div></div>
+          <div class="content"><form action="#" method="post"><input name="search_button" type="image" class="button" src="{{ MEDIA_URL }}img/tb/search.gif" /><input type="text" name="search" class="search" /></form></div>{% endblock %}</div>
         <div class="icon">
           <img src="{{ MEDIA_URL }}img/tb/hand_logo.gif" width="140" height="98"
           alt="My fantastic Webdings Logo" />
@@ -31,8 +32,11 @@
         </div>
         <div id="navigation">
           {% block navigation %}
-          <ul>
-            <li><a href="/" class="selected">Home</a></li>
+          <ul> 
+            <li><a href="/" class="selected">Top</a></li>
+            {% if user.is_authenticated %}
+            <li><a href="{{ user.get_absolute_url }}">Home</a></li>
+            {% endif %}
             <li><a href="/toons/toon/" title="Players">Toons</a></li>
             <li><a href="/raidtracker/raid/" title="Raids">Raids</a></li>
           </ul>
@@ -55,7 +59,7 @@
             {% endblock %}
           </div>
           <div class="content">
-            {% block maincontent %}
+            {% block content %}
             {% endblock %}
           </div>
           <br class="clear" />

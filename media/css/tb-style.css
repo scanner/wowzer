@@ -7,7 +7,7 @@ html
 
 body
 {
-  background: #e5ebdf url(../images/wrapper_bg.gif) top left repeat-y;
+  background: #e5ebdf url(../img/tb/wrapper_bg.gif) top left repeat-y;
   height: 100%;
   margin: 0;
   padding: 0;
@@ -15,7 +15,7 @@ body
 }
 .wrapper
 {
-  background: url(../images/bg.gif) top left repeat-x;
+  background: url(../img/tb/bg.gif) top left repeat-x;
   min-height: 100%;
   height: auto !important;
   height: 100%;
@@ -38,7 +38,7 @@ body
 {
   margin: 2px 0 0;
   padding: 0;
-  background: #465052 url(../images/search_bg.gif) bottom left repeat-x;
+  background: #465052 url(../img/tb/search_bg.gif) bottom left repeat-x;
   color: #FFF;
   font-weight: bold;
   line-height: .8em;
@@ -151,7 +151,7 @@ form
   margin: 0;
   padding: 10px 0 0;
   text-align: center;
-  background: url(../images/tab_normal.gif) top left no-repeat;  
+  background: url(../img/tb/tab_normal.gif) top left no-repeat;  
   color: #7c8c9b;
   text-decoration: none;
   font-weight: bold;
@@ -162,12 +162,12 @@ form
 {
   color: #93a6b7;
   color: #EEE;
-  background: url(../images/tab_over.gif) top left no-repeat;  
+  background: url(../img/tb/tab_over.gif) top left no-repeat;  
 }
 
 #navigation ul li a.selected, #navigation ul li a.selected:hover
 {
-  background: url(../images/tab_selected.gif) top left no-repeat;  
+  background: url(../img/tb/tab_selected.gif) top left no-repeat;  
   color: #343434;
 }
 
@@ -297,7 +297,7 @@ form
 {
   margin: 0 0 0 10px;
   font-size: 10pt;
-  background: url(../images/comment_corner.gif) top left no-repeat;
+  background: url(../img/tb/comment_corner.gif) top left no-repeat;
   padding: 20px 0 0 27px;
 }
 
@@ -369,7 +369,7 @@ h4
   clear: both;
   margin: 0;
   padding: 0;
-  background:url(../images/footer_bg.gif) bottom left repeat-x;
+  background:url(../img/tb/footer_bg.gif) bottom left repeat-x;
 }
 
 #footHead .head
@@ -576,7 +576,7 @@ h4
   width:467px; 
   height:240px; 
   border:1px solid #888; 
-  background:#fff url(../images/win_backh.gif) bottom right no-repeat;
+  background:#fff url(../img/tb/win_backh.gif) bottom right no-repeat;
   }
   
 #gallery li {
@@ -594,7 +594,7 @@ h4
   }
 #gallery li a img {
 border:0;
-background: #FFF url(../images/gallery_loading.gif) top left no-repeat;
+background: #FFF url(../img/tb/gallery_loading.gif) top left no-repeat;
 }
 #gallery li a:hover {
   background:#eee; 
@@ -657,7 +657,7 @@ code
 
 blockquote
 {
-  background: #ecf2e6 url(../images/quote.gif) top left no-repeat;
+  background: #ecf2e6 url(../img/tb/quote.gif) top left no-repeat;
   margin: 5px 20px;
   padding: 5px 5px 5px 43px;
   border: 1px solid #d3d9ce;
@@ -675,7 +675,7 @@ ol li ol li ol
 
 ul
 {
-  list-style-image: url(../images/arrow.gif);
+  list-style-image: url(../img/tb/arrow.gif);
   padding-left: 30px;
 }
 

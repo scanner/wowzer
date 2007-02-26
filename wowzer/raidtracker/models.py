@@ -49,6 +49,15 @@ class Raid(models.Model):
 
     #########################################################################
     #
+    def get_duration(self):
+        """Get accessor for the duration of this raid.
+        """
+        return self.end_time - self.start_time
+
+    duration = property(get_duration, None, doc = "The duration of the raid")
+    
+    #########################################################################
+    #
     def membership_at_time(self, when):
         """This method will return a list of who was in the raid at a given
         time.

@@ -133,7 +133,7 @@ form {
   position: absolute;
   top: 122px;
   left: 260px;
-  width: 700px;
+  width: 100%;
 }
 
 #navigation ul {
@@ -146,7 +146,7 @@ form {
 
 #navigation ul li {
   float: left;
-  margin: 0 12px 0 0;
+/*  margin: 0 12px 0 0; */
   padding: 0;
   width: 119px;
   height: 34px;
@@ -270,6 +270,15 @@ form {
   font-size: .9em;
   font-weight: normal;
   font-style: italic;
+}
+
+#body table .odd {
+  background: #c9cfc3;
+}
+
+#body table .even {
+/*  background: #e7ede10; */
+  background: #f9fff3;
 }
 
 #body .content p {

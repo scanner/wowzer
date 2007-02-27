@@ -21,6 +21,38 @@ from django.contrib.auth.models import User
 
 #############################################################################
 #
+class ForumGrouping(models.Model):
+    """A collection of forums.
+    """
+    name = models.CharField(maxlength = 128, db_index = True, unique = True,
+                            blank = False)
+    slug = models.SlugField(maxlength = 20, prepopulate_from = ("name",),
+                            db_index = True, unique = True, blank = False)
+    blurb = models.CharField(maxlength = 128)
+    creator = models.ForeignKey(User, db_index = True)
+    created_at = models.DateTimeField(auto_now_add = True, editable = False)
+
+    class Admin:
+        # prepopulated_fields = {'slug' : ('name',)} # Newformsadmin branch
+        pass
+
+    class Meta:
+        row_level_permissions = True
+        permissions = (("view", "Can see the forum grouping"),)
+
+    #########################################################################
+    #
+    def __str__(self):
+        return "Forum %s" % self.name
+
+    #########################################################################
+    #
+    def get_absolute_url(self):
+        return "/asforums/%s/" % self.slug
+        
+
+#############################################################################
+#
 class Forum(models.Model):
     """A forum is a collection of discussions
     """
@@ -29,8 +61,10 @@ class Forum(models.Model):
                             blank = False)
     slug = models.SlugField(maxlength = 20, prepopulate_from = ("name",),
                             db_index = True, unique = True, blank = False)
+    blurb = models.CharField(maxlength = 128)
     creator = models.ForeignKey(User, db_index = True)
     created_at = models.DateTimeField(auto_now_add = True, editable = False)
+    grouping = models.ForeignKey(ForumGrouping, db_index = True)
     last_post_at = models.DateTimeField(null = True, db_index = True)
 
     class Admin:
@@ -39,7 +73,7 @@ class Forum(models.Model):
 
     class Meta:
         row_level_permissions = True
-        permissions = (("view_forum", "Can see the forum"),)
+        permissions = (("view", "Can see the forum"),)
 
     #########################################################################
     #
@@ -62,8 +96,11 @@ class Discussion(models.Model):
     forum = models.ForeignKey(Forum)
     creator = models.ForeignKey(User, db_index = True)
     created_at = models.DateTimeField(auto_now_add = True, editable = False)
+    blurb = models.CharField(maxlength = 128)
     number_views = models.IntegerField(default = 0, editable = False)
     last_post_at = models.DateTimeField(null = True)
+    last_modified = models.DateTimeField()
+    edited = models.BooleanField(default = False)
     
     class Admin:
         # prepopulated_fields = {'slug' : ('name',)} # Newformsadmin branch
@@ -91,8 +128,16 @@ class Post(models.Model):
 
     creator = models.ForeignKey(User, db_index = True)
     created_at = models.DateTimeField(auto_now_add = True, editable = False)
+    last_modified = models.DateTimeField(null = True)
+    edited = models.BooleanField(default = False)
     discussion = models.ForeignKey(Discussion)
-    post = models.TextField()
+    deleted = models.BooleanField(default = False)
+    post = models.TextField(blank = True)
+    in_reply_to = models.ForeignKey('self', null = True)
+    #bbcode = models.BooleanField(default = True)
+    #smilies = models.BooleanField(default = True)
+    #signature = models.BooleanField(default = True)
+    #notify = models.BooleanField(default = True)
 
     class Admin:
         # prepopulated_fields = {'slug' : ('name',)} # Newformsadmin branch

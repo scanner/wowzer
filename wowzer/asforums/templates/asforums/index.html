@@ -1,0 +1,28 @@
+{% load wowzertags %}
+{% extends "asforums/listing.html" %}
+{% block listing %}
+{% if object_list %}
+<table>
+  <tr>
+    <th>Forum</th>
+    <th>Discussions</th>
+    <th>Last Post</th>
+  </tr>
+  {% regroup object_list by collection as collection %}
+  {% for forum in collection %}
+    {% ifchanged forum.collection %}
+    <tr>
+      <td colspan=3>{{ forum.collection.name }}</td>
+    </tr>
+    {% endifchanged %}
+    <tr>
+      <td>{{ forum.name }}</td>
+      <td>{{ forum.discussion_set.count }}</td>
+      <td></td>
+    </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p>There are no visible forums</p>
+{% endif %}
+{% endblock %}

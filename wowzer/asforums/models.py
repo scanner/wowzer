@@ -48,7 +48,7 @@ class ForumCollection(models.Model):
     #########################################################################
     #
     def get_absolute_url(self):
-        return "/asforums/%s/" % self.slug
+        return "/asforums/forum_collection/" % self.slug
         
 
 #############################################################################
@@ -64,8 +64,9 @@ class Forum(models.Model):
     blurb = models.CharField(maxlength = 128)
     creator = models.ForeignKey(User, db_index = True)
     created_at = models.DateTimeField(auto_now_add = True, editable = False)
-    grouping = models.ForeignKey(ForumCollection, db_index = True)
-    last_post_at = models.DateTimeField(null = True, db_index = True)
+    collection = models.ForeignKey(ForumCollection, db_index = True)
+#    last_post = models.ForeignKey("Post")
+#    last_post_at = models.DateTimeField(null = True, db_index = True)
 
     class Admin:
         # prepopulated_fields = {'slug' : ('name',)} # Newformsadmin branch
@@ -73,7 +74,8 @@ class Forum(models.Model):
 
     class Meta:
         row_level_permissions = True
-        permissions = (("view", "Can see the forum"),)
+        permissions = (("view", "Can see the forum"),
+                       ("moderate", "Can moderate the forum"))
 
     #########################################################################
     #
@@ -83,7 +85,7 @@ class Forum(models.Model):
     #########################################################################
     #
     def get_absolute_url(self):
-        return "/asforums/%s/" % self.slug
+        return "/asforums/forums/%s/" % self.slug
         
 #############################################################################
 #
@@ -98,8 +100,8 @@ class Discussion(models.Model):
     created_at = models.DateTimeField(auto_now_add = True, editable = False)
     blurb = models.CharField(maxlength = 128)
     number_views = models.IntegerField(default = 0, editable = False)
-    last_post_at = models.DateTimeField(null = True)
-    last_modified = models.DateTimeField()
+#    last_post_at = models.DateTimeField(null = True)
+    last_modified = models.DateTimeField(auto_now = True)
     edited = models.BooleanField(default = False)
     
     class Admin:
@@ -118,7 +120,7 @@ class Discussion(models.Model):
     #########################################################################
     #
     def get_absolute_url(self):
-        return "/asforums/%s/%s/" % (self.forum.slug, self.slug)
+        return "/asforums/forums/%s/%s/" % (self.forum.slug, self.slug)
 
 #############################################################################
 #
@@ -158,37 +160,10 @@ class Post(models.Model):
     #########################################################################
     #
     def get_absolute_url(self):
-        return "/asforums/%s/%s/%d/" % (self.discussion.forum.slug,
-                                        self.discussion.slug,
-                                        self.id)
+        return "/asforums/forums/%s/%s/%d/" % (self.discussion.forum.slug,
+                                              self.discussion.slug,
+                                              self.id)
 
-    #########################################################################
-    #
-    def save(self):
-        """When a post is saved, for the first time (ie: on creation)
-        we want to update various things (like last_post_at in its dicussion
-        and forum)
-        """
-
-        # If the "id" is none then this object has not been saved yet.
-        # That means that this is a new object.
-        #
-        if self.id is None:
-            created = True
-        else:
-            created = False
-
-        super(Post, self).save() # Call the real save method.
-
-        # If this is a creation, and the save succeeded then we want to
-        # update the discussion and forum this post is in.
-        #
-        if created:
-            now = datetime.utcnow()
-            self.discussion.last_post_at = now
-            self.discussion.forum.last_post_at = now
-
-        return
 
 # Connect the signal for a new post being created to our signal function
 # that kicks off and updates various things when a post is made.

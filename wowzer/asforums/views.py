@@ -26,10 +26,49 @@ from django.contrib.auth.decorators import login_required
 #
 from wowzer.asforums.models import *
 
+results_per_page = 20
+
 ############################################################################
 #
 def index(request):
-    pass
+    """Simplistic top level index. Shows all forum collections and their
+    forums
+    """
+
+    page_number = int(request.GET.get('page', 0))
+    query_set = Forum.objects.all().order_by('collection','created_at')
+
+    paginator = ObjectPaginator(query_set, results_per_page)
+
+    try:
+        object_list = paginator.get_page(page_number)
+    except InvalidPage:
+        if page_number == 0:
+            object_list = []
+        else:
+            raise Http404
+
+    if paginator.pages > 1:
+        is_paginated = True
+    else:
+        is_paginated = False
+        
+    t = get_template('asforums/index.html')
+    c = Context(request, {
+#        'order_by'         : order_by,
+        'is_paginated'     : is_paginated,
+        'results_per_page' : results_per_page,
+        'page'             : page_number + 1,
+        'pages'            : paginator.pages,
+        'hits'             : paginator.hits,
+        'has_next'         : paginator.has_next_page(page_number),
+        'has_previous'     : paginator.has_previous_page(page_number),
+        'next'             : page_number + 2,
+        'previous'         : page_number,
+        'object_list'      : object_list,
+        })
+    return HttpResponse(t.render(c))
+
 
 ############################################################################
 #
@@ -71,6 +110,5 @@ def forum_list(request):
         'next'             : page_number + 2,
         'previous'         : page_number,
         'object_list'      : object_list,
-        'objtype'          : cls.__name__,
         })
     return HttpResponse(t.render(c))

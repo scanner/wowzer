@@ -6,7 +6,8 @@ urlpatterns = patterns('',
     (r'^toons/', include('wowzer.toons.urls')),
     (r'^items/', include('wowzer.items.urls')),
     (r'^raidtracker/', include('wowzer.raidtracker.urls')),
-
+    (r'^asforums/', include('wowzer.asforums.urls')),
+                       
     # Uncomment this for admin:
     (r'^admin/', include('django.contrib.admin.urls')),
 )

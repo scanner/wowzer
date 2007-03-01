@@ -21,7 +21,7 @@ from django.contrib.auth.models import User
 
 #############################################################################
 #
-class ForumGrouping(models.Model):
+class ForumCollection(models.Model):
     """A collection of forums.
     """
     name = models.CharField(maxlength = 128, db_index = True, unique = True,
@@ -64,7 +64,7 @@ class Forum(models.Model):
     blurb = models.CharField(maxlength = 128)
     creator = models.ForeignKey(User, db_index = True)
     created_at = models.DateTimeField(auto_now_add = True, editable = False)
-    grouping = models.ForeignKey(ForumGrouping, db_index = True)
+    grouping = models.ForeignKey(ForumCollection, db_index = True)
     last_post_at = models.DateTimeField(null = True, db_index = True)
 
     class Admin:
@@ -133,7 +133,8 @@ class Post(models.Model):
     discussion = models.ForeignKey(Discussion)
     deleted = models.BooleanField(default = False)
     post = models.TextField(blank = True)
-    in_reply_to = models.ForeignKey('self', null = True)
+    in_reply_to = models.ForeignKey('self', related_name = 'replies',
+                                    null = True)
     #bbcode = models.BooleanField(default = True)
     #smilies = models.BooleanField(default = True)
     #signature = models.BooleanField(default = True)

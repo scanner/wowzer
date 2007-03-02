@@ -68,6 +68,10 @@ TEMPLATE_DIRS.append(config.get('directories', 'TEMPLATES'))
 #
 SITE_ID = 1
 
+# Our "user profile" extension object.
+#
+AUTH_PROFILE_MODULE = 'main.UserProfile'
+
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
 USE_I18N = True

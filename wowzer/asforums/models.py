@@ -48,8 +48,7 @@ class ForumCollection(models.Model):
     #########################################################################
     #
     def get_absolute_url(self):
-        return "/asforums/forum_collection/" % self.slug
-        
+        return "/asforums/forum_collections/%s" % self.slug
 
 #############################################################################
 #

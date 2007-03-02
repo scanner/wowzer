@@ -17,7 +17,8 @@ for name in ('Test','Test2'):
         f, ign = Forum.objects.get_or_create(name = name,
                                         defaults = { 'slug' : name,
                                                      'collection' : fc,
-                                                     'creator' : u })
+                                                     'creator' : u,
+                                                     'blurb' : "Much ado about nothing, nothing at all!"})
         print "Created forum '%s'" % str(f)
         for dname in ('disc1','disc2','disc3'):
             d,created = Discussion.objects.get_or_create(name = name,

@@ -34,7 +34,6 @@ def index(request):
     """Simplistic top level index. Shows all forum collections and their
     forums
     """
-
     page_number = int(request.GET.get('page', 0))
     query_set = Forum.objects.all().order_by('collection','created_at')
 

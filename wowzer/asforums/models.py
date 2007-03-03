@@ -10,6 +10,7 @@
 from django.db import models
 from django.db.models import signals
 from django.dispatch import dispatcher
+from django.template.defaultfilters import slugify as django_slugify
 
 # django model imports
 #
@@ -18,6 +19,17 @@ from django.contrib.auth.models import User
 # Signal imports
 #
 #from wowzer.asforums.signals import update_last_post_at
+
+#############################################################################
+#
+def slugify(value, length):
+    """Take the given string and slugify it, making sure it does not exceed
+    the specified length.
+    """
+    if len(value) > length:
+        return django_slugify(value[:length/2] + value[-length/2:])
+    else:
+        return django_slugify(value)
 
 #############################################################################
 #
@@ -30,7 +42,7 @@ class ForumCollection(models.Model):
                             db_index = True, unique = True, blank = False)
     blurb = models.CharField(maxlength = 128)
     creator = models.ForeignKey(User, db_index = True)
-    created_at = models.DateTimeField(auto_now_add = True, editable = False)
+    created = models.DateTimeField(auto_now_add = True, editable = False)
 
     class Admin:
         # prepopulated_fields = {'slug' : ('name',)} # Newformsadmin branch
@@ -38,7 +50,12 @@ class ForumCollection(models.Model):
 
     class Meta:
         row_level_permissions = True
-        permissions = (("view", "Can see the forum grouping"),)
+        permissions = (("view", "Can see the forum collection"),
+                       ("moderate", "Can moderate all the forums in "
+                        "collection"),
+                       ("createforum", "Can create a forum in collection"),
+                       ("discuss", "Can create a discussion in forum"),
+                       ("post", "Can post in a discussion in forum"))
 
     #########################################################################
     #
@@ -50,16 +67,25 @@ class ForumCollection(models.Model):
     def get_absolute_url(self):
         return "/asforums/forum_collections/%s" % self.slug
 
+    #########################################################################
+    #
+    def save(self):
+        # If the slug is not defined when we attempt to save this
+        # instance create one for us.
+        #
+        if not self.slug:
+            self.slug = slugify(self.name, 20)
+        super(ForumCollection, self).save()
+
 #############################################################################
 #
 class Forum(models.Model):
     """A forum is a collection of discussions
     """
 
-    name = models.CharField(maxlength = 128, db_index = True, unique = True,
-                            blank = False)
+    name = models.CharField(maxlength = 128, db_index = True, blank = False)
     slug = models.SlugField(maxlength = 20, prepopulate_from = ("name",),
-                            db_index = True, unique = True, blank = False)
+                            db_index = True, blank = False)
     blurb = models.CharField(maxlength = 128)
     creator = models.ForeignKey(User, db_index = True)
     created_at = models.DateTimeField(auto_now_add = True, editable = False)
@@ -73,8 +99,11 @@ class Forum(models.Model):
 
     class Meta:
         row_level_permissions = True
-        permissions = (("view", "Can see the forum"),
-                       ("moderate", "Can moderate the forum"))
+        unique_together = (("name", "collection"), ("slug", "collection"))
+        permissions = (("view", "Can see forum"),
+                       ("moderate", "Can moderate forum"),
+                       ("discuss", "Can create a discussion in forum"),
+                       ("post", "Can post in a discussion in forum"))
 
     #########################################################################
     #
@@ -85,6 +114,16 @@ class Forum(models.Model):
     #
     def get_absolute_url(self):
         return "/asforums/forums/%s/" % self.slug
+
+    #########################################################################
+    #
+    def save(self):
+        # If the slug is not defined when we attempt to save this
+        # instance create one for us.
+        #
+        if not self.slug:
+            self.slug = slugify(self.name, 20)
+        super(Forum, self).save()
         
 #############################################################################
 #
@@ -110,6 +149,7 @@ class Discussion(models.Model):
     class Meta:
         row_level_permissions = True
         unique_together = (("name", "forum"), ("slug", "forum"))
+        permissions = (("post", "Can post to discussion"),)
         
     #########################################################################
     #
@@ -120,6 +160,16 @@ class Discussion(models.Model):
     #
     def get_absolute_url(self):
         return "/asforums/forums/%s/%s/" % (self.forum.slug, self.slug)
+
+    #########################################################################
+    #
+    def save(self):
+        # If the slug is not defined when we attempt to save this
+        # instance create one for us.
+        #
+        if not self.slug:
+            self.slug = slugify(self.name, 20)
+        super(Discussion, self).save()
 
 #############################################################################
 #

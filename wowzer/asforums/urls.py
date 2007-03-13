@@ -3,8 +3,11 @@ from django.conf.urls.defaults import *
 urlpatterns = patterns(
     'wowzer.asforums.views',
     (r'^$', 'index'),
-    (r'^forum_collections/$', 'forum_coll_list'),
-    (r'^forum_collections/(?P<forum_id>\d+)/$', 'forum_coll_detail'),
+    (r'^forum_collections/$', 'fc_list'),
+    (r'^forum_collections/create/$', 'fc_create'),
+    (r'^forum_collections/(?P<fc_id>\d+)/$', 'fc_detail'),
+    (r'^forum_collections/(?P<fc_id>\d+)/update/$', 'fc_update'),
+    (r'^forum_collections/(?P<fc_id>\d+)/delete/$', 'fc_delete'),
     (r'^forums/$', 'forum_list'),
     (r'^forums/create/$', 'forum_create'),
     (r'^forums/(?P<forum_id>\d+)/$', 'forum_detail'),

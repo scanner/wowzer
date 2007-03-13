@@ -12,7 +12,25 @@ from django.db import models
 # django model imports
 #
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 
+############################################################################
+#
+class TaggedItem(models.Model):
+    """A tag on an item. This was originally cribbed from:
+    http://www.djangoproject.com/documentation/models/generic_relations/"""
+    tag = models.SlugField()
+    content_type = models.ForeignKey(ContentType)
+    object_id = models.PositiveIntegerField()
+    
+    content_object = models.GenericForeignKey()
+    
+    class Meta:
+        ordering = ["tag"]
+    
+    def __str__(self):
+        return self.tag
+    
 ############################################################################
 #
 class Style(models.Model):
@@ -23,7 +41,8 @@ class Style(models.Model):
     name = models.CharField(maxlength = 128, unique = True, db_index = True,
                             blank = False)
     slug = models.SlugField(maxlength = 20, unique = True, db_index = True,
-                            prepopulate_from = ("name", "creator","created_at"))
+                            prepopulate_from = ("name", "creator",
+                                                "created_at"))
                             
     creator = models.ForeignKey(User, db_index = True)
     created_at = models.DateTimeField(auto_now_add = True, editable = False)

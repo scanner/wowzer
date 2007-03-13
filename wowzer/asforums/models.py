@@ -16,6 +16,10 @@ from django.template.defaultfilters import slugify as django_slugify
 #
 from django.contrib.auth.models import User
 
+# Wowzer model imports
+#
+from wowzer.main.models import TaggedItem
+
 # Signal imports
 #
 #from wowzer.asforums.signals import update_last_post_at
@@ -43,7 +47,8 @@ class ForumCollection(models.Model):
     blurb = models.CharField(maxlength = 128)
     creator = models.ForeignKey(User, db_index = True)
     created = models.DateTimeField(auto_now_add = True, editable = False)
-
+    tags = models.GenericRelation(TaggedItem)
+    
     class Admin:
         # prepopulated_fields = {'slug' : ('name',)} # Newformsadmin branch
         pass
@@ -55,7 +60,8 @@ class ForumCollection(models.Model):
                         "collection"),
                        ("createforum", "Can create a forum in collection"),
                        ("discuss", "Can create a discussion in forum"),
-                       ("post", "Can post in a discussion in forum"))
+                       ("post", "Can post in a discussion in forum"),
+                       ("tag", "Can tag a forum collection and its descendents"))
 
     #########################################################################
     #
@@ -90,6 +96,7 @@ class Forum(models.Model):
     creator = models.ForeignKey(User, db_index = True)
     created_at = models.DateTimeField(auto_now_add = True, editable = False)
     collection = models.ForeignKey(ForumCollection, db_index = True)
+    tags = models.GenericRelation(TaggedItem)
 #    last_post = models.ForeignKey("Post")
 #    last_post_at = models.DateTimeField(null = True, db_index = True)
 
@@ -103,7 +110,8 @@ class Forum(models.Model):
         permissions = (("view", "Can see forum"),
                        ("moderate", "Can moderate forum"),
                        ("discuss", "Can create a discussion in forum"),
-                       ("post", "Can post in a discussion in forum"))
+                       ("post", "Can post in a discussion in forum"),
+                       ("tag", "Can tag a forum and its descendents"))
 
     #########################################################################
     #
@@ -141,6 +149,7 @@ class Discussion(models.Model):
 #    last_post_at = models.DateTimeField(null = True)
     last_modified = models.DateTimeField(auto_now = True)
     edited = models.BooleanField(default = False)
+    tags = models.GenericRelation(TaggedItem)
     
     class Admin:
         # prepopulated_fields = {'slug' : ('name',)} # Newformsadmin branch
@@ -149,7 +158,8 @@ class Discussion(models.Model):
     class Meta:
         row_level_permissions = True
         unique_together = (("name", "forum"), ("slug", "forum"))
-        permissions = (("post", "Can post to discussion"),)
+        permissions = (("post", "Can post to discussion"),
+                       ("tag", "Can tag a discussion and its posts"))
         
     #########################################################################
     #
@@ -186,6 +196,7 @@ class Post(models.Model):
     post = models.TextField(blank = True)
     in_reply_to = models.ForeignKey('self', related_name = 'replies',
                                     null = True)
+    tags = models.GenericRelation(TaggedItem)
     #bbcode = models.BooleanField(default = True)
     #smilies = models.BooleanField(default = True)
     #signature = models.BooleanField(default = True)
@@ -197,6 +208,7 @@ class Post(models.Model):
 
     class Meta:
         row_level_permissions = True
+        permissions = (("tag", "Can tag a post"),)
 
     #########################################################################
     #

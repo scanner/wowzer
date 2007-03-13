@@ -15,4 +15,3 @@ def media_context(request):
     """Insert in to the template context the values of settings.media_url
     """
     return { 'MEDIA_URL' : settings.MEDIA_URL }
-

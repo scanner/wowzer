@@ -42,15 +42,12 @@ class ForumCollection(models.Model):
     """
     name = models.CharField(maxlength = 128, db_index = True, unique = True,
                             blank = False)
-    slug = models.SlugField(maxlength = 20, prepopulate_from = ("name",),
-                            db_index = True, unique = True, blank = False)
     blurb = models.CharField(maxlength = 128)
     creator = models.ForeignKey(User, db_index = True)
     created = models.DateTimeField(auto_now_add = True, editable = False)
     tags = models.GenericRelation(TaggedItem)
     
     class Admin:
-        # prepopulated_fields = {'slug' : ('name',)} # Newformsadmin branch
         pass
 
     class Meta:
@@ -71,17 +68,7 @@ class ForumCollection(models.Model):
     #########################################################################
     #
     def get_absolute_url(self):
-        return "/asforums/forum_collections/%s" % self.slug
-
-    #########################################################################
-    #
-    def save(self):
-        # If the slug is not defined when we attempt to save this
-        # instance create one for us.
-        #
-        if not self.slug:
-            self.slug = slugify(self.name, 20)
-        super(ForumCollection, self).save()
+        return "/asforums/forum_collections/%d/" % self.id
 
 #############################################################################
 #
@@ -90,8 +77,6 @@ class Forum(models.Model):
     """
 
     name = models.CharField(maxlength = 128, db_index = True, blank = False)
-    slug = models.SlugField(maxlength = 20, prepopulate_from = ("name",),
-                            db_index = True, blank = False)
     blurb = models.CharField(maxlength = 128)
     creator = models.ForeignKey(User, db_index = True)
     created_at = models.DateTimeField(auto_now_add = True, editable = False)
@@ -101,12 +86,11 @@ class Forum(models.Model):
 #    last_post_at = models.DateTimeField(null = True, db_index = True)
 
     class Admin:
-        # prepopulated_fields = {'slug' : ('name',)} # Newformsadmin branch
         pass
 
     class Meta:
         row_level_permissions = True
-        unique_together = (("name", "collection"), ("slug", "collection"))
+        unique_together = (("name", "collection"),)
         permissions = (("view", "Can see forum"),
                        ("moderate", "Can moderate forum"),
                        ("discuss", "Can create a discussion in forum"),
@@ -121,18 +105,8 @@ class Forum(models.Model):
     #########################################################################
     #
     def get_absolute_url(self):
-        return "/asforums/forums/%s/" % self.slug
+        return "/asforums/forums/%d/" % self.id
 
-    #########################################################################
-    #
-    def save(self):
-        # If the slug is not defined when we attempt to save this
-        # instance create one for us.
-        #
-        if not self.slug:
-            self.slug = slugify(self.name, 20)
-        super(Forum, self).save()
-        
 #############################################################################
 #
 class Discussion(models.Model):
@@ -140,7 +114,6 @@ class Discussion(models.Model):
     """
 
     name = models.CharField(maxlength = 128, db_index = True, blank = False)
-    slug = models.SlugField(prepopulate_from = ("name",))
     forum = models.ForeignKey(Forum)
     creator = models.ForeignKey(User, db_index = True)
     created_at = models.DateTimeField(auto_now_add = True, editable = False)
@@ -152,12 +125,11 @@ class Discussion(models.Model):
     tags = models.GenericRelation(TaggedItem)
     
     class Admin:
-        # prepopulated_fields = {'slug' : ('name',)} # Newformsadmin branch
         pass
 
     class Meta:
         row_level_permissions = True
-        unique_together = (("name", "forum"), ("slug", "forum"))
+        unique_together = (("name", "forum"),)
         permissions = (("post", "Can post to discussion"),
                        ("tag", "Can tag a discussion and its posts"))
         
@@ -169,17 +141,7 @@ class Discussion(models.Model):
     #########################################################################
     #
     def get_absolute_url(self):
-        return "/asforums/forums/%s/%s/" % (self.forum.slug, self.slug)
-
-    #########################################################################
-    #
-    def save(self):
-        # If the slug is not defined when we attempt to save this
-        # instance create one for us.
-        #
-        if not self.slug:
-            self.slug = slugify(self.name, 20)
-        super(Discussion, self).save()
+        return "/asforums/discs/%d/" % self.id
 
 #############################################################################
 #
@@ -203,7 +165,6 @@ class Post(models.Model):
     #notify = models.BooleanField(default = True)
 
     class Admin:
-        # prepopulated_fields = {'slug' : ('name',)} # Newformsadmin branch
         pass
 
     class Meta:
@@ -221,9 +182,7 @@ class Post(models.Model):
     #########################################################################
     #
     def get_absolute_url(self):
-        return "/asforums/forums/%s/%s/%d/" % (self.discussion.forum.slug,
-                                              self.discussion.slug,
-                                              self.id)
+        return "/asforums/posts/%d/" % self.id
 
 
 # Connect the signal for a new post being created to our signal function

@@ -103,6 +103,18 @@ def fc_delete(request):
 
 ############################################################################
 #
+@login_required
+def fc_create(request):
+    """Creation of a new forum collection.
+    XXX For now until we get the form filled and our such we are going to
+    XXX hand stuff off to the generic crud views. I am doing it this way
+    XXX instead of entirely in the urls.py file because I am going to put
+    XXX stuff here and I feel better with this stub defined.
+    """
+    return create_object(request, ForumCollection)
+
+############################################################################
+#
 def obj_list_redir(request):
     """Because of how objects in the asforum app are organized there is
     no way to blindly list any one set of objects except the top level
@@ -123,7 +135,47 @@ def forum_create(request,fc_id):
     XXX instead of entirely in the urls.py file because I am going to put
     XXX stuff here and I feel better with this stub defined.
     """
-    return create_object(request, Forum)
+    fc = get_object_or_404(ForumCollection, pk = fc_id)
+
+    manipulator = Forum.AddManipulator()
+    if request.POST:
+        # XXX Does user have 'post' permission in this discussion,
+        # XXX forum, forum collection (they need to explicitly have
+        # XXX the permission at some level.)
+        # if not request.user.has_perm():
+        #     raise HttpResponseForbidden("discussion")
+        #     raise HttpResponseForbidden("forum")
+        #     raise HttpResponseForbidden("forum collection")
+        new_data = request.POST.copy()
+        new_data['collection'] = fc.id
+            
+        # Check for errors
+        errors = manipulator.get_validation_errors(new_data)
+        manipulator.do_html2python(new_data)
+
+        if not errors:
+            # No errors -- this means we can save the data!
+            new_object = manipulator.save(new_data)
+
+            if request.user.is_authenticated():
+                request.user.message_set.create(\
+                    message="The Forum %s was created "
+                    "successfully." % new_object.name)
+
+            return HttpResponseRedirect(new_object.get_absolute_url())
+    else:
+        # No POST, so we want a brand new form without any data or errors
+        errors = {}
+        new_data = manipulator.flatten_data()
+
+    # Create the FormWrapper, template, context, response
+    form = oldforms.FormWrapper(manipulator, new_data, errors)
+    t = get_template("asforums/forum_form.html")
+    c = Context(request, {
+            'forum_collecton' : fc,
+            'form'       : form,
+            })
+    return HttpResponse(t.render(c))
 
 ############################################################################
 #
@@ -190,7 +242,47 @@ def disc_create(request, forum_id):
     XXX instead of entirely in the urls.py file because I am going to put
     XXX stuff here and I feel better with this stub defined.
     """
-    return create_object(request, Discussion)
+    forum = get_object_or_404(Forum, pk = forum_id)
+
+    manipulator = Discussion.AddManipulator()
+    if request.POST:
+        # XXX Does user have 'post' permission in this discussion,
+        # XXX forum, forum collection (they need to explicitly have
+        # XXX the permission at some level.)
+        # if not request.user.has_perm():
+        #     raise HttpResponseForbidden("discussion")
+        #     raise HttpResponseForbidden("forum")
+        #     raise HttpResponseForbidden("forum collection")
+        new_data = request.POST.copy()
+        new_data['forum'] = forum.id
+            
+        # Check for errors
+        errors = manipulator.get_validation_errors(new_data)
+        manipulator.do_html2python(new_data)
+
+        if not errors:
+            # No errors -- this means we can save the data!
+            new_object = manipulator.save(new_data)
+
+            if request.user.is_authenticated():
+                request.user.message_set.create(\
+                    message="The discussion %s was created "
+                    "successfully." % new_object.name)
+
+            return HttpResponseRedirect(new_object.get_absolute_url())
+    else:
+        # No POST, so we want a brand new form without any data or errors
+        errors = {}
+        new_data = manipulator.flatten_data()
+
+    # Create the FormWrapper, template, context, response
+    form = oldforms.FormWrapper(manipulator, new_data, errors)
+    t = get_template("asforums/disc_form.html")
+    c = Context(request, {
+            'forum_collecton' : fc,
+            'form'       : form,
+            })
+    return HttpResponse(t.render(c))
 
 ############################################################################
 #
@@ -256,13 +348,9 @@ def disc_delete(request, disc_id):
 #
 @login_required
 def post_create(request, disc_id):
-
-    try:
-        disc = Discussion.objects.get(pk = disc_id)
-        forum = disc.forum
-        fc = forum.collection
-    except Discussion.DoesNotExist:
-        raise Http404
+    disc = get_object_or_404(Discussion, pk = disc_id)
+    forum = disc.forum
+    fc = forum.collection
 
     manipulator = Post.AddManipulator()
     if request.POST:
@@ -286,10 +374,8 @@ def post_create(request, disc_id):
 
             if request.user.is_authenticated():
                 request.user.message_set.create(\
-                    message=gettext("The %(verbose_name)s was created "
-                                    "successfully.") % \
-                    {"verbose_name": model._meta.verbose_name})
-
+                    message="Your post was made to discussion %s" % \
+                    discussion.name)
             return HttpResponseRedirect(new_object.get_absolute_url())
     else:
         # No POST, so we want a brand new form without any data or errors
@@ -308,16 +394,18 @@ def post_create(request, disc_id):
 ############################################################################
 #
 def post_detail(request, post_id):
-    pass
+    return object_detail(request, Post.objects.all(), object_id = post_id)
 
 ############################################################################
 #
 @login_required
 def post_update(request, post_id):
-    pass
+    return update_object(request, Post, post_id)
 
 ############################################################################
 #
 @login_required
 def post_delete(request, post_id):
-    pass
+    post = get_object_or_404(Post, pk=post_id)
+    return delete_object(request, Post, post.discussion.get_absolute_url())
+

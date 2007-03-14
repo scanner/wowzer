@@ -1,0 +1,23 @@
+{% load wowzertags %}
+{% extends "asforums/listing.html" %}
+{% block listing %}
+<table>
+  <tr>
+    <th>Forum Collection</th>
+    <th>Number of Forums</th>
+    <th>Number of Active Discussions</th>
+    <th>Last Post</th>
+  </tr>
+  {% for fc in object_list %}
+    <tr class="{% cycle odd,even %}">
+      <td><a href="{{ fc.get_absolute_url }}">{{ fc.name }}</a></td>
+      <td>{{ fc.forum_set.count }}</td>
+      <td> Unimplemented </td>
+      <td> Unimplemented </td>
+    </tr>
+    <tr class="{% cycle odd,even %}">
+      <td colspan="4"><span class="blurb">{{ fc.blurb }}</span></td>
+    </tr>
+  {% endfor %}
+</table>
+{% endblock %}

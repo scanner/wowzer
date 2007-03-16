@@ -41,7 +41,9 @@
 
             <li><a href="/asforums/" title="Items">Forums</a></li>
             <li><a href="/items/" title="Items">Items</a></li>
+	    {% comment %}
             <li><a href="/madhouse/" title="Madhouse">Madhouse</a></li>
+	    {% endcomment %}
             <li><a href="/raidtracker/raid/" title="Raids">Raids</a></li>
           </ul>
           {% endblock %}
@@ -63,8 +65,10 @@
             {% endblock %}
           </div>
           <div class="content">
+	    <div id="contentblock">
             {% block content %}
             {% endblock %}
+	    </div>
           </div>
           <br class="clear" />
           {% endblock %}

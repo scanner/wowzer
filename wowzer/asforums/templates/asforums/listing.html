@@ -1,6 +1,7 @@
 {% load wowzertags %}
 {% extends "asforums/base.html" %}
 {% block content %}
+{% block prelisting %}{% endblock %}
 {% if is_paginated %}
 <div class="paginator">{% paginator %}</div>
 {% endif %}
@@ -9,4 +10,5 @@
 {% if is_paginated %}
 <div class="paginator">{% paginator %}</div>
 {% endif %}
+{% block postlisting %}{% endblock %}
 {% endblock %}

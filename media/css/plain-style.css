@@ -1,0 +1,198 @@
+/* @override http://www.apricot.com/~scanner/wmedia/css/plain-style.css */
+
+/* File: $Id$: */
+
+/* @group Misc (applicable in all divisions) */
+
+* {
+  text-decoration: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  float: none;
+}
+
+h1 {
+	font-variant: small-caps;
+  padding: 0;
+  margin: 0;
+}
+
+h2 {
+  padding: 0;
+  margin: 0;
+}
+
+h3 {
+  padding: 0;
+  margin: 0;
+}
+
+.byline {  font-variant: small-caps;  font-size: .9em;  font-weight: normal;  font-style: italic;
+}
+
+/* @group paginator */
+.paginator {
+  padding: .25em .25em .6em .25em;
+}
+.paginate-pages {
+  padding: 2px 3px;
+  border: 1px solid #997;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.paginate-first, .paginate-last
+{
+  padding: 2px 6px;
+  border: 1px solid #997
+  font-weight: bold;
+}
+.paginate-previous, .paginate-next
+{
+  padding: 2px 3px;
+  border: 1px solid #997
+}
+.paginate-link 
+{
+  padding: 2px 4px;
+  border: 1px solid #997
+}
+.paginate-current
+{
+  padding: 2px 4px;
+  border: 1px solid #997
+  font-weight: bold;
+  background: #59452a;
+  color: #FFFFCC;
+}
+
+/* @end */
+/* @end */
+
+/* @group Container */
+
+#container {
+  width: 100%;
+  margin: 0 auto;
+  background-color: #fff;
+  color: #333;
+
+}
+
+/* @group Top */
+#top {
+	padding-left: 180px;
+	padding-bottom: 4px;
+  background-color: #ddd;
+  border-bottom: 1px solid gray;
+}
+
+#title {
+	padding: .5em;
+}
+
+.title {
+	font-variant: small-caps;
+}
+/* @group Navigation */
+
+ul#navlist
+{
+margin-left: 0;
+padding-left: 0;
+white-space: nowrap;
+}
+
+#navlist li
+{
+display: inline;
+list-style-type: none;
+}
+
+#navlist a { padding: 3px 10px; }
+
+#navlist a:link, #navlist a:visited
+{
+color: #fff;
+background-color: #036;
+text-decoration: none;
+}
+
+#navlist a:hover
+{
+color: #fff;
+background-color: #369;
+text-decoration: none;
+}
+
+#hierarchy {
+
+}
+#breadcrumbs {
+
+}
+
+/* @end */
+/* @end */
+
+
+/* @group Left column */
+#leftcol
+{
+	float: left;
+	width: 160px;
+	margin: 0;
+	padding: 0.5em;
+	background-color: #55f;
+}
+
+/* @end */
+
+/* @group Right column */
+#rightcol
+{
+	float: right;
+	width: 160px;
+	margin: 0;
+	padding: 0.5em;
+	background-color: #5f5;
+}
+
+/* @end */
+/* @group Content */
+#content {
+  margin-left: 180px;
+  border-left: 1px solid gray;
+  padding: 0.2em;
+}
+
+#body table {  }
+#body table th {
+  background: #c9cfc3;
+  font-variant: small-caps;
+  font-weight: normal;
+  font-size: 2em;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+
+#body table .odd { background: #c9cfc3; }
+#body table .even { background: #f9fff3; }
+
+/* @end */
+/* @group Footer */
+
+#footer {
+  clear: both;
+  margin: 0;
+  padding: 0.5em;
+  color: #333;
+  background-color: #ddd;
+  border-top: 1px solid gray;
+}
+
+/* @end */
+/* @end */
+
+#leftnav p, #rightnav p { margin: 0 0 1em 0; }
+#content h2 { margin: 0 0 .5em 0; }

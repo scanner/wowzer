@@ -1,0 +1,43 @@
+{% extends "asforums/listing.html" %}
+{% block prelisting %}
+<h1>{{ forum_collection.name }}</h1>
+<p>
+<div>
+  <span class="byline">{{ forum_collection.blurb }}</span><br>
+  Creator: {{ forum_collection.creator }}<br>
+  Number of forums: {{ forum_collection.forum_set.count }}<br>
+  Number of Active Discussions: Unimplemented<br>
+  Last Post: Unimplemented<br>
+</div>
+<div class="tags">
+
+</div>
+</p>
+{% endblock %}
+{% block listing %}
+<p>
+{% if object_list %}
+<table>
+  <tr>
+    <th>Forum</th>
+    <th>Discussions</th>
+    <th>Active Discussions</th>
+    <th>Last Post</th>
+  </tr>
+  {% for forum in object_list %}
+    <tr class="{% cycle odd,even %}">
+      <td><a href="{{ forum.get_absolute_url }}">{{ forum.name }}</a></td>
+      <td>{{ forum.discussion_set.count }}</td>
+      <td>Unimplemented</td>
+      <td>Unimplemented</td>
+    </tr>
+    <tr class="{% cycle odd,even %}">
+      <td colspan="4"><span class="blurb">{{ forum.blurb }}</span></td>
+    </tr>
+  {% endfor %}
+</table>
+{% else %}
+There are no forums in this forum collection.
+{% endif %}
+</p>
+{% endblock %}

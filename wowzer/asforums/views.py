@@ -31,7 +31,7 @@ from django.contrib.auth.decorators import login_required
 #
 from wowzer.asforums.models import *
 
-results_per_page = 20
+paginate_by = 20
 
 ############################################################################
 #
@@ -43,6 +43,7 @@ def index(request):
     ec = {}
     
     return object_list(request, query_set,
+                       paginate_by = 10,
                        template_name = 'asforums/index.html',
                        extra_context = ec)
 
@@ -56,7 +57,8 @@ def fc_list(request):
     XXX stuff here and I feel better with this stub defined.
     """
     query_set = ForumCollection.objects.all()
-    return object_list(request, query_set, "asforums/fc_list.html")
+    return object_list(request, query_set,
+                       template_name = "asforums/fc_list.html")
 
 ############################################################################
 #
@@ -67,13 +69,12 @@ def fc_detail(request, fc_id):
     XXX instead of entirely in the urls.py file because I am going to put
     XXX stuff here and I feel better with this stub defined.
     """
-    try:
-        fc = ForumCollection.objects.get(pk=fc_id)
-    except ForumCollection.DoesNotExist:
-        raise Http404
-
-    query_set = Forum.objects.filter(collection = fc)
-    return object_list(request, query_set, "asforums/fc_detail.html")
+    fc = get_object_or_404(ForumCollection, pk = fc_id)
+    ec = { 'forum_collection' : fc }
+    query_set = fc.forum_set.all()
+    return object_list(request, query_set,
+                       template_name = "asforums/fc_detail.html",
+                       extra_context = ec)
 
 ############################################################################
 #
@@ -85,7 +86,8 @@ def fc_update(request, fc_id):
     XXX instead of entirely in the urls.py file because I am going to put
     XXX stuff here and I feel better with this stub defined.
     """
-    return update_object(request, ForumCollection, fc_id)
+    return update_object(request, ForumCollection, object_id = fc_id,
+                         template_name = "asforums/fc_form.html")
 
 ############################################################################
 #
@@ -190,7 +192,7 @@ def forum_detail(request, forum_id):
 
     ec = { 'forum' : forum }
 
-    return object_list(request, Discussion.objects.filter(forum = forum)
+    return object_list(request, Discussion.objects.filter(forum = forum),
                        template_name = "asforums/forum_detail.html",
                        extra_context = ec)
 
@@ -297,7 +299,7 @@ def disc_detail(request, disc_id):
 
     ec = { 'discussion' : disc }
 
-    return object_list(request, Post.objects.filter(discussion = disc)
+    return object_list(request, Post.objects.filter(discussion = disc),
                        template_name = "asforums/disc_detail.html",
                        extra_context = ec)
 

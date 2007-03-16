@@ -1,4 +1,7 @@
-/* @override http://localhost/~scanner/wmedia/css/tb-style.css */
+/* @override 
+	http://localhost/~scanner/wmedia/css/tb-style.css
+	http://www.apricot.com/~scanner/wmedia/css/tb-style.css
+*/
 
 /* CSS Document */
 
@@ -23,10 +26,34 @@ body {
 }
 
 .container {
-/*width: 980px;*/
+/* width: 980px;*/
   margin: 0;
   padding: 0;
 }
+
+.paginator { padding: .25em .25em .6em .25em; }
+.paginate-pages {
+                  padding: 2px 3px;
+                  border: 1px solid #997;
+                  cursor: pointer;
+                  text-decoration: underline;
+                  }
+.paginate-first, .paginate-last { padding: 2px 6px;
+                                  border: 1px solid #997
+                                  font-weight: bold;
+                                  }
+.paginate-previous, .paginate-next { padding: 2px 3px;
+                                     border: 1px solid #997
+                                     }
+.paginate-link { padding: 2px 4px;
+                 border: 1px solid #997
+                 }
+.paginate-current { padding: 2px 4px;
+                    border: 1px solid #997
+                    font-weight: bold;
+                    background: #59452a;
+                    color: #FFFFCC;
+                    }
 
 /* @group Header */
 
@@ -133,7 +160,7 @@ form {
   position: absolute;
   top: 122px;
   left: 260px;
-  width: 100%;
+/*  width: 100%; */
 }
 
 #navigation ul {
@@ -272,23 +299,26 @@ form {
   font-style: italic;
 }
 
-#body table .forumcollection {
-    font-variant: small-caps;
-    font-weight: normal;
-    font-style: bold;
-    font-size: 2em;
-    background: #f9fff3;
+#body .content table {
+	float: left;
+	padding: 0;
+	margin: 10px 0 0 30pix;
 }
 
-#body th {
+#body .content table th {
     background: #c9cfc3;
     font-variant: small-caps;
     font-weight: normal;
     font-size: 2em;
+	padding-right: 5px;
+	padding-left: 5px;
 }
 
-#body table .odd {
+#body .content table .odd {
   background: #c9cfc3;
+}
+
+#body .content table .bottom {
 }
 
 #body table .even {

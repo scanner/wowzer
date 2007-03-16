@@ -6,24 +6,25 @@
   <tr>
     <th></th>
     <th>Forum</th>
-    <th>Discussions</th>
+    <th>Number of Discussions</th>
     <th>Last Post</th>
   </tr>
   {% for forum in object_list %}
     {% ifchanged forum.collection %}
     <tr>
-      <td class="forumcollection" colspan=2><a name="{{ forum.collection.get_absolute_url }}">{{ forum.collection.name }}</a></td>
+      <td class="forumcollection" colspan=2><a href="{{ forum.collection.get_absolute_url }}">{{ forum.collection.name }}</a><br>
+      <span class="byline">{{ forum.collection.blurb }}</span></td>
       <td class="forumcollection" colspan 2></td>
     </tr>
     {% endifchanged %}
     <tr class="{% cycle odd,even %}">
-      <td>++</td>
+      <td><img src="{{ MEDIA_URL }}img/silk-icons/folder_heart.png"></td>
       <td>
-        <b><a name="{{ forum.get_absolute_url }}">{{ forum.name }}</a></b><br>
-        {{ forum.blurb }}
+        <b><a href="{{ forum.get_absolute_url }}">{{ forum.name }}</a></b><br>
+        <span class="byline">{{ forum.blurb }}</span>
       </td>
       <td>{{ forum.discussion_set.count }}</td>
-      <td></td>
+      <td>Unimplemented</td>
     </tr>
   {% endfor %}
 </table>

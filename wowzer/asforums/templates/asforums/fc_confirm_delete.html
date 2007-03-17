@@ -1,0 +1,9 @@
+{% extends "asforums/base.html" %}
+{% block content %}
+<h1>Delete {{ object.name }}</h1>
+<p>Please confirm that you wish to delete the forum collection {{
+object.name }}.</p>
+<form method="post" action=".">
+<input type="submit" />
+</form>
+{% endblock %}

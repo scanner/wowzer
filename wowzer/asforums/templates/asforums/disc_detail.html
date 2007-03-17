@@ -1,0 +1,51 @@
+{% extends "asforums/listing.html" %}
+{% block prelisting %}
+<h1>{{ discussion.name }}</h1>
+<p>
+<div>
+  <span class="byline">{{ discussion.blurb }}</span><br>
+  Creator: {{ discussion.creator }}<br>
+  Number of Posts: {{ discussion.post_set.count }}<br>
+  Number of views: {{ discussion.views }}<br>
+  {% if discussion.post_set.all %}
+  Last Post: <a href="{{ discussion.get_absolute_url }}?post={{ discussion.post_set.latest.id }}">{{ discussion.post_set.latest.created|timesince }}</a>
+by <a href="{{ discussion.post_set.latest.creator.get_absolute_url }}">{{ discussion.post_set.latest.creator }}</a><br>
+  {% endif %}
+</div>
+<div class="tags">
+
+</div>
+</p>
+{% endblock %}
+{% block listing %}
+<p>
+{% if object_list %}
+<div class="posts">
+<table>
+  <tr>
+    <th>Author</th>
+    <th>Message</th>
+  </tr>
+  {% for post in object_list %}
+    <tr class="{% cycle odd,even %}">
+      <td><span class="author"><a href="{{ post.creator.get_absolute_url }}">{{ post.creator }}</a></span></td>
+      <td>
+        <div class="byline">
+          Posted at: {{ post.created }} ({{ post.created|timesince }} ago)
+          {% if post.in_reply_to %}
+          In reply to: <a href="{{ discussion.get_absolute_url }}?post={{ post.in_reply_to.id }}">{{ post.in_reply_to.created|timesince }}</a> by <a href="{{ post.in_reply_to.creator.get_absolute_url }}">{{ post.in_reply_to.creator }}</a>
+          {% endif %}
+        </div>
+        <div class="postmessage">
+          {{ post.post }}
+        </div>
+      </td>
+    </tr>
+  {% endfor %}
+</table>
+</div>
+{% else %}
+There are no posts in this discussion.
+{% endif %}
+</p>
+{% endblock %}

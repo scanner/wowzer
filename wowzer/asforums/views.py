@@ -31,7 +31,7 @@ from django.contrib.auth.decorators import login_required
 #
 from wowzer.asforums.models import *
 
-paginate_by = 20
+paginate_by = 10
 
 ############################################################################
 #
@@ -39,7 +39,7 @@ def index(request):
     """Simplistic top level index. Shows all forum collections and their
     forums
     """
-    query_set = Forum.objects.all().order_by('collection','created_at')
+    query_set = Forum.objects.all().order_by('collection','created')
     ec = {}
     
     return object_list(request, query_set,
@@ -58,6 +58,7 @@ def fc_list(request):
     """
     query_set = ForumCollection.objects.all()
     return object_list(request, query_set,
+                       paginate_by = 10,
                        template_name = "asforums/fc_list.html")
 
 ############################################################################
@@ -73,6 +74,7 @@ def fc_detail(request, fc_id):
     ec = { 'forum_collection' : fc }
     query_set = fc.forum_set.all()
     return object_list(request, query_set,
+                       paginate_by = 10,
                        template_name = "asforums/fc_detail.html",
                        extra_context = ec)
 
@@ -101,7 +103,8 @@ def fc_delete(request):
     """
     return delete_object(request, ForumCollection,
                          "/asforums/forum_collections/",
-                         object_id = fc_id)
+                         object_id = fc_id,
+                         template_name = "asforums/fc_confirm_delete.html")
 
 ############################################################################
 #
@@ -150,6 +153,7 @@ def forum_create(request,fc_id):
         #     raise HttpResponseForbidden("forum collection")
         new_data = request.POST.copy()
         new_data['collection'] = fc.id
+        new_data['creator'] = request.user.id
             
         # Check for errors
         errors = manipulator.get_validation_errors(new_data)
@@ -172,7 +176,7 @@ def forum_create(request,fc_id):
 
     # Create the FormWrapper, template, context, response
     form = oldforms.FormWrapper(manipulator, new_data, errors)
-    t = get_template("asforums/forum_form.html")
+    t = get_template("asforums/forum_create.html")
     c = Context(request, {
             'forum_collecton' : fc,
             'form'       : form,
@@ -185,14 +189,11 @@ def forum_detail(request, forum_id):
     """A forum detail shows just the forum and its details. Not much here.
     but this is the view that lets people update/delete their forums.
     """
-    try:
-        forum = Forum.objects.get(pk=forum_id)
-    except Forum.DoesNotExist:
-        raise Http404
-
+    forum = get_object_or_404(Forum, pk = forum_id)
     ec = { 'forum' : forum }
 
-    return object_list(request, Discussion.objects.filter(forum = forum),
+    return object_list(request, forum.discussion_set.all(),
+                       paginate_by = 10,
                        template_name = "asforums/forum_detail.html",
                        extra_context = ec)
 
@@ -300,6 +301,7 @@ def disc_detail(request, disc_id):
     ec = { 'discussion' : disc }
 
     return object_list(request, Post.objects.filter(discussion = disc),
+                       paginate_by = 10,
                        template_name = "asforums/disc_detail.html",
                        extra_context = ec)
 

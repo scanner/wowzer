@@ -1,0 +1,43 @@
+{% extends "asforums/listing.html" %}
+{% block prelisting %}
+<h1>{{ forum.name }}</h1>
+<p>
+<div>
+  <span class="byline">{{ forum.blurb }}</span><br>
+  Creator: {{ forum.creator }}<br>
+  Number of discussions: {{ forum.discussion_set.count }}<br>
+  Number of Active Discussions: Unimplemented<br>
+  Last Post: Unimplemented<br>
+</div>
+<div class="tags">
+
+</div>
+</p>
+{% endblock %}
+{% block listing %}
+<p>
+{% if object_list %}
+<table>
+  <tr>
+    <th>Discussion</th>
+    <th>Posts</th>
+    <th>Views</th>
+    <th>Last Post</th>
+  </tr>
+  {% for disc in object_list %}
+    <tr class="{% cycle odd,even %}">
+      <td><a href="{{ disc.get_absolute_url }}">{{ disc.name }}</a></td>
+      <td class="count">{{ disc.post_set.count }}</td>
+      <td class="count">{{ disc.views }}</td>
+      <td><a href="{{ disc.get_absolute_url }}?post={{ disc.post_set.latest.id }}">{{ disc.post_set.latest.created|timesince }}</a> ago by <a href="{{ disc.post_set.latest.creator.get_absolute_url }}">{{ disc.post_set.latest.creator }}</a></td>
+    </tr>
+    <tr class="{% cycle odd,even %}">
+      <td colspan="4"><span class="blurb">{{ disc.blurb }}</span></td>
+    </tr>
+  {% endfor %}
+</table>
+{% else %}
+There are no discussions in this forum.
+{% endif %}
+</p>
+{% endblock %}

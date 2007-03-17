@@ -51,6 +51,7 @@ class ForumCollection(models.Model):
         pass
 
     class Meta:
+        get_latest_by = 'created'
         row_level_permissions = True
         permissions = (("view", "Can see the forum collection"),
                        ("moderate", "Can moderate all the forums in "
@@ -79,7 +80,8 @@ class Forum(models.Model):
     name = models.CharField(maxlength = 128, db_index = True, blank = False)
     blurb = models.CharField(maxlength = 128)
     creator = models.ForeignKey(User, db_index = True)
-    created_at = models.DateTimeField(auto_now_add = True, editable = False)
+    created = models.DateTimeField(auto_now_add = True, editable = False,
+                                      db_index = True)
     collection = models.ForeignKey(ForumCollection, db_index = True)
     tags = models.GenericRelation(TaggedItem)
 #    last_post = models.ForeignKey("Post")
@@ -89,6 +91,7 @@ class Forum(models.Model):
         pass
 
     class Meta:
+        get_latest_by = 'created'
         row_level_permissions = True
         unique_together = (("name", "collection"),)
         permissions = (("view", "Can see forum"),
@@ -116,18 +119,20 @@ class Discussion(models.Model):
     name = models.CharField(maxlength = 128, db_index = True, blank = False)
     forum = models.ForeignKey(Forum)
     creator = models.ForeignKey(User, db_index = True)
-    created_at = models.DateTimeField(auto_now_add = True, editable = False)
+    created = models.DateTimeField(auto_now_add = True, editable = False,
+                                      db_index = True)
     blurb = models.CharField(maxlength = 128)
     number_views = models.IntegerField(default = 0, editable = False)
-#    last_post_at = models.DateTimeField(null = True)
     last_modified = models.DateTimeField(auto_now = True)
     edited = models.BooleanField(default = False)
     tags = models.GenericRelation(TaggedItem)
+    views = models.IntegerField(default = 0, editable = False)
     
     class Admin:
         pass
 
     class Meta:
+        get_latest_by = 'created'
         row_level_permissions = True
         unique_together = (("name", "forum"),)
         permissions = (("post", "Can post to discussion"),
@@ -143,6 +148,21 @@ class Discussion(models.Model):
     def get_absolute_url(self):
         return "/asforums/discs/%d/" % self.id
 
+    #########################################################################
+    #
+    def increment_viewed(self):
+        """Increments the counter that tells us how many times this discussion
+        has been viewed. This is intended to be called whenever the
+        discussion detail is viewed, or when any post in the
+        discussion is viewed."""
+
+        # Since django does not provide any atomic increment function we fall
+        # back on django's nice ability to let us do raw sql if we want to.
+        #
+        from django.db import connection
+        cursor = connection.cursor()
+        cursor.execute("update asforums_discussion set views = views + 1 where id=%d", [self.id])
+        
 #############################################################################
 #
 class Post(models.Model):
@@ -150,7 +170,8 @@ class Post(models.Model):
     """
 
     creator = models.ForeignKey(User, db_index = True)
-    created_at = models.DateTimeField(auto_now_add = True, editable = False)
+    created = models.DateTimeField(auto_now_add = True, editable = False,
+                                   db_index = True)
     last_modified = models.DateTimeField(null = True)
     edited = models.BooleanField(default = False)
     discussion = models.ForeignKey(Discussion)
@@ -159,6 +180,7 @@ class Post(models.Model):
     in_reply_to = models.ForeignKey('self', related_name = 'replies',
                                     null = True)
     tags = models.GenericRelation(TaggedItem)
+    views = models.IntegerField(default = 0, editable = False)
     #bbcode = models.BooleanField(default = True)
     #smilies = models.BooleanField(default = True)
     #signature = models.BooleanField(default = True)
@@ -168,6 +190,7 @@ class Post(models.Model):
         pass
 
     class Meta:
+        get_latest_by = 'created'
         row_level_permissions = True
         permissions = (("tag", "Can tag a post"),)
 
@@ -183,6 +206,21 @@ class Post(models.Model):
     #
     def get_absolute_url(self):
         return "/asforums/posts/%d/" % self.id
+
+    #########################################################################
+    #
+    def increment_viewed(self):
+        """Increments the counter that tells us how many times this post
+        has been viewed. This is intended to be called whenever the
+        post content is viewed either as part of a listing of posts with their
+        text or when a specific post is referenced."""
+
+        # Since django does not provide any atomic increment function we fall
+        # back on django's nice ability to let us do raw sql if we want to.
+        #
+        from django.db import connection
+        cursor = connection.cursor()
+        cursor.execute("update asforums_post set views = views + 1 where id=%d", [self.id])
 
 
 # Connect the signal for a new post being created to our signal function

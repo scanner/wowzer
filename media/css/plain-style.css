@@ -28,7 +28,18 @@ h3 {
   margin: 0;
 }
 
-.byline {  font-variant: small-caps;  font-size: .9em;  font-weight: normal;  font-style: italic;
+.byline {
+    font-variant: small-caps;
+    font-size: .9em;
+    font-weight: normal;
+    font-style: italic;
+}
+
+.blurb {
+    font-variant: small-caps;
+    font-size: .9em;
+    font-weight: normal;
+    font-style: italic;
 }
 
 /* @group paginator */
@@ -166,7 +177,11 @@ text-decoration: none;
   padding: 0.2em;
 }
 
-#body table {  }
+#content .postmessage {
+    padding: 1em;
+}
+
+#body table { width: 100%; }
 #body table th {
   background: #c9cfc3;
   font-variant: small-caps;

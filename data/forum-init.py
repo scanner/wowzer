@@ -46,11 +46,13 @@ scanner.save()
 #
 for index in range(3):
     name = "Test Forum Collection %d" % index
-    fc, ign = ForumCollection.objects.get_or_create(
+    fc, created = ForumCollection.objects.get_or_create(
         name = name,
         defaults = { 'blurb' : 'Test collection',
                      'creator' : u })
-    
+    if not created:
+        continue
+
     RowLevelPermission.objects.create_row_level_permission(fc, scanner,
                                                            'moderate')
     if index == 0:
@@ -74,25 +76,32 @@ for index in range(3):
                          'creator' : u,
                          'blurb' : "Much ado about nothing, nothing at all!"}
             )
-        if created:
-            print "Created forum '%s'" % str(f)
-            # Forum 0-3 are only viewable by users 0-3, 4 has no
-            # specific viewable permission, defaulting to that of the
-            # forum collection.  This means we will get some odd cases
-            # where a forum is viewable by a user that does not have
-            # view permission on the forum collection (which means
-            # that they still can not view this forum.)
-            #
-            if f_index < 4:
-                RowLevelPermission.objects.create_row_level_permission(
-                    f, users[f_index], 'view')
-        for dname in ('disc1','disc2','disc3'):
+        if not created:
+            continue
+
+        print "Created forum '%s'" % str(f)
+        # Forum 0-3 are only viewable by users 0-3, 4 has no
+        # specific viewable permission, defaulting to that of the
+        # forum collection.  This means we will get some odd cases
+        # where a forum is viewable by a user that does not have
+        # view permission on the forum collection (which means
+        # that they still can not view this forum.)
+        #
+        if f_index < 4:
+            RowLevelPermission.objects.create_row_level_permission(
+                f, users[f_index], 'view')
+        for d_index in range(20):
+            dname = "Discussion %d" % d_index
             d,created = Discussion.objects.get_or_create(
-                name = name,
+                name = dname,
                 forum = f,
-                defaults = {'creator' : u})
+                defaults = {'creator' : u,
+                            'blurb'   : "blurbity blurb lorem ipsum",
+                            })
 
             if created:
+                print "Created discussion %s" % d.name
                 for i in range(20):
                     p = Post.objects.create(creator = u, discussion = d,
-                                            post = "Test test test test")
+                                            post = """Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?""")
+

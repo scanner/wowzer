@@ -9,6 +9,7 @@
 import sys
 from datetime import datetime, timedelta
 
+from django import oldforms
 from django import forms
 from django.shortcuts import get_object_or_404
 from django.core.paginator import ObjectPaginator, InvalidPage
@@ -364,19 +365,30 @@ def disc_delete(request, disc_id):
 #
 @login_required
 def post_create(request, disc_id):
-    disc = get_object_or_404(Discussion, pk = disc_id)
+    print "starting lookup."
+    try:
+        disc = Discussion.objects.select_related().get(pk = disc_id)
+    except Discussion.DoesNotExist:
+        raise Http404
+    print "Done lookup."
     forum = disc.forum
     fc = forum.collection
-
+    print "Done getting forum & fc"
     manipulator = Post.AddManipulator()
 
     # If this post is in reply to another post, the other post's id
     # will passed in via a parameter under "in_reply_to". We make sure
     # that no monkey business is going on.
     #
+    print "Done manipulator, before irt check"
     if request.GET.has_key('in_reply_to'):
-        irt = get_object_or_404(Post,
-                                pk = int(request.GET['in_reply_to']))
+        print "Looking up in reply to"
+        try:
+            irt = Post.objects.select_related().get(\
+                pk = int(request.GET['in_reply_to']))
+        except Post.DoesNotExist:
+            raise Http404
+        print "Done looking up irt"
         if irt.discussion.id != disc.id:
             return HttpResponseServerError("Post you are replying to"
                                            "is in discussion %s, you "
@@ -388,7 +400,8 @@ def post_create(request, disc_id):
                                             irt.discussion.name))
     else:
         irt = None
-        
+
+    print "Done irt business"
     if request.method == "POST":
         # XXX Does user have 'post' permission in this discussion,
         # XXX forum, forum collection (they need to explicitly have
@@ -428,15 +441,18 @@ def post_create(request, disc_id):
         # has as a pref and query it for the right quote method.
         #
         if irt:
+            print "Filling in quoted content"
             new_data['content'] = "[quote=%s]%s[/quote]" % \
                                   (irt.creator.username, irt.content)
 
+    print "Creating form."
     # Create the FormWrapper, template, context, response
     form = oldforms.FormWrapper(manipulator, new_data, errors)
-    t = get_template("asforums/post_form.html")
+    t = get_template("asforums/post_create.html")
     c = Context(request, {
             'discussion' : disc,
             'form'       : form,
+            'in_reply_to': irt,
             })
     return HttpResponse(t.render(c))
 

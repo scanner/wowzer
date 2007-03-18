@@ -13,6 +13,10 @@
   <label for="id_signature">Append Signature:</label> {{ form.signature }}
   {% if form.signature.errors %}*** {{ form.signature.errors|join:", " }}{% endif %}
 </p>
+<p>
+  <label for="id_smilies">Interpret Smilies:</label> {{ form.smilies }}
+  {% if form.smilies.errors %}*** {{ form.smilies.errors|join:", " }}{% endif %}
+</p>
 <input type="submit" />
 </form>
 {% endblock %}

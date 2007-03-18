@@ -1,0 +1,53 @@
+<script type='text/javascript'>
+
+// pull in the storage APIs
+    dojo.require("dojo.event.*");
+    dojo.require("dojo.io.*");
+
+var preview_inflight;
+var preview_timer;
+var preview_resubmit;
+var preview_delay;
+function preview_init(e) {
+    preview_inflight = false;
+    preview_timer = -1;
+    preview_resubmit = false;
+    preview_delay =300;
+}
+
+function preview_onchange()
+{
+        if(!preview_inflight) {
+            if(preview_timer != -1) clearTimeout(preview_timer);
+                var _this = this;
+                text = dojo.byId("id_description").value;
+                preview_timer = setTimeout(function() { previewit(text); }, preview_delay);
+            } else {
+                preview_resubmit = true;
+            }
+}
+
+dojo.event.connect(dojo.hostenv, "loaded", window, "preview_init");
+
+function previewit(text) {
+    token = dojo.byId("csrfmiddlewaretoken").value;
+    preview_timer    = -1;
+    preview_inflight = true;
+    preview_resubmit = false;
+    var kw = {
+        url: "/preview/",
+        method: 'POST',
+        content: { description: text, csrfmiddlewaretoken: token },
+        mimetype: "text/json",
+        load: function(t, txt) {
+            dojo.byId("description_html").innerHTML = txt;
+            preview_inflight= false;
+        },
+        error: function(t, error) {
+            dojo.byId("description_html").innerHTML = error.message;
+            preview_inflight= false;
+        }
+    };
+    dojo.io.bind(kw);
+}
+</script>

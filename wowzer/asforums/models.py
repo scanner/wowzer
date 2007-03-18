@@ -176,14 +176,15 @@ class Post(models.Model):
     edited = models.BooleanField(default = False)
     discussion = models.ForeignKey(Discussion)
     deleted = models.BooleanField(default = False)
-    post = models.TextField(blank = True)
+    content = models.TextField(maxlength = 4000, blank = True)
+    content_html = models.TextField(maxlength = 4000, blank = True)
+    markup = models.CharField(maxlength=80, blank=True)
     in_reply_to = models.ForeignKey('self', related_name = 'replies',
                                     null = True)
     tags = models.GenericRelation(TaggedItem)
     views = models.IntegerField(default = 0, editable = False)
-    #bbcode = models.BooleanField(default = True)
-    #smilies = models.BooleanField(default = True)
-    #signature = models.BooleanField(default = True)
+    smilies = models.BooleanField(default = True)
+    signature = models.BooleanField(default = True)
     #notify = models.BooleanField(default = True)
 
     class Admin:

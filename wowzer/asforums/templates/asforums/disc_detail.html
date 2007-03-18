@@ -8,7 +8,7 @@
   Number of Posts: {{ discussion.post_set.count }}<br>
   Number of views: {{ discussion.views }}<br>
   {% if discussion.post_set.all %}
-  Last Post: <a href="{{ discussion.get_absolute_url }}?post={{ discussion.post_set.latest.id }}#{{ discussion.post_set.latest.id }}">{{ discussion.post_set.latest.created|timesince }}</a>
+  Last Post: <a href="{{ discussion.get_absolute_url }}?post={{ discussion.post_set.latest.id }}#{{ discussion.post_set.latest.id }}">{{ discussion.post_set.latest.created|timesince }}</a> ago
 by <a href="{{ discussion.post_set.latest.creator.get_absolute_url }}">{{ discussion.post_set.latest.creator }}</a><br>
   {% endif %}
 </div>
@@ -16,6 +16,9 @@ by <a href="{{ discussion.post_set.latest.creator.get_absolute_url }}">{{ discus
 
 </div>
 </p>
+<div>
+<a href="./create_post/">Post a message.</a>
+</div>
 {% endblock %}
 {% block listing %}
 <p>
@@ -35,10 +38,20 @@ by <a href="{{ discussion.post_set.latest.creator.get_absolute_url }}">{{ discus
           {% if post.in_reply_to %}
           In reply to: <a href="{{ discussion.get_absolute_url }}?post={{ post.in_reply_to.id }}#{{ post.in_reply_to.id }}">{{ post.in_reply_to.created|timesince }}</a> by <a href="{{ post.in_reply_to.creator.get_absolute_url }}">{{ post.in_reply_to.creator }}</a>
           {% endif %}
+	  <a href="./create_post/?in_reply_to={{ post.id }}">Reply to this post</a>
         </div>
         <div class="postmessage">
-          {{ post.post }}
+          {{ post.content }}
         </div>
+	{% if post.replies_set %}
+	<div class="postreplies">
+	  {% for reply in post.replies_set.all %}
+	    {% if not reply.deleted %}
+	      <a href="{{ reply.get_absolute_url }}">{{ reply.id</a>
+	    {% endif %}
+	  {% endfor %}
+	</div>
+	{% endif %}
       </td>
     </tr>
   {% endfor %}
@@ -48,4 +61,9 @@ by <a href="{{ discussion.post_set.latest.creator.get_absolute_url }}">{{ discus
 There are no posts in this discussion.
 {% endif %}
 </p>
+{% endblock %}
+{% block postlisting %}
+<div>
+<a href="./create_post/">Post a message.</a>
+</div>
 {% endblock %}

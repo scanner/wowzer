@@ -12,7 +12,7 @@
   {% for forum in object_list %}
     {% ifchanged forum.collection %}
     <tr>
-      <td class="forumcollection" colspan=2><a href="{{ forum.collection.get_absolute_url }}">{{ forum.collection.name }}</a><br>
+      <td class="title" colspan=4><a href="{{ forum.collection.get_absolute_url }}">{{ forum.collection.name }}</a><br>
       <span class="byline">{{ forum.collection.blurb }}</span></td>
       <td class="forumcollection" colspan 2></td>
     </tr>

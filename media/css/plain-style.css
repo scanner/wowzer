@@ -35,6 +35,13 @@ h3 {
     font-style: italic;
 }
 
+.postreplies {
+    font-variant: small-caps;
+    font-size: .9em;
+    font-weight: normal;
+    font-style: italic;
+}
+
 .blurb {
     font-variant: small-caps;
     font-size: .9em;
@@ -193,7 +200,7 @@ text-decoration: none;
 
 #body table .odd { background: #c9cfc3; }
 #body table .even { background: #f9fff3; }
-
+#body table .title { background: #f9ddf0; }
 /* @end */
 /* @group Footer */
 

@@ -1,0 +1,18 @@
+{% extends "asforums/base.html" %}
+{% block content %}
+<h1>New Post in {{ discussion.name }}</h1>
+{% if form.has_errors %}
+<h2 class="errors">Please correct the following error{{ form.error_dict|pluralize }}:</h2>
+{% endif %}
+<form method="post" action=".">
+<p>
+  <label for="id_content">Post:</label> {{ form.content }}
+  {% if form.content.errors %}*** {{ form.content.errors|join:", " }}{% endif %}
+</p>
+<p>
+  <label for="id_signature">Append Signature:</label> {{ form.signature }}
+  {% if form.signature.errors %}*** {{ form.signature.errors|join:", " }}{% endif %}
+</p>
+<input type="submit" />
+</form>
+{% endblock %}

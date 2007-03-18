@@ -1,0 +1,6 @@
+the bbcode was originally donated by Luke Plant under the BSD'ish license
+modifications (and errors) are probably ours ;-)
+
+this module requires a 'preference' be set up called prefs_markup_editor, which holds what markup system the user/site
+prefers to use
+

@@ -102,10 +102,27 @@ TZ_CHOICES = (
     (-1200, 'UTC-12'),
     )
 
+# The supported kinds of markup a usr can choose from.  NOTE:
+# Basically we apply the markup when they POST an object that has a
+# field that is markupable (ie: any field named 'content'.
+# The value is the name of the module that contains the functions "to_html"
+# and such that will convert a body of text from markup to html.
+# THe name is appended to "wowzer." so "text.bbcode" refers to the module
+# "wowzer.text.bbcode"
+#
+MARKUP_CHOICES =  (('text.bbcode', 'BBCode'),
+                   ('text.Ztextile', 'ZTextile'),
+                   ('text.plain', 'Plain'))
+                   
 class UserProfile(models.Model):
     user = models.ForeignKey(User, unique = True)
     homepage = models.URLField()
     style = models.ForeignKey(Style)
+    editing_markup = models.CharField(maxlength=128, choices = MARKUP_CHOICES,
+                                      default = "text.bbcode")
+    signature = models.TextField(maxlength = 1024, blank = True)
+    signature_html = models.TextField(maxlength = 1024, blank = True)
+    markup = models.CharField(maxlength=80, blank=True)
     
     # If blank defaults to the timezone of django site.
     #

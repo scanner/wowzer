@@ -1,0 +1,89 @@
+The list of things that need to be done still, broken down in to
+groups and sorted relatively in the order that they should be done in.
+
+o post to discussions
+o edit posts
+o create discussions
+o edit discussions
+o create forums
+o edit forums
+o create forum collections
+o edit forum collections
+o list posts with filters & attributes
+o search discussions, forums, forum collections for an expression in
+  their title or blurb.
+o search discussions, forums, forum collections, posts for an author
+  matching an expression.
+o make it so that bbcode & smilies in a post get translated properly
+o permissions on posts
+  o delete (not really delete)
+  o modify
+o poll
+  o read
+  o create
+  o modify
+  o view results
+o permissions on discussions
+  o read
+  o create
+  o modify
+  o delete
+  o view (listing)
+  o post (also allows you to make a poll)
+  o make sticky
+o permissions on forums
+  o read
+  o modify
+  o create
+  o delete
+  o view (listing)
+  o discuss
+  o post
+o permissions on forum collections
+  o read
+  o modify
+  o create
+  o view
+  o post
+  o discuss
+
+o calendaring/scheduling
+  o events
+    o create
+    o modify
+    o delete
+    o view
+    o signup
+  o list (with filters & sorting)
+
+o applications
+  o create an application
+  o modify an application
+  o close an application
+  o see list of applicants
+  o select an application
+
+o account profiles
+  o time zone
+  o forums results per page
+  o associated toons
+
+o wiki
+  o wiki topic filter (to automatically wiki-ize content
+  o create topic
+  o edit topic
+  o rename topic (... not sure we can make this work
+  o delete topic (not really delete)
+  o back rev topic
+
+o item db
+  o filter so that item links will work
+
+o toons
+  o permissions
+    o read
+    o modify
+  o all the basic data gathered by characterprofilers
+    o items
+o gallery
+  o need gallery filter (like wiki for easy linking of pictures)

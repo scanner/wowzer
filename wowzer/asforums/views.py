@@ -143,7 +143,7 @@ def forum_create(request,fc_id):
     fc = get_object_or_404(ForumCollection, pk = fc_id)
 
     manipulator = Forum.AddManipulator()
-    if request.POST:
+    if request.method == "POST":
         # XXX Does user have 'post' permission in this discussion,
         # XXX forum, forum collection (they need to explicitly have
         # XXX the permission at some level.)
@@ -248,7 +248,7 @@ def disc_create(request, forum_id):
     forum = get_object_or_404(Forum, pk = forum_id)
 
     manipulator = Discussion.AddManipulator()
-    if request.POST:
+    if request.method == "POST":
         # XXX Does user have 'post' permission in this discussion,
         # XXX forum, forum collection (they need to explicitly have
         # XXX the permission at some level.)
@@ -292,6 +292,18 @@ def disc_create(request, forum_id):
 def disc_detail(request, disc_id):
     """A discussion detail shows the discussion details and a list of
     all posts that match the filter/sort criteria.
+
+    Since a 'discussion detail' lists posts in a discussion (as well as the
+    discussion details) we take a bunch of parameters that adjust the posts we
+    list.
+
+    The parameters are:
+    o page (goes to that page in the listing of posts)
+    o order_by (sorts the listing of posts by this field)
+    o post (goes to that page in the listing of posts that this post is on)
+    o author (finds posts by that author)
+    o search (find posts that contain the given expression in their content)
+             (this one is a tbd. We need to use something like merquery)
     """
     try:
         disc = Discussion.objects.get(pk=disc_id)
@@ -357,7 +369,27 @@ def post_create(request, disc_id):
     fc = forum.collection
 
     manipulator = Post.AddManipulator()
-    if request.POST:
+
+    # If this post is in reply to another post, the other post's id
+    # will passed in via a parameter under "in_reply_to". We make sure
+    # that no monkey business is going on.
+    #
+    if request.GET.has_key('in_reply_to'):
+        irt = get_object_or_404(Post,
+                                pk = int(request.GET['in_reply_to']))
+        if irt.discussion.id != disc.id:
+            return HttpResponseServerError("Post you are replying to"
+                                           "is in discussion %s, you "
+                                           "are replying in discussion"
+                                           "%s. You can only reply to "
+                                           "posts in the same "
+                                           "discussion." % \
+                                           (disc.name,
+                                            irt.discussion.name))
+    else:
+        irt = None
+        
+    if request.method == "POST":
         # XXX Does user have 'post' permission in this discussion,
         # XXX forum, forum collection (they need to explicitly have
         # XXX the permission at some level.)
@@ -367,12 +399,15 @@ def post_create(request, disc_id):
         #     raise HttpResponseForbidden("forum collection")
         new_data = request.POST.copy()
         new_data['discussion'] = disc.id
-            
+        new_data['creator'] = request.user.id
+        new_data['in_reply_to'] = irt.id
+
         # Check for errors
         errors = manipulator.get_validation_errors(new_data)
         manipulator.do_html2python(new_data)
 
         if not errors:
+
             # No errors -- this means we can save the data!
             new_object = manipulator.save(new_data)
 
@@ -385,6 +420,16 @@ def post_create(request, disc_id):
         # No POST, so we want a brand new form without any data or errors
         errors = {}
         new_data = manipulator.flatten_data()
+
+        # If this is in reply to another post, then stick that
+        # post's content in the form the user will see but insert
+        # it in to a quote element. NOTE: Right now we just hard
+        # code bbcode.. we need to select the markup that the user
+        # has as a pref and query it for the right quote method.
+        #
+        if irt:
+            new_data['content'] = "[quote=%s]%s[/quote]" % \
+                                  (irt.creator.username, irt.content)
 
     # Create the FormWrapper, template, context, response
     form = oldforms.FormWrapper(manipulator, new_data, errors)

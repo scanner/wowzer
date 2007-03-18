@@ -1,0 +1,50 @@
+<html>
+<head>
+
+<script type='text/javascript'>
+var djConfig = {
+    baseScriptUri: 'http://'+ location.host  +'/dojo-0.2.2-ajax/'
+};
+
+</script>
+<script type='text/javascript'
+src='/dojo-0.2.2-ajax/dojo.js' 
+></script>
+<script type='text/javascript'>
+    dojo.require("dojo.event.*");
+    dojo.require('dojo.json');
+    dojo.require("dojo.io.*");
+
+function previewit(text, token, resultdiv) {
+
+    var kw = {
+        url: "/preview/",
+        method: 'POST',
+        content: { description: text, csrfmiddlewaretoken: token },
+        mimetype: "text/json",
+        load: function(t, txt) {
+            dojo.byId(resultdiv).innerHTML = txt;
+        },
+        error: function(t, error) {
+            alert("Error!... " + error.message);
+        }
+    };
+    dojo.io.bind(kw);
+}
+
+
+</script>
+</head>
+<body>
+    <form>
+        <textarea id='description' rows='20' cols='80'>type your markup here
+        </textarea>
+<br />
+<input type='button' id="preview" value='preview' onClick='previewit( description.value, "", "results");' />
+</form>
+<br />
+<div id='results'>
+        html markup is here
+</div>
+</body>
+</html>

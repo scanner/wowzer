@@ -37,6 +37,33 @@ o permissions on forums
   o create
   o delete
   o view (listing)
+    The following sql statement seems to be the one we need to find
+    forums for which you have 'view' permission:
+    
+    select asforums_forum.id, asforums_forum.name from asforums_forum, auth_rowlevelpermission where auth_rowlevelpermission.model_ct_id=31 and auth_rowlevelpermission.model_id=asforums_forum.id and auth_rowlevelpermission.permission_id = 104 and auth_rowlevelpermission.negative='f' and ((auth_rowlevelpermission.owner_ct_id=1 and auth_rowlevelpermission.owner_id=2) or (auth_rowlevelpermission.owner_ct_id=3 and auth_rowlevelpermission.owner_id in (1,3)));
+    
+    NOTE: '31' is the content type id for forums, determined via:
+	  ctype = ContentType.objects.get_for_model(f) (where 'f' is a
+	  forum instance)
+
+          '104' is the id from the auth permission table that
+          corresponds to the 'view' permission for forums.
+
+	  '1' is the id of the user we are checking the permissions
+	  for.
+
+	  '2' is the content type id for users.
+
+	  content type for groups is 3, The user is in groups 1 & 3.
+
+    This bascailly says if the user or a group he is in has the 'view
+    forum' permission and it is not negative, then select that forum.
+
+    (To extend this to dynamically check forum collections is not hard
+    but may start to tax the db.)
+
+    something like this? Forum.objects.extra(tables=["auth_rowlevelpermission"], where=["auth_rowlevelpermission.model_ct_id=31", "auth_rowlevelpermission.model_id=asforums_forum.id", "auth_rowlevelpermission.permission_id = 104", "auth_rowlevelpermission.negative='f'" and "((auth_rowlevelpermission.owner_ct_id=1 and auth_rowlevelpermission.owner_id=2) or (auth_rowlevelpermission.owner_ct_id=3 and auth_rowlevelpermission.owner_id in (1,3)))"])
+	  
   o discuss
   o post
 o permissions on forum collections

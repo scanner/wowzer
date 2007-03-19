@@ -57,13 +57,18 @@ class ForumCollection(models.Model):
     class Meta:
         get_latest_by = 'created'
         row_level_permissions = True
-        permissions = (("view", "Can see the forum collection"),
-                       ("moderate", "Can moderate all the forums in "
-                        "collection"),
-                       ("createforum", "Can create a forum in collection"),
-                       ("discuss", "Can create a discussion in forum"),
-                       ("post", "Can post in a discussion in forum"),
-                       ("tag", "Can tag a forum collection and its descendents"))
+        permissions = (("view_forumcollection",
+                        "Can see the forum collection"),
+                       ("moderate_forumcollection",
+                        "Can moderate all the forums in collection"),
+                       ("createforum_forumcollection",
+                        "Can create a forum in collection"),
+                       ("discuss_forumcollection",
+                        "Can create a discussion in forum"),
+                       ("post_forumcollection",
+                        "Can post in a discussion in forum"),
+                       ("tag_forumcollection",
+                        "Can tag a forum collection and its descendents"))
 
     #########################################################################
     #
@@ -98,11 +103,16 @@ class Forum(models.Model):
         get_latest_by = 'created'
         row_level_permissions = True
         unique_together = (("name", "collection"),)
-        permissions = (("view", "Can see forum"),
-                       ("moderate", "Can moderate forum"),
-                       ("discuss", "Can create a discussion in forum"),
-                       ("post", "Can post in a discussion in forum"),
-                       ("tag", "Can tag a forum and its descendents"))
+        permissions = (("view_forum",
+                        "Can see the forum"),
+                       ("moderate_forum",
+                        "Can moderate the forum"),
+                       ("discuss_forum",
+                        "Can create discussions in the forum"),
+                       ("post_forum",
+                        "Can post in discussions in the forum"),
+                       ("tag_forum",
+                        "Can tag the forum and its descendents"))
 
     #########################################################################
     #
@@ -138,8 +148,10 @@ class Discussion(models.Model):
         get_latest_by = 'created'
         row_level_permissions = True
         unique_together = (("name", "forum"),)
-        permissions = (("post", "Can post to discussion"),
-                       ("tag", "Can tag a discussion and its posts"))
+        permissions = (("post_discussion",
+                        "Can post to the discussion"),
+                       ("tag_discussion",
+                        "Can tag the discussion and its posts"))
         
     #########################################################################
     #
@@ -183,7 +195,11 @@ class Post(models.Model):
     class Meta:
         get_latest_by = 'created'
         row_level_permissions = True
-        permissions = (("tag", "Can tag a post"),)
+        permissions = (("tag_post", "Can tag the post"),)
+
+        # because of how we assign post numbers we can not insure that they
+        # are unique per discussion.
+        #
         # unique_together = (("discussion", "post_number"),)
 
     #########################################################################
@@ -215,7 +231,10 @@ class Post(models.Model):
         """Increments the counter that tells us how many times this post
         has been viewed. This is intended to be called whenever the
         post content is viewed either as part of a listing of posts with their
-        text or when a specific post is referenced."""
+        text or when a specific post is referenced.
+
+        XXX This does not work. The sql statement is correct, but nothing
+        happens in the database."""
 
         # Since django does not provide any atomic increment function we fall
         # back on django's nice ability to let us do raw sql if we want to.

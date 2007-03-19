@@ -18,7 +18,7 @@ urlpatterns = patterns(
     (r'^forums/(?P<forum_id>\d+)/delete/$', 'forum_delete'),
     (r'^forums/(?P<forum_id>\d+)/create_discussion/$', 'disc_create'),
 
-    (r'^discs/$', 'obj_list_redir'),
+    (r'^discs/$', 'disc_list'),
     (r'^discs/(?P<disc_id>\d+)/$', 'disc_detail'),
     (r'^discs/(?P<disc_id>\d+)/update/$', 'disc_update'),
     (r'^discs/(?P<disc_id>\d+)/delete/$', 'disc_delete'),

@@ -11,7 +11,9 @@
   list-style: none;
   float: none;
 }
-
+a img {
+	border: 0;
+}
 h1 {
 	font-variant: small-caps;
   padding: 0;
@@ -47,6 +49,14 @@ h3 {
     font-size: .9em;
     font-weight: normal;
     font-style: italic;
+}
+
+.smallerfont {
+	font-size: .8em;
+}
+
+.centered {
+	text-align: center;
 }
 
 /* @group paginator */
@@ -144,12 +154,17 @@ text-decoration: none;
 }
 
 #hierarchy {
-
+	font-size: 0.8em;
+}
+#hierarchy a {
+	text-decoration: underline;
 }
 #breadcrumbs {
-
+	font-size: 0.8em;
 }
-
+#breadcrumbs a {
+	text-decoration: underline;
+}
 /* @end */
 /* @end */
 

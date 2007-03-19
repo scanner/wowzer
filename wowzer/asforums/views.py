@@ -241,6 +241,21 @@ def forum_delete(request, forum_id):
 
 ############################################################################
 #
+def disc_list(request):
+    """This will produce a list of discussions that match some arbitrary
+    criteria specified as parameters.
+
+    XXX This always needs to be limited by the 'view' permissions on
+    XXX discussions.
+    """
+
+    query_set = Discussion.objects.all()
+    return object_list(request, query_set,
+                       paginate_by = 10,
+                       template_name = "asforums/disc_list.html")
+    
+############################################################################
+#
 @login_required
 def disc_create(request, forum_id):
     """Creation of a new discussion.
@@ -248,6 +263,12 @@ def disc_create(request, forum_id):
     XXX hand stuff off to the generic crud views. I am doing it this way
     XXX instead of entirely in the urls.py file because I am going to put
     XXX stuff here and I feel better with this stub defined.
+
+    XXX When you create a discussion instead of dynamically referring to the
+    XXX permissions of the forum & forum collection we will have the
+    XXX permissions copied in to the discussion object. This if a person
+    XXX has 'post' permissions on a forum, then all discussions that are
+    XXX created will be created with 'post' permissions.
     """
     forum = get_object_or_404(Forum, pk = forum_id)
 
@@ -314,6 +335,16 @@ def disc_detail(request, disc_id):
     except Discussion.DoesNotExist:
         raise Http404
 
+    # Getting a discussion detail bumps its view count.
+    #
+    #    disc.increment_viewed() # We tried custom sql. It did not work.
+    #
+    # If the referrer url was this same url then we should NOT bump up
+    # the viewed count.. (otherwise the viewed count gets bumped every
+    # time you go to the next page of posts in a multi-page listing)
+    disc.views += 1
+    disc.save()
+    
     ec = { 'discussion' : disc }
 
     return object_list(request, Post.objects.filter(discussion = disc),

@@ -126,11 +126,10 @@ class Discussion(models.Model):
     created = models.DateTimeField(auto_now_add = True, editable = False,
                                       db_index = True)
     blurb = models.CharField(maxlength = 128)
-    number_views = models.IntegerField(default = 0, editable = False)
+    views = models.IntegerField(default = 0, editable = False)
     last_modified = models.DateTimeField(auto_now = True)
     edited = models.BooleanField(default = False)
     tags = models.GenericRelation(TaggedItem)
-    views = models.IntegerField(default = 0, editable = False)
     
     class Admin:
         pass
@@ -151,22 +150,6 @@ class Discussion(models.Model):
     #
     def get_absolute_url(self):
         return "/asforums/discs/%d/" % self.id
-
-    #########################################################################
-    #
-    def increment_viewed(self):
-        """Increments the counter that tells us how many times this discussion
-        has been viewed. This is intended to be called whenever the
-        discussion detail is viewed, or when any post in the
-        discussion is viewed."""
-
-        # Since django does not provide any atomic increment function we fall
-        # back on django's nice ability to let us do raw sql if we want to.
-        #
-        from django.db import connection
-        cursor = connection.cursor()
-        cursor.execute("update asforums_discussion set views = views + 1 where id=%d", [self.id])
-        return
 
 #############################################################################
 #

@@ -5,6 +5,10 @@
 # $Id$
 #
 
+# System imports
+#
+from datetime import datetime, timedelta
+
 # Django imports
 #
 from django.db import models
@@ -162,26 +166,29 @@ class Discussion(models.Model):
         from django.db import connection
         cursor = connection.cursor()
         cursor.execute("update asforums_discussion set views = views + 1 where id=%d", [self.id])
-        
+        return
+
 #############################################################################
 #
 class Post(models.Model):
     """Posts, in a discussion, in a forum.
     """
 
-    creator = models.ForeignKey(User, db_index = True)
+    creator = models.ForeignKey(User, db_index = True, editable = False)
     created = models.DateTimeField(auto_now_add = True, editable = False,
                                    db_index = True)
-    last_modified = models.DateTimeField(null = True)
-    edited = models.BooleanField(default = False)
-    discussion = models.ForeignKey(Discussion)
-    deleted = models.BooleanField(default = False)
+    changed = models.DateTimeField(null = True, editable = False)
+    edited = models.BooleanField(default = False, editable = False)
+    discussion = models.ForeignKey(Discussion, editable = False)
+    post_number = models.IntegerField(default = 0, editable = False)
+    deleted = models.BooleanField(default = False, editable = False)
     content = models.TextField(maxlength = 4000, blank = True)
-    content_html = models.TextField(maxlength = 4000, blank = True)
-    markup = models.CharField(maxlength=80, blank=True)
+    content_html = models.TextField(maxlength = 4000, blank = True,
+                                    editable = False)
+    markup = models.CharField(maxlength=80, blank=True, editable = False)
     in_reply_to = models.ForeignKey('self', related_name = 'replies',
-                                    null = True)
-    tags = models.GenericRelation(TaggedItem)
+                                    null = True, editable = False)
+    tags = models.GenericRelation(TaggedItem, editable = False)
     views = models.IntegerField(default = 0, editable = False)
     smilies = models.BooleanField(default = True)
     signature = models.BooleanField(default = True)
@@ -194,7 +201,18 @@ class Post(models.Model):
         get_latest_by = 'created'
         row_level_permissions = True
         permissions = (("tag", "Can tag a post"),)
+        # unique_together = (("discussion", "post_number"),)
 
+    #########################################################################
+    #
+    def save(self):
+        if not self.id:
+            self.created = datetime.utcnow()
+            self.post_number = self.discussion.post_set.count() + 1
+        else:
+            self.changed = datetime.utcnow()
+        return super(Post,self).save()
+    
     #########################################################################
     #
     def __str__(self):

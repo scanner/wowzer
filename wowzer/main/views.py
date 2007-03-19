@@ -37,3 +37,6 @@ def index(request):
     t = get_template('index.html')
     c = Context(request, {})
     return HttpResponse(t.render(c))
+
+#############################################################################
+#

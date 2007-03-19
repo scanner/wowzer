@@ -49,7 +49,7 @@
 	{% endblock %}
       </div>
       <div id="content">
-        <div id="hierarchy">&raquo;&nbsp;one&nbsp;&raquo;&nbsp;two&nbsp;&raquo;&nbsp;three&nbsp;&raquo;&nbsp;four</div>
+        <div id="hierarchy">{% block hierarchy %}&raquo;&nbsp;one&nbsp;&raquo;&nbsp;two&nbsp;&raquo;&nbsp;three&nbsp;&raquo;&nbsp;four{% endblock %}</div>
         <div id="breadcrumbs">&raquo;&nbsp;bone&nbsp;&raquo;&nbsp;btwo&nbsp;&raquo;&nbsp;bthree&nbsp;&raquo;&nbsp;bfour</div>
         {% block content %}
         {% endblock %}

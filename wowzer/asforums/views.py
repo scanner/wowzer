@@ -10,7 +10,10 @@ import sys
 from datetime import datetime, timedelta
 
 from django import oldforms
-from django import forms
+
+from django import newforms as forms
+from django.newforms import widgets
+
 from django.shortcuts import get_object_or_404
 from django.core.paginator import ObjectPaginator, InvalidPage
 from django.core.exceptions import ObjectDoesNotExist
@@ -365,95 +368,74 @@ def disc_delete(request, disc_id):
 #
 @login_required
 def post_create(request, disc_id):
-    print "starting lookup."
     try:
         disc = Discussion.objects.select_related().get(pk = disc_id)
+        forum = disc.forum
+        fc = forum.collection
     except Discussion.DoesNotExist:
         raise Http404
-    print "Done lookup."
-    forum = disc.forum
-    fc = forum.collection
-    print "Done getting forum & fc"
-    manipulator = Post.AddManipulator()
 
+    # XXX Validate that they have permission to post to this discussion here.
+    #
+
+    
     # If this post is in reply to another post, the other post's id
     # will passed in via a parameter under "in_reply_to". We make sure
     # that no monkey business is going on.
     #
-    print "Done manipulator, before irt check"
-    if request.GET.has_key('in_reply_to'):
-        print "Looking up in reply to"
+    if request.REQUEST.has_key('in_reply_to'):
         try:
             irt = Post.objects.select_related().get(\
-                pk = int(request.GET['in_reply_to']))
+                pk = int(request.REQUEST['in_reply_to']))
         except Post.DoesNotExist:
             raise Http404
-        print "Done looking up irt"
         if irt.discussion.id != disc.id:
-            return HttpResponseServerError("Post you are replying to"
-                                           "is in discussion %s, you "
-                                           "are replying in discussion"
-                                           "%s. You can only reply to "
-                                           "posts in the same "
-                                           "discussion." % \
-                                           (disc.name,
-                                            irt.discussion.name))
+            return HttpResponseServerError("Post you are replying to is in dis"
+                                           "cussion %s, you are replying in di"
+                                           "scussion %s. You can only reply to"
+                                           " posts in the same discussion." % \
+                                           (disc.name, irt.discussion.name))
     else:
         irt = None
 
-    print "Done irt business"
+    PostForm = forms.models.form_for_model(Post)
+    PostForm.base_fields['content'].widget = \
+                widgets.Textarea(attrs = {'cols' : '80', 'rows' : '12'})
+
     if request.method == "POST":
-        # XXX Does user have 'post' permission in this discussion,
-        # XXX forum, forum collection (they need to explicitly have
-        # XXX the permission at some level.)
-        # if not request.user.has_perm():
-        #     raise HttpResponseForbidden("discussion")
-        #     raise HttpResponseForbidden("forum")
-        #     raise HttpResponseForbidden("forum collection")
-        new_data = request.POST.copy()
-        new_data['discussion'] = disc.id
-        new_data['creator'] = request.user.id
-        new_data['in_reply_to'] = irt.id
+        form = PostForm(request.POST)
+        if form.is_valid():
+            entry = form.save(commit = False)
+            entry.creator = request.user
+            entry.discussion = disc
+            if irt:
+                entry.in_reply_to = irt
 
-        # Check for errors
-        errors = manipulator.get_validation_errors(new_data)
-        manipulator.do_html2python(new_data)
-
-        if not errors:
-
-            # No errors -- this means we can save the data!
-            new_object = manipulator.save(new_data)
-
+            entry.save()
+                
             if request.user.is_authenticated():
                 request.user.message_set.create(\
-                    message="Your post was made to discussion %s" % \
-                    discussion.name)
-            return HttpResponseRedirect(new_object.get_absolute_url())
+                    message="Your post was made to discussion %s" % disc.name)
+            return HttpResponseRedirect(disc.get_absolute_url() +
+                                        "?post=%d#%d" % (entry.id, entry.id))
     else:
-        # No POST, so we want a brand new form without any data or errors
-        errors = {}
-        new_data = manipulator.flatten_data()
-
-        # If this is in reply to another post, then stick that
-        # post's content in the form the user will see but insert
-        # it in to a quote element. NOTE: Right now we just hard
-        # code bbcode.. we need to select the markup that the user
-        # has as a pref and query it for the right quote method.
-        #
         if irt:
-            print "Filling in quoted content"
-            new_data['content'] = "[quote=%s]%s[/quote]" % \
-                                  (irt.creator.username, irt.content)
+            # This is in reply to another post. Stick in the reference to
+            # that other post and fill in the message being posted with a
+            # quote of the post being replied to.
+            #
+            form = PostForm({ 'in_reply_to' : irt.id,
+                              'content'     : "[quote=%s]%s[/quote]" % \
+                              (irt.creator.username, irt.content)})
+        else:
+            form = PostForm()
 
-    print "Creating form."
-    # Create the FormWrapper, template, context, response
-    form = oldforms.FormWrapper(manipulator, new_data, errors)
     t = get_template("asforums/post_create.html")
     c = Context(request, {
-            'discussion' : disc,
-            'form'       : form,
-            'in_reply_to': irt,
-            })
+        'in_reply_to': irt,
+        'discussion' : disc,
+        'form'       : form,
+        })
     return HttpResponse(t.render(c))
 
 ############################################################################

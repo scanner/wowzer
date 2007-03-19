@@ -4,19 +4,12 @@
 {% if form.has_errors %}
 <h2 class="errors">Please correct the following error{{ form.error_dict|pluralize }}:</h2>
 {% endif %}
+{% if in_reply_to %}
+<form method="post" action="./?in_reply_to={{ in_reply_to.id }}">
+{% else %}
 <form method="post" action=".">
-<p>
-  <label for="id_content">Post:</label> {{ form.content }}
-  {% if form.content.errors %}*** {{ form.content.errors|join:", " }}{% endif %}
-</p>
-<p>
-  <label for="id_signature">Append Signature:</label> {{ form.signature }}
-  {% if form.signature.errors %}*** {{ form.signature.errors|join:", " }}{% endif %}
-</p>
-<p>
-  <label for="id_smilies">Interpret Smilies:</label> {{ form.smilies }}
-  {% if form.smilies.errors %}*** {{ form.smilies.errors|join:", " }}{% endif %}
-</p>
-<input type="submit" />
+{% endif %}
+  {{ form.as_p }}
+  <input type="submit" value="Make Post" />
 </form>
 {% endblock %}

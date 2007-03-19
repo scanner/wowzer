@@ -96,6 +96,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.csrf.middleware.CsrfMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+#    'wowzer.text.middleware.Markup.Markup',
     'django.middleware.doc.XViewMiddleware',
 )
 

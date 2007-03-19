@@ -1,5 +1,5 @@
 {% extends "asforums/listing.html" %}
-{% block hierarchy %}{{ block.super }}&raquo;&nbsp;{{ discussion.name }}{% endblock %}
+{% block hierarchy %}<a href="/">Top</a>&nbsp&raquo;&nbsp;<a href="/asforums/">Forums Index</a>&nbsp&raquo;&nbsp;<a href="{{ discussion.forum.collection.get_absolute_url }}">{{ discussion.forum.collection.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ discussion.forum.get_absolute_url }}">{{ discussion.forum.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ request.get_full_path }}">{{ discussion.name }}</a>{% endblock %}
 {% block prelisting %}
 <h1>{{ discussion.name }}</h1>
 <p>

@@ -1,5 +1,6 @@
 {% load wowzertags %}
 {% extends "asforums/base.html" %}
+{% block hierarchy %}{{ block.super }}{% endblock %}
 {% block content %}
 {% block prelisting %}{% endblock %}
 {% if is_paginated %}

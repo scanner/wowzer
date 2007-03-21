@@ -82,6 +82,28 @@ class ForumCollection(models.Model):
 
 #############################################################################
 #
+#class ForumManager(models.Manager):
+#    """A custom Forum Manager that has a method that can filter a forum list
+#    for forums that are viewable by a specific user.
+#    """
+#    def viewable(self, user):
+#        """Returns a list of forums filtered by the given user having
+#        'view_forum' permission on any given forum instance (using
+#        row level permissions.
+#        """
+#        forum_ctype, ign = ContentType.get_or_create(app_label="asforums",
+#                                                     model="forum",
+#                                                defaults = { 'name': 'forum'})
+#        user_ctype = ContentType.objects.get_for_model(user)
+#        if user_ctypes.groups.count > 0:
+#            group_ctype = ContentType.objects.get_for_model(user.groups[0])
+#        else:
+#            group_ctype = None
+#
+#        view_forum_perm = Permission.objects.get(name="view_forum")
+#        view_fc_perm = Permission.
+#############################################################################
+#
 class Forum(models.Model):
     """A forum is a collection of discussions
     """

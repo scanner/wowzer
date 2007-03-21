@@ -57,19 +57,23 @@ for index in range(3):
     if not created:
         continue
 
-    RowLevelPermission.objects.create_row_level_permission(fc, scanner,
-                                                           'moderate')
+    # Moderators can moderate every forum collection.
+    RowLevelPermission.objects.create_row_level_permission(fc, moderators,
+                                                  'moderate_forumcollection')
+    # Moderators can view every forum collection.
+    RowLevelPermission.objects.create_row_level_permission(fc, moderators,
+                                                         'view_forumcollection')
     if index == 0:
         # Everyone can see forum collection 0.
         #
         RowLevelPermission.objects.create_row_level_permission(fc, everyone,
-                                                               'view')
+                                                         'view_forumcollection')
     else:
         # group 0 can see fc 1, group 1 can see fc 2.
         #
         RowLevelPermission.objects.create_row_level_permission(fc,
                                                                groups[index-1],
-                                                               'view')
+                                                        'view_forumcollection')
         
     for f_index in range(5):
         name = "Test Forum %d-%d" % (index,f_index)
@@ -93,7 +97,7 @@ for index in range(3):
         #
         if f_index < 4:
             RowLevelPermission.objects.create_row_level_permission(
-                f, users[f_index], 'view')
+                f, users[f_index], 'view_forum')
         for d_index in range(20):
             dname = "Discussion %d" % d_index
             d,created = Discussion.objects.get_or_create(

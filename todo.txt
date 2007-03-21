@@ -62,7 +62,7 @@ o permissions on forums
     (To extend this to dynamically check forum collections is not hard
     but may start to tax the db.)
 
-    something like this? Forum.objects.extra(tables=["auth_rowlevelpermission"], where=["auth_rowlevelpermission.model_ct_id=31", "auth_rowlevelpermission.model_id=asforums_forum.id", "auth_rowlevelpermission.permission_id = 104", "auth_rowlevelpermission.negative='f'" and "((auth_rowlevelpermission.owner_ct_id=1 and auth_rowlevelpermission.owner_id=2) or (auth_rowlevelpermission.owner_ct_id=3 and auth_rowlevelpermission.owner_id in (1,3)))"])
+    something like this? Forum.objects.extra(tables=["auth_rowlevelpermission"], where=["auth_rowlevelpermission.model_ct_id=31", "auth_rowlevelpermission.model_id=asforums_forum.id", "auth_rowlevelpermission.permission_id = 104", "auth_rowlevelpermission.negative='f'","((auth_rowlevelpermission.owner_ct_id=1 and auth_rowlevelpermission.owner_id=2) or (auth_rowlevelpermission.owner_ct_id=3 and auth_rowlevelpermission.owner_id in (1,3)))"])
 	  
   o discuss
   o post

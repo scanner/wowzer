@@ -143,7 +143,7 @@ class ForumManager(models.Manager):
 
         # Super user can see everything.
         #
-        if user.is_superuser:
+        if user.is_authenticated() and user.is_superuser:
             return self.all()
 
         # We need to see if they have any 'moderate' or 'view' permissions

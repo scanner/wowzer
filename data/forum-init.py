@@ -109,6 +109,10 @@ for index in range(3):
 
             if created:
                 print "Created discussion %s" % d.name
+                if f_index < 4:
+                    RowLevelPermission.objects.create_row_level_permission(
+                        d, users[f_index], 'read_discussion')
+                                                                       
                 for i in range(20):
                     p = Post.objects.create(creator = u, discussion = d,
                                             content = DUMMY_TEXT,

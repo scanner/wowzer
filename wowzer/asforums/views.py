@@ -43,7 +43,7 @@ def index(request):
     """Simplistic top level index. Shows all forum collections and their
     forums
     """
-    query_set = Forum.objects.all().order_by('collection','created')
+    query_set = Forum.objects.viewable(request.user).order_by('collection','created')
     ec = {}
     
     return object_list(request, query_set,
@@ -60,7 +60,7 @@ def fc_list(request):
     XXX instead of entirely in the urls.py file because I am going to put
     XXX stuff here and I feel better with this stub defined.
     """
-    query_set = ForumCollection.objects.all()
+    query_set = ForumCollection.objects.viewable(request.user)
     return object_list(request, query_set,
                        paginate_by = 10,
                        template_name = "asforums/fc_list.html")
@@ -249,7 +249,7 @@ def disc_list(request):
     XXX discussions.
     """
 
-    query_set = Discussion.objects.all()
+    query_set = Discussion.objects.viewable(request.user)
     return object_list(request, query_set,
                        paginate_by = 10,
                        template_name = "asforums/disc_list.html")
@@ -347,7 +347,7 @@ def disc_detail(request, disc_id):
     
     ec = { 'discussion' : disc }
 
-    return object_list(request, Post.objects.filter(discussion = disc),
+    return object_list(request, Post.objects.readable(request.user).filter(discussion = disc),
                        paginate_by = 10,
                        template_name = "asforums/disc_detail.html",
                        extra_context = ec)
@@ -472,7 +472,7 @@ def post_create(request, disc_id):
 ############################################################################
 #
 def post_detail(request, post_id):
-    return object_detail(request, Post.objects.all(), object_id = post_id)
+    return object_detail(request, Post.objects.readable(request.user), object_id = post_id)
 
 ############################################################################
 #

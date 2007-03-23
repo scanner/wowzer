@@ -1,3 +1,4 @@
+{% load wowzertags %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -11,6 +12,18 @@
   <body>
   <div id="container">
     <div id="top">
+      <div class="toolbar">
+        <ul>
+	<li>{% icon "magnifier" "Search" %}</li>
+          {% if user.is_authenticated %}
+            <li>Hello <a title="Home" href="{{ user.get_absolute_url }}">{{ user.username }}!&nbsp;{% icon "house_go" "Home" %}</a></li>
+	    <li><a href="/accounts/logout/">{% icon "door_out" "Logout" %}</a></li>
+	  {% else %}
+	    <li><a href="/accounts/login/">Login {% icon "door_in" "Login" %}</a></li>
+	  {% endif %}
+	  
+        </ul>
+      </div>
       <div id="title">
         <span class="title"><h1>{% block title %}{% endblock %}</h1></span><br>
 	<span class="byline">{% block subtitle %}{% endblock %}</span>
@@ -59,9 +72,11 @@
       </div>
     </div>
     <div id="footer">
+    <p>
       <span class="smallerfont">Page layout &copy; Copyright 2007 Eric 'Scanner' Luce.<br>
       Icons FamFamFam <a href="http://www.famfamfam.com/lab/icons/silk/">Silk</a></span><br>
       <a href="http://www.djangoproject.com/"><img src="http://media.djangoproject.com/img/badges/djangosite100x25.gif" border="0" alt="A Django site." title="A Django site." /></a><br>
+      <p>
     </div>
   </div>
   </body>

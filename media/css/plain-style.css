@@ -59,6 +59,8 @@ h3 {
 	text-align: center;
 }
 
+.icon { vertical-align: text-bottom; }
+
 /* @group paginator */
 .paginator {
   padding: .25em .25em .6em .25em;
@@ -109,26 +111,44 @@ h3 {
 
 /* @group Top */
 #top {
-	padding-left: 180px;
-	padding-bottom: 4px;
+  padding-left: 180px;
+  padding-bottom: 4px;
   background-color: #ddd;
   border-bottom: 1px solid gray;
 }
 
 #title {
-	padding: .5em;
+  padding: .5em;
 }
 
 .title {
-	font-variant: small-caps;
+   font-variant: small-caps;
 }
 /* @group Navigation */
 
-ul#navlist
-{
-margin-left: 0;
-padding-left: 0;
-white-space: nowrap;
+.toolbar {
+  float: right;
+  margin: 0 10px 0 0;
+  background: #bbb;
+  padding: 3px 3px;
+}
+ul.toolbar {
+  margin-left: 0; 
+  padding-left: 0;
+  white-space: nowrap;
+}
+
+.toolbar li {
+  background: #aba;
+  border: 1px solid gray;
+  display: inline;
+  padding: 2px;
+}
+
+ul#navlist {
+  margin-left: 0;
+  padding-left: 0;
+  white-space: nowrap;
 }
 
 #navlist li

@@ -60,7 +60,7 @@ def fc_list(request):
     XXX instead of entirely in the urls.py file because I am going to put
     XXX stuff here and I feel better with this stub defined.
     """
-    query_set = ForumCollection.objects.viewable(request.user)
+    query_set = ForumCollection.objects.viewable(request.user).order_by('created')
     return object_list(request, query_set,
                        paginate_by = 10,
                        template_name = "asforums/fc_list.html")
@@ -76,7 +76,7 @@ def fc_detail(request, fc_id):
     """
     fc = get_object_or_404(ForumCollection, pk = fc_id)
     ec = { 'forum_collection' : fc }
-    query_set = fc.forum_set.all()
+    query_set = fc.forum_set.viewable(request.user).order_by('created')
     return object_list(request, query_set,
                        paginate_by = 10,
                        template_name = "asforums/fc_detail.html",
@@ -194,8 +194,15 @@ def forum_detail(request, forum_id):
     but this is the view that lets people update/delete their forums.
     """
     forum = get_object_or_404(Forum, pk = forum_id)
+
+    # Must have view & read permission on this forum
+    #
+    
     ec = { 'forum' : forum }
 
+    # All discussions in a forum that you can view are viewable.
+    #
+    qs = forum.discussion_set.all().order_by('created')
     return object_list(request, forum.discussion_set.all(),
                        paginate_by = 10,
                        template_name = "asforums/forum_detail.html",
@@ -249,7 +256,7 @@ def disc_list(request):
     XXX discussions.
     """
 
-    query_set = Discussion.objects.viewable(request.user)
+    query_set = Discussion.objects.viewable(request.user).order_by('created')
     return object_list(request, query_set,
                        paginate_by = 10,
                        template_name = "asforums/disc_list.html")
@@ -330,6 +337,10 @@ def disc_detail(request, disc_id):
     o search (find posts that contain the given expression in their content)
              (this one is a tbd. We need to use something like merquery)
     """
+
+    if request.META.has_key("HTTP_REFERER"):
+        print "Referrer url was: %s" % request.META["HTTP_REFERER"]
+    
     try:
         disc = Discussion.objects.get(pk=disc_id)
     except Discussion.DoesNotExist:
@@ -347,7 +358,8 @@ def disc_detail(request, disc_id):
     
     ec = { 'discussion' : disc }
 
-    return object_list(request, Post.objects.readable(request.user).filter(discussion = disc),
+    qs = Post.objects.readable(request.user).filter(discussion = disc).order_by('created')
+    return object_list(request, qs,
                        paginate_by = 10,
                        template_name = "asforums/disc_detail.html",
                        extra_context = ec)

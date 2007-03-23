@@ -56,7 +56,7 @@ class ForumCollectionManager(models.Manager):
 
         # Super user can see everything.
         #
-        if user.is_superuser:
+        if user.is_authenticated() and user.is_superuser:
             return self.all()
 
         # We need to see if they have any 'moderate' or 'view' permissions
@@ -251,7 +251,7 @@ class DiscussionManager(models.Manager):
 
         # Super user can see everything.
         #
-        if user.is_superuser:
+        if user.is_authenticated() and user.is_superuser:
             return self.all()
 
         # We need to see if they have any 'moderate' or 'view' permissions
@@ -364,7 +364,7 @@ class PostManager(models.Manager):
 
         # Super user can see everything.
         #
-        if user.is_superuser:
+        if user.is_authenticated() and user.is_superuser:
             return self.all()
 
         # So, the user must have moderate|view permissions on the

@@ -1,3 +1,4 @@
+{% load wowzertags %}
 {% extends "asforums/base.html" %}
 {% block content %}
 <h1>New Post in {{ discussion.name }}</h1>
@@ -9,6 +10,18 @@
 {% else %}
 <form method="post" action=".">
 {% endif %}
+  <div class="toolbar">
+  <ul>
+  <li>{% icon "text_bold" "Bold" %}</li>
+  <li>{% icon "text_italic" "Italic" %}</li>
+  <li>{% icon "text_underline" "Underline" %}</li>
+  <li>{% icon "comment" "Quote" %}</li>
+  <li>{% icon "world_link" "External Link" %}</li>
+  <li>{% icon "image_link" "External Image" %}</li>
+  <li>{% icon "page_link" "Wiki Link" %}</li>
+  <li>{% icon "text_signature" "Insert Signature" %}</li>
+  </ul>
+  </div>
   {{ form.as_p }}
   <input type="submit" value="Make Post" />
 </form>

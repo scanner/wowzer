@@ -4,6 +4,7 @@
 """
 """
 from django import template
+from django.conf import settings
 
 register = template.Library()
 
@@ -152,3 +153,25 @@ class ColumnizeNode(template.Node):
         return output
 #
 #############################################################################
+
+#############################################################################
+#
+@register.inclusion_tag("main/helpers/icon.html")
+def icon(icon_name, icon_title=""):
+    """The defines a django inclusion tag called 'icon'
+
+    This will insert the standard html defined for one of our icons
+    with the path of icon is supposed to be (the latter part will
+    later on become a configurable item letting us switch to different
+    icon sets (although then we need to know the user.)
+    """
+
+    # I wish it had the context of the original request
+    #
+    
+    return { 'MEDIA_URL' : settings.MEDIA_URL,
+             'icon_dir'  : 'img/silk-icons/',
+             'icon_name' : icon_name,
+             'icon_title': icon_title }
+
+

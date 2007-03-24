@@ -418,9 +418,29 @@ def post_create(request, disc_id):
     except Discussion.DoesNotExist:
         raise Http404
 
-    # XXX Validate that they have permission to post to this discussion here.
+    # If a discussion is locked or closed, no one except for moderators
+    # of this forum can post to it.
     #
-
+    if (disc.locked or disc.closed) and \
+        not usr.has_perm("moderate_forum", object = forum):
+        return HttpResponseForbidden("You do not have "
+                                     "the requisite permissions to post to "
+                                     "this discussion.")
+    
+    # They must have post permission on the discussion, forum, forum collection
+    # or be a moderator of the forum. They must have view permission
+    # on the forum, and forum collection. They must have read permission
+    # on the discussion. The discussion must not be locked or closed.
+    #
+    if (not user.has_perm("moderate_forum")) or \
+       (not (user.has_perm("post_discussion", object = disc) and \
+             user.has_perm("post_forum", object = forum) and \
+             user.has_perm("post_forumcollection", object = fc))) or \
+       (not (user.has_perm("moderate_forum", object = forum) or \
+             (user.has_perm("read_discussion", object = disc) and \
+              user.has_perm("view_forum", object = forum) and \
+              user.has_perm("view_forumcollection", object = fc))))
+        return HttpResponseForbidden(
     
     # If this post is in reply to another post, the other post's id
     # will passed in via a parameter under "in_reply_to". We make sure

@@ -314,6 +314,19 @@ class Discussion(models.Model):
     views = models.IntegerField(default = 0, editable = False)
     last_modified = models.DateTimeField(auto_now = True)
     edited = models.BooleanField(default = False)
+
+    # Why do we have 'locked' and 'closed' for discussions when they already
+    # have a 'read' and 'post' permission? Quite simply a lock or a close may
+    # be a temporary item and we do not want to destructively modify the
+    # permission structure for a discussion. Also we do not want permission
+    # foolery to let some people around a locked or closed discussion.
+    #
+    # The exception is that if someone is a moderator on a forum they can
+    # see and post to locked and closed discussions.
+    #
+    locked = models.BooleanField(default = False)
+    closed = models.BooleanField(default = False)
+
     tags = models.GenericRelation(TaggedItem)
 
     objects = DiscussionManager()
@@ -445,6 +458,9 @@ class Post(models.Model):
     discussion = models.ForeignKey(Discussion, editable = False)
     post_number = models.IntegerField(default = 0, editable = False)
     deleted = models.BooleanField(default = False, editable = False)
+    deleted_by = models.ForeignKey(User, null = True, editable = False)
+    deletion_reason = models.CharField(maxlength = 128, blank = True,
+                                       editable = False)
     content = models.TextField(maxlength = 4000, blank = True)
     content_html = models.TextField(maxlength = 4000, blank = True,
                                     editable = False)

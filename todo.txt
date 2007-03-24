@@ -1,7 +1,19 @@
 The list of things that need to be done still, broken down in to
 groups and sorted relatively in the order that they should be done in.
 
+This list is being broken down in to several sections. It may require
+items to be completed in more then one section for soem actual
+functionality to be finished.
+
+The reason for this was I needed to really track and decide what is
+going to be on any given _web page_ and _form_ as well as what the
+backend view and backend model need to accomplish.
+
 o post to discussions
+  o template - 20%
+  o quoting - done
+  o markup
+
 o edit posts
 o create discussions
 o edit discussions

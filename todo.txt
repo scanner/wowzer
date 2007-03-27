@@ -10,6 +10,14 @@ going to be on any given _web page_ and _form_ as well as what the
 backend view and backend model need to accomplish.
 
 o post to discussions
+  o permission to post:
+    moderate permission on the forum
+    or (post permission on discussion AND
+        read permission on discussion AND
+        (view permission on forum OR
+         read permission on forum) AND
+        (view permission on forum collection OR
+         read permission on forum collection))
   o template - 20%
   o quoting - done
   o markup

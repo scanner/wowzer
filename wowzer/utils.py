@@ -15,3 +15,15 @@ def media_context(request):
     """Insert in to the template context the values of settings.media_url
     """
     return { 'MEDIA_URL' : settings.MEDIA_URL }
+
+#############################################################################
+#
+def msg_user(user, message):
+    """A helper function to send a 'message' to a user (using the message
+    object framework for users from the django.contrib.auth
+    module. This is NOT email. This is for basic messages like "you
+    have successfully posted your message" etc.
+    """
+    if user.is_authenticated():
+        user.message_set.create(message = message)
+    return

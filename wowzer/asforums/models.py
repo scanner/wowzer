@@ -94,7 +94,7 @@ class ForumCollection(models.Model):
     name = models.CharField(maxlength = 128, db_index = True, unique = True,
                             blank = False)
     blurb = models.CharField(maxlength = 128)
-    creator = models.ForeignKey(User, db_index = True)
+    author = models.ForeignKey(User, db_index = True)
     created = models.DateTimeField(auto_now_add = True, editable = False)
     tags = models.GenericRelation(TaggedItem)
     objects = ForumCollectionManager()
@@ -195,7 +195,7 @@ class Forum(models.Model):
 
     name = models.CharField(maxlength = 128, db_index = True, blank = False)
     blurb = models.CharField(maxlength = 128)
-    creator = models.ForeignKey(User, db_index = True)
+    author = models.ForeignKey(User, db_index = True)
     created = models.DateTimeField(auto_now_add = True, editable = False,
                                       db_index = True)
     collection = models.ForeignKey(ForumCollection, db_index = True)
@@ -307,7 +307,7 @@ class Discussion(models.Model):
 
     name = models.CharField(maxlength = 128, db_index = True, blank = False)
     forum = models.ForeignKey(Forum)
-    creator = models.ForeignKey(User, db_index = True)
+    author = models.ForeignKey(User, db_index = True)
     created = models.DateTimeField(auto_now_add = True, editable = False,
                                       db_index = True)
     blurb = models.CharField(maxlength = 128)
@@ -450,7 +450,7 @@ class Post(models.Model):
     """Posts, in a discussion, in a forum.
     """
 
-    creator = models.ForeignKey(User, db_index = True, editable = False)
+    author = models.ForeignKey(User, db_index = True, editable = False)
     created = models.DateTimeField(auto_now_add = True, editable = False,
                                    db_index = True)
     changed = models.DateTimeField(null = True, editable = False)
@@ -458,7 +458,8 @@ class Post(models.Model):
     discussion = models.ForeignKey(Discussion, editable = False)
     post_number = models.IntegerField(default = 0, editable = False)
     deleted = models.BooleanField(default = False, editable = False)
-    deleted_by = models.ForeignKey(User, null = True, editable = False)
+    deleted_by = models.ForeignKey(User, null = True, editable = False,
+                                   related_name = "deleted_posts")
     deletion_reason = models.CharField(maxlength = 128, blank = True,
                                        editable = False)
     content = models.TextField(maxlength = 4000, blank = True)

@@ -9,6 +9,8 @@
 import sys
 from datetime import datetime, timedelta
 
+# Django imports
+#
 from django import oldforms
 
 from django import newforms as forms
@@ -29,7 +31,14 @@ from django.http import HttpResponse
 from django.http import HttpResponseServerError
 from django.http import HttpResponseRedirect
 
+# Django contrib.auth imports
+#
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import permission_required
+
+# Wowzer utility functions
+#
+from wowzer.utils import msg_user
 
 # The data models from our apps:
 #
@@ -75,6 +84,14 @@ def fc_detail(request, fc_id):
     XXX stuff here and I feel better with this stub defined.
     """
     fc = get_object_or_404(ForumCollection, pk = fc_id)
+
+    # You must have read permission on a fc to read it.
+    #
+    if not request.userhas_perm("read_forumcollection", object = fc):
+        return HttpResponseForbidden("You do not have the requisite "
+                                     "permissions to see this forum "
+                                     "collection")
+    
     ec = { 'forum_collection' : fc }
     query_set = fc.forum_set.viewable(request.user).order_by('created')
     return object_list(request, query_set,
@@ -92,8 +109,31 @@ def fc_update(request, fc_id):
     XXX instead of entirely in the urls.py file because I am going to put
     XXX stuff here and I feel better with this stub defined.
     """
-    return update_object(request, ForumCollection, object_id = fc_id,
-                         template_name = "asforums/fc_form.html")
+    
+    fc = get_object_or_404(ForumCollection, pk = fc_id)
+
+    # You must have change permission on a fc.
+    #
+    if not request.user.has_perm("change_forumcollection", object = fc):
+        return HttpResponseForbidden("You do not have the requisite "
+                                     "permissions to change this forum "
+                                     "collection")
+
+    FCForm = forms.models.form_for_model(ForumCollection)
+    if request.method == "POST":
+        form = FCForm(request.POST)
+        if form.is_valid():
+            entry = form.save()
+            msg_user(request.user, "Your modification of forum collection "
+                     "'%s' was successfull." % entry.name)
+            return HttpResponseRedirect(entry.get_absolute_url)
+    else:
+        form = FCForm()
+
+    t = get_template("asforums/fc_update.html")
+    c = Context(request, { 'forumcollection' : fc,
+                           'form' : form })
+    return HttpResponse(t.render(c))
 
 ############################################################################
 #
@@ -105,6 +145,14 @@ def fc_delete(request):
     XXX instead of entirely in the urls.py file because I am going to put
     XXX stuff here and I feel better with this stub defined.
     """
+    fc = get_object_or_404(ForumCollection, pk = fc_id)
+
+    # You must have delete permission on a fc to delete it.
+    #
+    if not request.user.has_perm("delete_forumcollection", object = fc):
+        return HttpResponseForbidden("You do not have the requisite "
+                                     "permissions to delete this forum "
+                                     "collection")
     return delete_object(request, ForumCollection,
                          "/asforums/forum_collections/",
                          object_id = fc_id,
@@ -112,25 +160,32 @@ def fc_delete(request):
 
 ############################################################################
 #
-@login_required
+@permission_required('asforums.create_forumcollection')
 def fc_create(request):
     """Creation of a new forum collection.
-    XXX For now until we get the form filled and our such we are going to
-    XXX hand stuff off to the generic crud views. I am doing it this way
-    XXX instead of entirely in the urls.py file because I am going to put
-    XXX stuff here and I feel better with this stub defined.
     """
-    return create_object(request, ForumCollection)
+    FCForm = forms.models.form_for_model(ForumCollection)
+    if request.method == "POST":
+        form = FCForm(request.POST)
+        if form.is_valid():
+            entry = form.save(commit = False)
+            entry.author = request.user
+            entry.save()
+            msg_user(request.user, "Your have created forum collection "
+                     "'%s'." % entry.name)
+            return HttpResponseRedirect(entry.get_absolute_url)
+    else:
+        form = FCForm()
+
+    t = get_template("asforums/fc_create.html")
+    c = Context(request, { 'form' : form })
+    return HttpResponse(t.render(c))
 
 ############################################################################
 #
 def obj_list_redir(request):
-    """Because of how objects in the asforum app are organized there is
-    no way to blindly list any one set of objects except the top level
-    hiearchy - the forum collection. So attempts to list any object
-    type except a forum collection results in a redirect to the
-    closest thing doing what the user may be after - the top level
-    index that lists collections, forums, etc."""
+    """For index url's for which we have no specific view we send the user
+    back to the top level view of this app."""
 
     return HttpResponseRedirect("/asforums/")
 
@@ -146,45 +201,27 @@ def forum_create(request,fc_id):
     """
     fc = get_object_or_404(ForumCollection, pk = fc_id)
 
-    manipulator = Forum.AddManipulator()
+    if not request.user.has_perm('createforum_forumcollection', object = fc):
+        return HttpResponseForbidden("You do not have the requisite "
+                                     "permissions to create this forum.")
+
+    ForumForm = forms.models.form_for_model(Forum)
+
     if request.method == "POST":
-        # XXX Does user have 'post' permission in this discussion,
-        # XXX forum, forum collection (they need to explicitly have
-        # XXX the permission at some level.)
-        # if not request.user.has_perm():
-        #     raise HttpResponseForbidden("discussion")
-        #     raise HttpResponseForbidden("forum")
-        #     raise HttpResponseForbidden("forum collection")
-        new_data = request.POST.copy()
-        new_data['collection'] = fc.id
-        new_data['creator'] = request.user.id
-            
-        # Check for errors
-        errors = manipulator.get_validation_errors(new_data)
-        manipulator.do_html2python(new_data)
-
-        if not errors:
-            # No errors -- this means we can save the data!
-            new_object = manipulator.save(new_data)
-
-            if request.user.is_authenticated():
-                request.user.message_set.create(\
-                    message="The Forum %s was created "
-                    "successfully." % new_object.name)
-
-            return HttpResponseRedirect(new_object.get_absolute_url())
+        form = ForumForm(request.POST)
+        if form.is_valid():
+            entry = form.save(commit = False)
+            entry.author = request.user
+            entry.collection = fc
+            entry.save()
+            msg_user(request.user, "You have created the forum '%s' in "
+                     "forum collection '%s'." % forum.name, fc.name)
+            return HttpResponseRedirect(entry.get_absolute_url)
     else:
-        # No POST, so we want a brand new form without any data or errors
-        errors = {}
-        new_data = manipulator.flatten_data()
+        form = ForumForm()
 
-    # Create the FormWrapper, template, context, response
-    form = oldforms.FormWrapper(manipulator, new_data, errors)
     t = get_template("asforums/forum_create.html")
-    c = Context(request, {
-            'forum_collecton' : fc,
-            'form'       : form,
-            })
+    c = Context(request, { "forumcollection" : fc, "form" : form })
     return HttpResponse(t.render(c))
 
 ############################################################################
@@ -193,11 +230,22 @@ def forum_detail(request, forum_id):
     """A forum detail shows just the forum and its details. Not much here.
     but this is the view that lets people update/delete their forums.
     """
-    forum = get_object_or_404(Forum, pk = forum_id)
+    try:
+        form = Forum.objects.select_related().get(pk = forum_id)
+        fc = Forum.collection
+    except Forum.DoesNotExist:
+        raise Http404
 
-    # Must have view & read permission on this forum
+    # Must have moderate or read permissions on the forum collection
+    # and forum.
     #
-    
+    if (not request.user.has_perm("read_forumcollection", object = fc) or \
+        not request.user.has_perm("moderate_forumcollection", object = fc)) and \
+       (not request.user.has_perm("read_forum", object = forum) or \
+        not request.user.has_perm("moderate_forum", object = forum)):
+        return HttpResponseForbidden("You do not have the requisite "
+                                     "permissions to read this forum.")
+
     ec = { 'forum' : forum }
 
     # All discussions in a forum that you can view are viewable.
@@ -430,10 +478,10 @@ def post_create(request, disc_id):
     # They must have post permission on the discussion, forum, forum collection
     # or a moderator of the forum.
     #
-    if (not user.has_perm("moderate_forum")) or \
-       (not (user.has_perm("post_discussion", object = disc) and \
-             user.has_perm("post_forum", object = forum) and \
-             user.has_perm("post_forumcollection", object = fc))):
+    if (not request.user.has_perm("moderate_forum")) or \
+       (not (request.user.has_perm("post_discussion", object = disc) and \
+             request.user.has_perm("post_forum", object = forum) and \
+             request.user.has_perm("post_forumcollection", object = fc))):
         return HttpResponseForbidden("You do not have "
                                      "the requisite permissions to post to "
                                      "this discussion.")
@@ -465,16 +513,15 @@ def post_create(request, disc_id):
         form = PostForm(request.POST)
         if form.is_valid():
             entry = form.save(commit = False)
-            entry.creator = request.user
+            entry.author = request.user
             entry.discussion = disc
             if irt:
                 entry.in_reply_to = irt
 
             entry.save()
-                
-            if request.user.is_authenticated():
-                request.user.message_set.create(\
-                    message="Your post was made to discussion %s" % disc.name)
+
+            msg_user(request.user,
+                     "Your post was made to discussion %s" % disc.name)
             return HttpResponseRedirect(disc.get_absolute_url() +
                                         "?post=%d#%d" % (entry.id, entry.id))
     else:
@@ -485,7 +532,7 @@ def post_create(request, disc_id):
             #
             form = PostForm({ 'in_reply_to' : irt.id,
                               'content'     : "[quote=%s]%s[/quote]" % \
-                              (irt.creator.username, irt.content)})
+                              (irt.author.username, irt.content)})
         else:
             form = PostForm()
 

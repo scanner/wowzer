@@ -19,7 +19,7 @@ from django.contrib.contenttypes.models import ContentType
 class TaggedItem(models.Model):
     """A tag on an item. This was originally cribbed from:
     http://www.djangoproject.com/documentation/models/generic_relations/"""
-    tag = models.SlugField()
+    tag = models.SlugField(db_index = True, unique = True)
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
     
@@ -27,6 +27,30 @@ class TaggedItem(models.Model):
     
     class Meta:
         ordering = ["tag"]
+    
+    def __str__(self):
+        return self.tag
+
+############################################################################
+#
+class UserTaggedItem(models.Model):
+    """A tag on an item. This was originally cribbed from:
+    http://www.djangoproject.com/documentation/models/generic_relations/
+
+    The main difference is that a user tagged item belongs to and is
+    specific to a user. Not everyone will have permission to tag
+    anything, but anything that can be tagged they will have
+    permission to make their own private tags against. """
+    tag = models.SlugField(db_index = True)
+    creator = models.ForeignKey(User, db_index = True)
+    content_type = models.ForeignKey(ContentType)
+    object_id = models.PositiveIntegerField()
+    
+    content_object = models.GenericForeignKey()
+    
+    class Meta:
+        ordering = ["tag"]
+        unique_together = (("tag", "creator"),)
     
     def __str__(self):
         return self.tag

@@ -67,6 +67,15 @@
       <div id="content">
         <div id="hierarchy">{% block hierarchy %}&raquo;&nbsp;one&nbsp;&raquo;&nbsp;two&nbsp;&raquo;&nbsp;three&nbsp;&raquo;&nbsp;four{% endblock %}</div>
         <div id="breadcrumbs">&raquo;&nbsp;bone&nbsp;&raquo;&nbsp;btwo&nbsp;&raquo;&nbsp;bthree&nbsp;&raquo;&nbsp;bfour</div>
+        {% if messages %}
+        <div id="messages">
+          <ul>
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
         {% block content %}
         {% endblock %}
       </div>

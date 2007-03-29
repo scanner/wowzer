@@ -9,6 +9,8 @@ urlpatterns = patterns(
     (r'^forum_collections/create/$', 'fc_create'),
     (r'^forum_collections/(?P<fc_id>\d+)/$', 'fc_detail'),
     (r'^forum_collections/(?P<fc_id>\d+)/update/$', 'fc_update'),
+    (r'^forum_collections/(?P<fc_id>\d+)/tag/$', 'fc_tag'),
+    (r'^forum_collections/(?P<fc_id>\d+)/user_tag/$', 'fc_usertag'),
     (r'^forum_collections/(?P<fc_id>\d+)/delete/$', 'fc_delete'),
     (r'^forum_collections/(?P<fc_id>\d+)/create_forum/$', 'forum_create'),
 

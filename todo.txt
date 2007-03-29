@@ -9,6 +9,14 @@ The reason for this was I needed to really track and decide what is
 going to be on any given _web page_ and _form_ as well as what the
 backend view and backend model need to accomplish.
 
+from phpBB:
+
+You cannot post new topics in this forum
+You cannot reply to topics in this forum
+You cannot edit your posts in this forum
+You cannot delete your posts in this forum
+You cannot vote in polls in this forum
+
 o post to discussions
   o permission to post:
     moderate permission on the forum

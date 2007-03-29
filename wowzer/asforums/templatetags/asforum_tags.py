@@ -12,9 +12,9 @@ register = template.Library()
 #############################################################################
 #
 viewable_by_user(parser, token):
-    """The parser component of a template tag that will apply the 'viewable by a
-    specific user' filter to query sets passed as arguments. 'user' is taken
-    from the template context when it is being rendered."""
+    """The parser component of a template tag that will apply the 'viewable
+    by a specific user' filter to query sets passed as arguments. 'user' is
+    taken from the template context when it is being rendered."""
 
     try:
         tag_name, query_set_to_filter, method = token.split_contents()
@@ -23,3 +23,20 @@ viewable_by_user(parser, token):
             "arguemnts" % token[0]
     return ViewableByUserNode(query_set_to_filter, method)
 
+class ViewableByUserNode(template.Node):
+    """Template node to render some query set, and then invoke the named
+    method on that query set.
+    """
+    def __init__(self, query_set, method_name):
+        self.query_set = query_set
+        self.method_name = method_name
+
+    def render(self, context):
+        try:
+            pass
+        except:
+            # render() should never raise any exception. If something goes
+            # wrong we need to log it somewhere else, not chuck it up the
+            # call stack.
+            #
+            pass

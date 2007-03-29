@@ -228,7 +228,6 @@ def forum_create(request,fc_id):
 #
 def forum_detail(request, forum_id):
     """A forum detail shows just the forum and its details. Not much here.
-    but this is the view that lets people update/delete their forums.
     """
     try:
         form = Forum.objects.select_related().get(pk = forum_id)

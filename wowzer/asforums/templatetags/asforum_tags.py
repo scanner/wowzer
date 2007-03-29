@@ -6,6 +6,7 @@ easier and other things possible.
 '''
 
 from django import template
+from django.template import resolve_variable
 
 register = template.Library()
 
@@ -33,7 +34,15 @@ class ViewableByUserNode(template.Node):
 
     def render(self, context):
         try:
-            pass
+            qs = resolve_variable(self.query_set, context)
+            qs = qs.viewable(request.user)
+            if hasattr(qs,self.method_name):
+                # If this is a method then invoke it as a function.
+                #
+                if isinstance(getattr(qs, self.method_name), MethodType):
+                    return getattr(qs, self.method_name)()
+                else:
+                    return getattr(qs, self.method_name)()
         except:
             # render() should never raise any exception. If something goes
             # wrong we need to log it somewhere else, not chuck it up the

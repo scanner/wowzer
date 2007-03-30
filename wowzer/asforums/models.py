@@ -37,17 +37,17 @@ from wowzer.main.models import TaggedItem
 #
 permission_inheritance = {
     "view_forumcollection"     : ("view_forum", "read_forum"),
-    "moderate_forumcollection" : ("moderate_forum",)
-    "discuss_forumcollection"  : ("discuss_forum",)
-    "post_forumcollection"     : ("post_forum",)
-    "change_forumcollection"   : ("change_forum",)
-    "delete_forumcollection"   : ("delete_forum",)
+    "moderate_forumcollection" : ("moderate_forum",),
+    "discuss_forumcollection"  : ("discuss_forum",),
+    "post_forumcollection"     : ("post_forum",),
+    "change_forumcollection"   : ("change_forum",),
+    "delete_forumcollection"   : ("delete_forum",),
 
-    "post_forum"   : ("post_discussion",)
-    "delete_forum" : ("delete_discussion",)
-    "change_forum" : ("change_discussion",)
+    "post_forum"   : ("post_discussion",),
+    "delete_forum" : ("delete_discussion",),
+    "change_forum" : ("change_discussion",),
 
-    "delete_discussion" : ("delete_post",)
+    "delete_discussion" : ("delete_post",),
     }
 
 #############################################################################
@@ -57,7 +57,7 @@ def inherit_permissions(object, container):
     permissions on the container object and set the appropriate
     inherited permission on our destination object."""
 
-    rlp_list = container.row_level_permissions.select_related().all()
+    rlp_list = container.row_level_permissions.select_related()
     for rlp in rlp_list:
         if rlp.permission.codename in permission_inheritance:
             for perm in permission_inheritance[rlp.permission.codename]:
@@ -147,6 +147,8 @@ class ForumCollection(models.Model):
                         "Can create a forum in collection"),
                        ("discuss_forumcollection",
                         "Can create a discussion in forum"),
+                       ("read_forumcollection",
+                        "Can ready discussions in forum"),
                        ("post_forumcollection",
                         "Can post in a discussion in forum"))
 
@@ -251,6 +253,8 @@ class Forum(models.Model):
                         "Can moderate the forum"),
                        ("discuss_forum",
                         "Can create discussions in the forum"),
+                       ("read_forum",
+                        "Can ready discussions in forum"),
                        ("post_forum",
                         "Can post in discussions in the forum"))
 
@@ -275,9 +279,9 @@ class Forum(models.Model):
         # call, because we need to do something -after- it has been saved
         # if this call creates it.
         #
-        created = false
+        created = False
         if not self.id:
-            created = true
+            created = True
 
         res = super(Forum,self).save()
     
@@ -419,9 +423,9 @@ class Discussion(models.Model):
         # call, because we need to do something -after- it has been saved
         # if this call creates it.
         #
-        created = false
+        created = False
         if not self.id:
-            created = true
+            created = True
 
         res = super(Discussion,self).save()
     
@@ -536,7 +540,8 @@ class Post(models.Model):
     changed = models.DateTimeField(null = True, editable = False)
     edited = models.BooleanField(default = False, editable = False)
     discussion = models.ForeignKey(Discussion, editable = False)
-    post_number = models.IntegerField(default = 0, editable = False)
+    post_number = models.IntegerField(db_index = True, default = 0,
+                                      editable = False)
     deleted = models.BooleanField(default = False, editable = False)
     deleted_by = models.ForeignKey(User, null = True, editable = False,
                                    related_name = "deleted_posts")
@@ -572,11 +577,11 @@ class Post(models.Model):
     #
     def save(self):
         if not self.id:
-            created = true
+            created = True
             self.created = datetime.utcnow()
             self.post_number = self.discussion.post_set.count() + 1
         else:
-            created = false
+            created = False
             self.changed = datetime.utcnow()
 
         res = super(Post,self).save()

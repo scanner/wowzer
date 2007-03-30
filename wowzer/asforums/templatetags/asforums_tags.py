@@ -12,8 +12,8 @@ register = template.Library()
 
 #############################################################################
 #
-@register_tag(name="viewable_by_user")
-viewable_by_user(parser, token):
+@register.tag(name="viewable_by_user")
+def viewable_by_user(parser, token):
     """The parser component of a template tag that will apply the 'viewable
     by a specific user' filter to query sets passed as arguments. 'user' is
     taken from the template context when it is being rendered."""

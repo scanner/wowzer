@@ -87,7 +87,7 @@ def fc_detail(request, fc_id):
 
     # You must have read permission on a fc to read it.
     #
-    if not request.userhas_perm("read_forumcollection", object = fc):
+    if not request.user.has_perm("read_forumcollection", object = fc):
         return HttpResponseForbidden("You do not have the requisite "
                                      "permissions to see this forum "
                                      "collection")
@@ -230,8 +230,8 @@ def forum_detail(request, forum_id):
     """A forum detail shows just the forum and its details. Not much here.
     """
     try:
-        form = Forum.objects.select_related().get(pk = forum_id)
-        fc = Forum.collection
+        forum = Forum.objects.select_related().get(pk = forum_id)
+        fc = forum.collection
     except Forum.DoesNotExist:
         raise Http404
 

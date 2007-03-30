@@ -63,17 +63,19 @@ for index in range(3):
     # Moderators can view every forum collection.
     RowLevelPermission.objects.create_row_level_permission(fc, moderators,
                                                          'view_forumcollection')
-    if index == 0:
-        # Everyone can see forum collection 0.
-        #
-        RowLevelPermission.objects.create_row_level_permission(fc, everyone,
-                                                         'view_forumcollection')
-    else:
-        # group 0 can see fc 1, group 1 can see fc 2.
-        #
-        RowLevelPermission.objects.create_row_level_permission(fc,
-                                                               groups[index-1],
-                                                        'view_forumcollection')
+    for perm in ('view_forumcollection', 'read_forumcollection',
+                 'discuss_forumcollection', 'post_forumcollection'):
+        if index == 0:
+            # Everyone can view, read, post, and create discussions in forum
+            # collection 0.
+            #
+            RowLevelPermission.objects.create_row_level_permission(fc, everyone,
+                                                                   perm)
+        else:
+            # group 0 can see fc 1, group 1 can see fc 2.
+            #
+            RowLevelPermission.objects.create_row_level_permission(\
+                fc, groups[index-1], perm)
         
     for f_index in range(5):
         name = "Test Forum %d-%d" % (index,f_index)

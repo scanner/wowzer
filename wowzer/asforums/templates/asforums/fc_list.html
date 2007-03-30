@@ -1,19 +1,17 @@
-{% load wowzertags %}
+{% load wowzertags asforums_tags %}
 {% extends "asforums/listing.html" %}
 {% block listing %}
 <table>
   <tr>
     <th>Forum Collection</th>
     <th>Forums</th>
-    <th>Active Discussions</th>
-    <th>Last Post</th>
+    <th>Owner</th>
   </tr>
   {% for fc in object_list %}
     <tr class="{% cycle odd,even %} top">
       <td><a href="{{ fc.get_absolute_url }}">{{ fc.name }}</a></td>
-      <td>{{ fc.forum_set.count }}</td>
-      <td> Unimplemented </td>
-      <td> Unimplemented </td>
+      <td>{% viewable_by_user fc.forum_set "count" %}</td>
+      <td>{{ fc.author }}</td>
     </tr>
     <tr class="{% cycle odd,even %} bottom">
       <td colspan="4"><span class="blurb">{{ fc.blurb }}</span></td>

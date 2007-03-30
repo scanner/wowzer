@@ -12,6 +12,7 @@ register = template.Library()
 
 #############################################################################
 #
+@register_tag(name="viewable_by_user")
 viewable_by_user(parser, token):
     """The parser component of a template tag that will apply the 'viewable
     by a specific user' filter to query sets passed as arguments. 'user' is
@@ -48,4 +49,4 @@ class ViewableByUserNode(template.Node):
             # wrong we need to log it somewhere else, not chuck it up the
             # call stack.
             #
-            pass
+            return ""

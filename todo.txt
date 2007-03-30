@@ -18,17 +18,24 @@ You cannot delete your posts in this forum
 You cannot vote in polls in this forum
 
 o post to discussions
-  o permission to post:
-    moderate permission on the forum
-    or (post permission on discussion AND
-        read permission on discussion AND
-        (view permission on forum OR
-         read permission on forum) AND
-        (view permission on forum collection OR
-         read permission on forum collection))
+  o permission to post - done
   o template - 20%
   o quoting - done
   o markup
+
+o tag/usertag
+  o add tags and users tags on posts, discussions, forums, fcs
+  o display tags and user tags on posts, discussions, forums, fcs
+  o remove tags and user tags on posts, discussions, forums, fcs
+  o add tag page (displays all objects that are tagged with that tag)
+  o tag cloud - highlights successively more common tags?
+  o should you be able to add comments to a tag?
+
+o user account/profile page
+  o displays list of toons
+  o collapsed toon/item view
+  o subscribed discussions with unread posts in them (linking to the
+    first unread post)
 
 o edit posts
 o create discussions

@@ -30,6 +30,40 @@ from wowzer.main.models import TaggedItem
 #
 #from wowzer.asforums.signals import update_last_post_at
 
+# This is a dictionary that maps permissions in a container object to
+# the permissions in a sub-object that will inherit the effective
+# permission. ie: the permission 'view_forumcollection' on a forum collection
+# grants the save 'view_forum' permission on forum in that forum collection.
+#
+permission_inheritance = {
+    "view_forumcollection"     : ("view_forum", "read_forum"),
+    "moderate_forumcollection" : ("moderate_forum",)
+    "discuss_forumcollection"  : ("discuss_forum",)
+    "post_forumcollection"     : ("post_forum",)
+    "change_forumcollection"   : ("change_forum",)
+    "delete_forumcollection"   : ("delete_forum",)
+
+    "post_forum"   : ("post_discussion",)
+    "delete_forum" : ("delete_discussion",)
+    "change_forum" : ("change_discussion",)
+
+    "delete_discussion" : ("delete_post",)
+    }
+
+#############################################################################
+#
+def inherit_permissions(object, container):
+    """A utility function that will go through all of the row level
+    permissions on the container object and set the appropriate
+    inherited permission on our destination object."""
+
+    rlp_list = container.row_level_permissions.select_related().all()
+    for rlp in rlp_list:
+        if rlp.permission.codename in permission_inheritance:
+            for perm in permission_inheritance[rlp.permission.codename]:
+                RowLevelPermission.objects.create_row_level_permission(\
+                    object, rlp.owner, perm, negative = rlp.negative)
+
 #############################################################################
 #
 def slugify(value, length):
@@ -114,9 +148,7 @@ class ForumCollection(models.Model):
                        ("discuss_forumcollection",
                         "Can create a discussion in forum"),
                        ("post_forumcollection",
-                        "Can post in a discussion in forum"),
-                       ("tag_forumcollection",
-                        "Can tag a forum collection and its descendents"))
+                        "Can post in a discussion in forum"))
 
     #########################################################################
     #
@@ -220,9 +252,7 @@ class Forum(models.Model):
                        ("discuss_forum",
                         "Can create discussions in the forum"),
                        ("post_forum",
-                        "Can post in discussions in the forum"),
-                       ("tag_forum",
-                        "Can tag the forum and its descendents"))
+                        "Can post in discussions in the forum"))
 
     #########################################################################
     #
@@ -233,6 +263,33 @@ class Forum(models.Model):
     #
     def get_absolute_url(self):
         return "/asforums/forums/%d/" % self.id
+
+    #########################################################################
+    #
+    def save(self):
+        """We have our own save() method deal with permissions.  When you
+        create this object it inherits the appropriate permissions
+        from the container it is in. """
+
+        # We need to know if we created this object or not on this save()
+        # call, because we need to do something -after- it has been saved
+        # if this call creates it.
+        #
+        created = false
+        if not self.id:
+            created = true
+
+        res = super(Forum,self).save()
+    
+        # Okay, if this save() created this forum, then create new row level
+        # permissions on the forum based on the permissions on the forum
+        # collection that are said to inherit (see the 'permission_inheritance'
+        # dictionary.
+        #
+        if created:
+            inherit_permissions(self, self.collection)
+
+        return res
 
 #############################################################################
 #
@@ -339,11 +396,7 @@ class Discussion(models.Model):
         row_level_permissions = True
         unique_together = (("name", "forum"),)
         permissions = (("post_discussion",
-                        "Can post to the discussion"),
-                       ("tag_discussion",
-                        "Can tag the discussion and its posts"),
-                       ("read_discussion",
-                        "Can read the posts in a discussion"))
+                        "Can post to the discussion"),)
         
     #########################################################################
     #
@@ -354,6 +407,33 @@ class Discussion(models.Model):
     #
     def get_absolute_url(self):
         return "/asforums/discs/%d/" % self.id
+
+    #########################################################################
+    #
+    def save(self):
+        """We have our own save() method deal with permissions.  When you
+        create this object it inherits the appropriate permissions
+        from the container it is in. """
+
+        # We need to know if we created this object or not on this save()
+        # call, because we need to do something -after- it has been saved
+        # if this call creates it.
+        #
+        created = false
+        if not self.id:
+            created = true
+
+        res = super(Discussion,self).save()
+    
+        # Okay, if this save() created this forum, then create new row level
+        # permissions on the discussion based on the permissions on the forum
+        # that are said to inherit (see the 'permission_inheritance'
+        # dictionary.
+        #
+        if created:
+            inherit_permissions(self, self.forum)
+
+        return res
 
 #############################################################################
 #
@@ -482,7 +562,6 @@ class Post(models.Model):
     class Meta:
         get_latest_by = 'created'
         row_level_permissions = True
-        permissions = (("tag_post", "Can tag the post"),)
 
         # because of how we assign post numbers we can not insure that they
         # are unique per discussion.
@@ -493,11 +572,19 @@ class Post(models.Model):
     #
     def save(self):
         if not self.id:
+            created = true
             self.created = datetime.utcnow()
             self.post_number = self.discussion.post_set.count() + 1
         else:
+            created = false
             self.changed = datetime.utcnow()
-        return super(Post,self).save()
+
+        res = super(Post,self).save()
+
+        if created:
+            inherit_permissions(self, self.discussion)
+
+        return res
     
     #########################################################################
     #

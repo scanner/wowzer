@@ -6,20 +6,22 @@
 <p>
 <div>
   <span class="byline">{{ discussion.blurb }}</span><br>
-  Creator: {{ discussion.creator }}<br>
+  Author: {{ discussion.author }}<br>
   Number of Posts: {{ discussion.post_set.count }}<br>
   Number of views: {{ discussion.views }}<br>
   {% if discussion.post_set.all %}
   Last Post: <a href="{{ discussion.get_absolute_url }}?post={{ discussion.post_set.latest.id }}#{{ discussion.post_set.latest.id }}">{{ discussion.post_set.latest.created|timesince }}</a> ago
-by <a href="{{ discussion.post_set.latest.creator.get_absolute_url }}">{{ discussion.post_set.latest.creator }}</a><br>
+by <a href="{{ discussion.post_set.latest.author.get_absolute_url }}">{{ discussion.post_set.latest.author }}</a><br>
   {% endif %}
 </div>
 <div class="tags">
 
 </div>
 </p>
-<div>
-<a href="./create_post/">Post a message.</a>
+<div class="toolbar">
+  <ul>
+    <li><a href="./create_post/">{% icon "comment" "Post a message." %}</a>
+  </ul>
 </div>
 {% endblock %}
 {% block listing %}
@@ -33,21 +35,27 @@ by <a href="{{ discussion.post_set.latest.creator.get_absolute_url }}">{{ discus
   </tr>
   {% for post in object_list %}
     <tr class="{% cycle odd,even %}">
-      <td><span class="author"><a href="{{ post.creator.get_absolute_url }}">{{ post.creator }}</a></span></td>
+      <td><span class="author"><a href="{{ post.author.get_absolute_url }}">{{ post.author }}</a></span></td>
       <td>
         <div class="byline">
 	  <a name="{{ post.id }}">Post #{{ post.post_number }}</a><br>
           Posted at: {{ post.created|date:"D, M j, Y H:i" }} ({{ post.created|timesince }} ago)
           {% if post.in_reply_to %}
-          in reply to <a title="Go to {{ post.in_reply_to_creator.username }}'s profile." href="{{ post.in_reply_to.creator.get_absolute_url }}">{{ post.in_reply_to.creator }}'s</a> <a href="{{ discussion.get_absolute_url }}?post={{ post.in_reply_to.id }}#{{ post.in_reply_to.id }}">Post #{{ post.in_reply_to.post_number}}</a> (from {{ post.in_reply_to.created|timesince }} ago.) 
+          in reply to <a title="Go to {{ post.in_reply_to_author.username }}'s profile." href="{{ post.in_reply_to.author.get_absolute_url }}">{{ post.in_reply_to.author }}'s</a> <a href="{{ discussion.get_absolute_url }}?post={{ post.in_reply_to.id }}#{{ post.in_reply_to.id }}">Post #{{ post.in_reply_to.post_number}}</a> (from {{ post.in_reply_to.created|timesince }} ago.) 
           {% endif %}
 	  <div class="toolbar">
 	  <ul>
-	  <li><a href="./create_post/?in_reply_to={{ post.id }}">{% icon "comment_add" "Reply to post" %}</a></li>
+            {% has_perm_chain asforums.post_discussion post.discussion or asforums.moderate_discussion post.discussion.forum %}
+            {% if_has_perm asforums.post_discussion post.discussion %}
+	    <li><a href="./create_post/?in_reply_to={{ post.id }}">{% icon "comment_add" "Reply to post" %}</a></li>
+            {% end_if_has_perm %}
+            {% if_has_perm asforums.change_post post %} 
+	    <li><a href="{{ post.get_absolute_url }}update/">{% icon "comment_edit" "Edit Post" %}</a></li>
+	    {% end_if_has_perm %}
+            {% if_has_perm asforums.delete_post post %} 
+	    <li><a href="{{ post.get_absolute_url }}delete/">{% icon "comment_delete" "Delete Post" %}</a></li>
+	    {% end_if_has_perm %}
 	  </ul>
-	  {% ifequal post.creator user %}
-	  <li><a href="{{ post.get_absolute_url }}/update/">{% icon "comment_edit" "Edit Post" %}</a>
-	  {% endifequal %}
 	  </div>
         </div>
         <div class="postmessage">
@@ -73,7 +81,9 @@ There are no posts in this discussion.
 </p>
 {% endblock %}
 {% block postlisting %}
-<div>
-<a href="./create_post/">Post a message.</a>
+<div class="toolbar">
+  <ul>
+    <li><a href="./create_post/">{% icon "comment" "Post a message." %}</a>
+  </ul>
 </div>
 {% endblock %}

@@ -54,8 +54,8 @@ class ViewableByUserNode(template.Node):
 ##############################################################################
 #
 def has_perm_chain(parser, token):
-    """This custom tag deal with per object permissions and the permission chain
-    required for the asforum system. For things like 'post' and 'read'
+    """This custom tag deal with per object permissions and the permission
+    chain required for the asforum system. For things like 'post' and 'read'
     permissions on a discussion, the user must have the permissions from all
     containing objects as well. ie: in order to post to a discussion they must
     have post permission on the discussion and post permission on the forum
@@ -77,7 +77,8 @@ def has_perm_chain(parser, token):
     bits = token.contents.split()
     del bits[0]
     if not bits:
-        raise TemplateSyntaxError, "'if' statement requires at least one argument"
+        raise TemplateSyntaxError, \
+              "'if' statement requires at least one argument"
     # bits now looks something like this: ['a', 'b', 'or', 'not', 'b', 'c',
     # 'or', 'c.d', 'e.f']
     #

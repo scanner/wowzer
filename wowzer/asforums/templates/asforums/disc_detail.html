@@ -3,6 +3,7 @@
 {% block hierarchy %}<a href="/">Top</a>&nbsp&raquo;&nbsp;<a href="/asforums/">Forums Index</a>&nbsp&raquo;&nbsp;<a href="{{ discussion.forum.collection.get_absolute_url }}">{{ discussion.forum.collection.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ discussion.forum.get_absolute_url }}">{{ discussion.forum.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ request.get_full_path }}">{{ discussion.name }}</a>{% endblock %}
 {% block prelisting %}
 <h1>{{ discussion.name }}</h1>
+{% if not discussion.closed or "asforums.forum_moderate" discussion.forum %}
 <p>
 <div>
   <span class="byline">{{ discussion.blurb }}</span><br>
@@ -20,7 +21,13 @@ by <a href="{{ discussion.post_set.latest.author.get_absolute_url }}">{{ discuss
 </p>
 <div class="toolbar">
   <ul>
-    <li><a href="./create_post/">{% icon "comment" "Post a message." %}</a>
+    {% if not discussion.locked %}
+      {% has_perm_chain "asforums.post_discussion" discussion or "asforums.moderate_forum" discussion.forum %} 
+      <li><a href="./create_post/">{% icon "comment" "Post a message." %}</a>
+      {% end_has_perm_chain %}
+    {% else %}
+      <li> Locked </li>
+      {% if_has_perm 
   </ul>
 </div>
 {% endblock %}
@@ -45,10 +52,9 @@ by <a href="{{ discussion.post_set.latest.author.get_absolute_url }}">{{ discuss
           {% endif %}
 	  <div class="toolbar">
 	  <ul>
-            {% has_perm_chain asforums.post_discussion post.discussion or asforums.moderate_discussion post.discussion.forum %}
-            {% if_has_perm asforums.post_discussion post.discussion %}
+            {% has_perm_chain "asforums.post_discussion" post.discussion or "asforums.moderate_discussion" %}
 	    <li><a href="./create_post/?in_reply_to={{ post.id }}">{% icon "comment_add" "Reply to post" %}</a></li>
-            {% end_if_has_perm %}
+            {% end_has_perm_chain %}
             {% if_has_perm asforums.change_post post %} 
 	    <li><a href="{{ post.get_absolute_url }}update/">{% icon "comment_edit" "Edit Post" %}</a></li>
 	    {% end_if_has_perm %}

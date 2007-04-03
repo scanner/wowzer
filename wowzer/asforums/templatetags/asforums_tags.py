@@ -51,6 +51,75 @@ class ViewableByUserNode(template.Node):
             #
             return ""
 
+
+##############################################################################
+#
+def fancy_if(parser, token):
+    '''A fancy if statement that can do all that the current if statement can
+    and it can also work with permissions. As an additional bonus it will let
+    you use "and" and "or" in the same statement (with some syntax
+    restrictions.)
+
+    NOTE: To make this simpler for me coding this, this is a _prefix
+    grammar_. Sorry if this causes you grief.
+
+    NOTE: "or" "not" and "and" are reserved words so so you can not have an
+    object that is one of those words.
+
+    eg:
+
+    {% fancy_if or not discussion.locked "asforums.forum_moderate" discussion.forum %}
+       foo
+    {% else %}
+       bar
+    {% end_fancy_if %}
+
+    If you wish to use both "and" and "or" in a statement all operators of the
+    same type at the same level must be enclosed in parentheses. ie:
+
+        ( and ( or far "read" forum ) not something )
+
+    NOTE: "(" must be separated by white space!
+
+    NOTE: We know that an expression is checking a permission if it begins
+    with a quoted string.
+
+    NOTE: A permission expression may have one or two arguments. If it has two
+    the second must be an object instance on which we want to check row level
+    permissions.
+
+    '''
+    tokens = token.contents.split()
+    del tokens[0]
+    if not tokens:
+        raise TemplateSyntaxError, \
+              "'fancy_if' requires at least one argument"
+    expr = fancy_if_parse_nodes(tokens)
+
+    nodelist_true = parser.parse(('else', 'end_fancy_if'))
+    token = parser.next_token()
+    if token.contents == 'else':
+        nodelist_false = parser.parse(('end_fancy_if',))
+        parser.delete_first_token()
+    else:
+        nodelist_false = NodeList()
+    return FancyIfNode(expr, nodelist_true, nodelist_false)
+
+
+class FancyIfParser(object):
+    def __init__(self, tokens):
+        self.tokens = tokens
+
+    def parse(self):
+        while self.tokens:
+            if tokens[0] == "(":
+                expr = self.expr(self.tokens[1:])
+            elif tokens[0] == "not":
+                expr = self.expr(self.tokens[1:])
+                expr.not = True
+            elif tokens[0]
+            
+        
 ##############################################################################
 #
 def has_perm_chain(parser, token):
@@ -171,22 +240,33 @@ class HasPermChainNode(Node):
         return nodes
 
     def render(self, context):
+        try:
+            user = template.resolve_variable("user", context)
+        except template.VariableDoesNotExist:
+            return settings.TEMPLATE_STRING_IF_INVALID
         if self.link_type == HasPermChainNode.LinkTypes.or_:
-            for ifnot, perm_codename, object in self.bool_exprs:
-                try:
-                    obj = resolve_variable(object, context)
-                except VariableDoesNotExist:
+            for ifnot, perm_codename, obj_var in self.bool_exprs:
+                if obj_var is not None:
+                    try:
+                        obj = self.obj_var.resolve(context)
+                    except VariableDoesNotExist:
+                        obj = None
+                else:
                     obj = None
-                perm = 
+                value = user.has_perm(perm_codename, object = obj)
                 if (value and not ifnot) or (ifnot and not value):
                     return self.nodelist_true.render(context)
             return self.nodelist_false.render(context)
         else:
-            for ifnot, bool_expr in self.bool_exprs:
-                try:
-                    value = bool_expr.resolve(context, True)
-                except VariableDoesNotExist:
-                    value = None
+            for ifnot, perm_codename, obj_var in self.bool_exprs:
+                if obj_var is not None:
+                    try:
+                        obj = self.obj_var.resolve(context)
+                    except VariableDoesNotExist:
+                        obj = None
+                else:
+                    obj = None
+                value = user.has_perm(perm_codename, object = obj)
                 if not ((value and not ifnot) or (ifnot and not value)):
                     return self.nodelist_false.render(context)
             return self.nodelist_true.render(context)

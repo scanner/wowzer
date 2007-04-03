@@ -153,4 +153,4 @@ for index in range(3):
                                         content = DUMMY_TEXT,
                                         content_html = DUMMY_TEXT_HTML,
                                         markup = "text.bbcode" )
-                print "Created post: %s" % str(post)
+                print "Created post: %s" % str(p)

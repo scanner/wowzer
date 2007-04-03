@@ -73,8 +73,11 @@ def has_perm_chain(parser, token):
     object is given.
 
     Perm name should be in the format [app_label].[perm codename].
+
+    Example: {% has_perm_chain asforums.read_disc disc_object %}
     """
     bits = token.contents.split()
+    token_type = bits[0]
     del bits[0]
     if not bits:
         raise TemplateSyntaxError, \
@@ -94,7 +97,8 @@ def has_perm_chain(parser, token):
     else:
         link_type = HasPermChainNode.LinkTypes.and_
         if ' or ' in bitstr:
-            raise TemplateSyntaxError, "'if' tags can't mix 'and' and 'or'"
+            raise TemplateSyntaxError, "'has_perm_chain' tags can't mix 'and'" \
+                " and 'or'"
     
     # Make sure each 'boolpairs' set is one two or three terms. If it is three
     # terms the first must be 'not'. If it is two terms the first is a
@@ -104,15 +108,44 @@ def has_perm_chain(parser, token):
     for boolpair in boolpairs:
         if ' ' in boolpair:
             elts = boolpair.split()
-            if elts == 3:
-                if elts[0] != 'not':
-                    raise TemplateSyntaxError, "Expected 'not' in if statement"
+            object_var = None
+            not_flag = False
+            
+            if len(elts) == 1:
+                permission = elts[0]
+            if len(elts) == 2:
+                if elts[0] == "not":
+                    not_flag = True
+                    permission = elts[1]
                 else:
-                    pass
-                
-    
-    
+                    permission = elts[0]
+                    object_var = parser.compile_filter(elts[1])
+            elif len(elts) == 3:
+                if elts[0] != 'not':
+                    raise TemplateSyntaxError, "Expected 'not' in has_" \
+                        "perm_chain statement"
+                not_flag = True
+                permission = elts[1]
+                object_var = parser.compile_filter(elts[2])
+            else:
+                raise TemplateSyntaxError, "'has_perm_chain' statement " \
+                    "expects at one to three elements in one and/or clause. " \
+                    "We had %d." % len(elts)
+            boolvars.append((not_flag, permission, object_var))
 
+        else:
+            raise TemplateSyntaxError, "'has_perm_chain' requires a pair " \
+                "comprised of 'permission codename' and 'object'"
+                
+    nodelist_true = parser.parse(('else', 'end_has_perm_chain'))
+    token = parser.next_token()
+    if token.contents == 'else':
+        nodelist_false = parser.parse(('end_has_perm_chain',))
+        parser.delete_first_token()
+    else:
+        nodelist_false = NodeList()
+    return HasPermChainNode(boolvars, nodelist_true, nodelist_false, link_type)
+    
     
 class HasPermChainNode(Node):
     def __init__(self, bool_exprs, nodelist_true, nodelist_false, link_type):
@@ -121,7 +154,7 @@ class HasPermChainNode(Node):
         self.link_type = link_type
 
     def __repr__(self):
-        return "<If node>"
+        return "<HasPermChain node>"
 
     def __iter__(self):
         for node in self.nodelist_true:
@@ -138,12 +171,13 @@ class HasPermChainNode(Node):
         return nodes
 
     def render(self, context):
-        if self.link_type == IfNode.LinkTypes.or_:
-            for ifnot, bool_expr in self.bool_exprs:
+        if self.link_type == HasPermChainNode.LinkTypes.or_:
+            for ifnot, perm_codename, object in self.bool_exprs:
                 try:
-                    value = bool_expr.resolve(context, True)
+                    obj = resolve_variable(object, context)
                 except VariableDoesNotExist:
-                    value = None
+                    obj = None
+                perm = 
                 if (value and not ifnot) or (ifnot and not value):
                     return self.nodelist_true.render(context)
             return self.nodelist_false.render(context)

@@ -53,7 +53,6 @@ class ViewableByUserNode(template.Node):
 
 ##############################################################################
 #
-@register.tag(name="fancy_if")
 def fancy_if(parser, token):
     """A fancy if tag. It has two notable features:
 
@@ -100,18 +99,19 @@ def fancy_if(parser, token):
     reference.
     """
     bits = token.contents.split()
-    del bits[0]
+    tag = bits.pop(0)
     if not bits:
         raise template.TemplateSyntaxError, \
             "'fancy_if' statement requires at least one argument"
-    nodelist_true = parser.parse(('else', 'end_fancy_if'))
+    nodelist_true = parser.parse(('else', 'end_' + tag))
     token = parser.next_token()
     if token.contents == 'else':
-        nodelist_false = parser.parse(('end_fancy_if',))
+        nodelist_false = parser.parse(('end_' + tag,))
         parser.delete_first_token()
     else:
-        nodelist_false = NodeList()
+        nodelist_false = template.NodeList()
     return FancyIfNode(bits, nodelist_true, nodelist_false)
+register.tag('fancy_if', fancy_if)
 
 ##############################################################################
 #
@@ -253,7 +253,7 @@ class FIEquals(FIExpr):
         self.obj_var2 = obj_var2
 
     def __repr__(self):
-        reutrn "( eq %s %s )" % (self.obj_var1, self.obj_var2)
+        return "( eq %s %s )" % (self.obj_var1, self.obj_var2)
 
     def eval(self, context):
         try:

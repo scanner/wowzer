@@ -51,51 +51,59 @@ class ViewableByUserNode(template.Node):
             #
             return ""
 
-
 ##############################################################################
 #
+@register.tag(name="fancy_if")
 def fancy_if(parser, token):
-    '''A fancy if statement that can do all that the current if statement can
-    and it can also work with permissions. As an additional bonus it will let
-    you use "and" and "or" in the same statement (with some syntax
-    restrictions.)
+    """A fancy if tag. It has two notable features:
 
-    NOTE: To make this simpler for me coding this, this is a _prefix
-    grammar_. Sorry if this causes you grief.
+    1) you can combine and, or, and not statements nested as much as you like.
+    2) you can test object like {% if %} AND you can test row level permissions
+       in the same expression.
 
-    NOTE: "or" "not" and "and" are reserved words so so you can not have an
-    object that is one of those words.
+    NOTE: To simplify my sanity, I use a simple prefix expression.
 
-    eg:
+    So, for example, to test if a discussion is not locked or the user
+    has moderate permission on the forum the discussion is in:
 
-    {% fancy_if or not discussion.locked "asforums.forum_moderate" discussion.forum %}
-       foo
-    {% else %}
-       bar
-    {% end_fancy_if %}
+    {% fancy_if or not discussion.locked "asforums.has_moderate" discussion.forum %} ... {% else %} {% end_fancy_if %}
 
-    If you wish to use both "and" and "or" in a statement all operators of the
-    same type at the same level must be enclosed in parentheses. ie:
+    The syntax is:
 
-        ( and ( or far "read" forum ) not something )
+    {% fancy_if expr ... %}
 
-    NOTE: "(" must be separated by white space!
+    These top level terms are AND'd together.
 
-    NOTE: We know that an expression is checking a permission if it begins
-    with a quoted string.
+    An expr may be:
+    
+       ( expr )
+       or expr ...
+       and expr ...
+       not expr
+       "permission code name" <variable>|None
+       eq <variable>|"string" <variable>|"string"
+       <variable>
 
-    NOTE: A permission expression may have one or two arguments. If it has two
-    the second must be an object instance on which we want to check row level
-    permissions.
+    If you wish to nest or & and you use '(' ')' to express the
+    sub-expression. These characters MUST be separated by white space, ie:
 
-    '''
-    tokens = token.contents.split()
-    del tokens[0]
-    if not tokens:
-        raise TemplateSyntaxError, \
-              "'fancy_if' requires at least one argument"
-    expr = fancy_if_parse_nodes(tokens)
+    Good: ( and foo bar biz bat )
+    Bad:  (and foo bar biz bat)
 
+    NOTE: Permissions are expressed by being surrounded by matching
+    double or single quotes. ie: "asforums.forum_moderate" or
+    'asforums.disc_read'.
+
+    NOTE: The permission expression MUST be two tokens. A permission
+    and a variable reference. If you wish to do class level permission
+    checking using the value 'None' (with no quotes!) as the variable
+    reference.
+    """
+    bits = token.contents.split()
+    del bits[0]
+    if not bits:
+        raise template.TemplateSyntaxError, \
+            "'fancy_if' statement requires at least one argument"
     nodelist_true = parser.parse(('else', 'end_fancy_if'))
     token = parser.next_token()
     if token.contents == 'else':
@@ -103,127 +111,31 @@ def fancy_if(parser, token):
         parser.delete_first_token()
     else:
         nodelist_false = NodeList()
-    return FancyIfNode(expr, nodelist_true, nodelist_false)
+    return FancyIfNode(bits, nodelist_true, nodelist_false)
 
-
-class FancyIfParser(object):
-    def __init__(self, tokens):
-        self.tokens = tokens
-
-    def parse(self):
-        while self.tokens:
-            if tokens[0] == "(":
-                expr = self.expr(self.tokens[1:])
-            elif tokens[0] == "not":
-                expr = self.expr(self.tokens[1:])
-                expr.not = True
-            elif tokens[0]
-            
-        
 ##############################################################################
 #
-def has_perm_chain(parser, token):
-    """This custom tag deal with per object permissions and the permission
-    chain required for the asforum system. For things like 'post' and 'read'
-    permissions on a discussion, the user must have the permissions from all
-    containing objects as well. ie: in order to post to a discussion they must
-    have post permission on the discussion and post permission on the forum
-    and post permission on the forum collection.
-
-    This helper will use the permission inheritance map from the models file
-    to check to see if a user has the permissions necessary for this
-    object.
-
-    This will also support an 'or' syntax so you can do things like 'if user
-    has edit permission on this post or moderate permission on this forum they
-    can edit this post.
-
-    Checks permission on the given user. Checks row-level permissions if an
-    object is given.
-
-    Perm name should be in the format [app_label].[perm codename].
-
-    Example: {% has_perm_chain asforums.read_disc disc_object %}
+class FancyIfNode(template.Node):
+    """The template Node object that represents our 'fancy if'.
     """
-    bits = token.contents.split()
-    token_type = bits[0]
-    del bits[0]
-    if not bits:
-        raise TemplateSyntaxError, \
-              "'if' statement requires at least one argument"
-    # bits now looks something like this: ['a', 'b', 'or', 'not', 'b', 'c',
-    # 'or', 'c.d', 'e.f']
-    #
-    # See if we have any 'and' or 'or' statements. THey can only use one or
-    # the other in a single tag.
-    #
-    bitstr = ' '.join(bits)
-    boolpairs = bitstr.split(' and ')
-    boolvars = []
-    if len(boolpairs) == 1:
-        link_type = HasPermChainNode.LinkTypes.or_
-        boolpairs = bitstr.split(' or ')
-    else:
-        link_type = HasPermChainNode.LinkTypes.and_
-        if ' or ' in bitstr:
-            raise TemplateSyntaxError, "'has_perm_chain' tags can't mix 'and'" \
-                " and 'or'"
-    
-    # Make sure each 'boolpairs' set is one two or three terms. If it is three
-    # terms the first must be 'not'. If it is two terms the first is a
-    # permission and the second is an object instance. If it is one term it is
-    # a permission (for all objects of that class)
-    #
-    for boolpair in boolpairs:
-        if ' ' in boolpair:
-            elts = boolpair.split()
-            object_var = None
-            not_flag = False
-            
-            if len(elts) == 1:
-                permission = elts[0]
-            if len(elts) == 2:
-                if elts[0] == "not":
-                    not_flag = True
-                    permission = elts[1]
-                else:
-                    permission = elts[0]
-                    object_var = parser.compile_filter(elts[1])
-            elif len(elts) == 3:
-                if elts[0] != 'not':
-                    raise TemplateSyntaxError, "Expected 'not' in has_" \
-                        "perm_chain statement"
-                not_flag = True
-                permission = elts[1]
-                object_var = parser.compile_filter(elts[2])
-            else:
-                raise TemplateSyntaxError, "'has_perm_chain' statement " \
-                    "expects at one to three elements in one and/or clause. " \
-                    "We had %d." % len(elts)
-            boolvars.append((not_flag, permission, object_var))
-
-        else:
-            raise TemplateSyntaxError, "'has_perm_chain' requires a pair " \
-                "comprised of 'permission codename' and 'object'"
-                
-    nodelist_true = parser.parse(('else', 'end_has_perm_chain'))
-    token = parser.next_token()
-    if token.contents == 'else':
-        nodelist_false = parser.parse(('end_has_perm_chain',))
-        parser.delete_first_token()
-    else:
-        nodelist_false = NodeList()
-    return HasPermChainNode(boolvars, nodelist_true, nodelist_false, link_type)
-    
-    
-class HasPermChainNode(Node):
-    def __init__(self, bool_exprs, nodelist_true, nodelist_false, link_type):
-        self.bool_exprs = bool_exprs
+    def __init__(self, tokens, nodelist_true, nodelist_false):
+        self.tokens = tokens
         self.nodelist_true, self.nodelist_false = nodelist_true, nodelist_false
-        self.link_type = link_type
+
+        self.expr_list = []
+        while len(tokens) > 0:
+            self.expr_list.append(self.expr())
 
     def __repr__(self):
-        return "<HasPermChain node>"
+        result = "<FancyIf: "
+        if len(tokens) > 1:
+            result += "(and: "
+            result += " ".join([repr(x) for x in self.expr_list])
+            result += " )"
+        else:
+            result += repr(self.expr_list[0])
+        result += " >"
+        return result
 
     def __iter__(self):
         for node in self.nodelist_true:
@@ -240,37 +152,156 @@ class HasPermChainNode(Node):
         return nodes
 
     def render(self, context):
+        for expr in self.expr_list:
+            if not expr.eval(context):
+                return self.nodelist_false.render(context)
+        return self.nodelist_true.render(context)
+        
+    def expr(self):
+        res = []
+        token = self.tokens.pop(0)
+        if token == "(":
+            res = self.expr()
+            if self.tokens.pop(0) != ")":
+                raise template.TemplateSyntaxError, "Missing matching ')'"
+            return res
+        elif token  == "not":
+            if len(self.tokens) < 1:
+                raise TemplateSyntaxError, "'%s' must come with an expres" \
+                    "sion to operate on." % token
+            return FINot(self.expr())
+        elif token in ("and", "or"):
+            if len(self.tokens) < 1:
+                raise TemplateSyntaxError, "'%s' must come with a list of " \
+                    "expressions to operate on." % token
+            res = []
+            while len(self.tokens) > 0:
+                if self.tokens[0] == ")":
+                    break
+                res.append(self.expr())
+            if token == "and":
+                return FIAnd(res)
+            return FiOr(res)
+
+        elif token[0] == token[-1] and token[0] in ('"', "'"):
+            return FiPerm(token[1:-1],
+                          parser.compile_filter(self.tokens.pop(0)))
+        elif token == "eq":
+            return FIEquals(parser.compile_filter(self.tokens.pop(0)),
+                            parser.compile_filter(self.tokens.pop(0)))
+
+        # Otherwise it is just a variable reference.
+        #
+        return FiVar(parser.compile_filter(self.tokens.pop(0)))
+
+##############################################################################
+#
+# Here we have a simple set of classes to define our parsed expression
+# syntax in a format that is easy to eval when we have a context we need
+# to render. We define a sub-class for each type of operation. They must
+# have an eval() method which returns True or False, and a __repr__ method
+# that gives us a simple string representation.
+#
+class FIExpr(object):
+    """The root object for the expression tree in our fancy-if node.
+    """
+    def __repr__(self):
+        raise NotImplementedError
+        
+    def eval(self, context):
+        raise NotImplementedError
+
+class FINot(FIExpr):
+    def __init__(self, expr):
+        self.expr = expr
+
+    def __repr__(self):
+        return "(not: %s )" % repr(self.expr)
+
+    def eval(self, context):
+        return not self.expr.eval(context)
+
+class FIAnd(FIExpr):
+    def __init__(self, expr_list):
+        self.expr_list = expr_list
+
+    def __repr__(self):
+        return "(and:" + " ".join([repr(x) for x in self.expr_list]) + " )"
+
+    def eval(self, context):
+        for elt in self.expr_list:
+            if not elt.eval(context):
+                return False
+        return True
+
+class FIOr(FIExpr):
+    def __init__(self, expr_list):
+        self.expr_list = expr_list
+
+    def __repr__(self):
+        return "(or:" + " ".join([repr(x) for x in self.expr_list]) + " )"
+
+    def eval(self, context):
+        for elt in self.expr_list:
+            if elt.eval(context):
+                return True
+        return False
+
+class FIEquals(FIExpr):
+    def __init__(self, obj_var1, obj_var2):
+        self.obj_var1 = obj_var1
+        self.obj_var2 = obj_var2
+
+    def __repr__(self):
+        reutrn "( eq %s %s )" % (self.obj_var1, self.obj_var2)
+
+    def eval(self, context):
+        try:
+            obj1 = self.obj_var1.resolve(context)
+        except template.VariableDoesNotExist:
+            obj1 = None
+        try:
+            obj2 = self.obj_var2.resolve(context)
+        except template.VariableDoesNotExist:
+            obj2 = None
+        return obj1 == obj2
+
+class FIPerm(FIExpr):
+    def __init__(self, perm, object_var):
+        self.perm = perm
+        self.object_var = object_var
+
+    def __repr__(self):
+        return "(has perm '%s' on %s )" % (self.perm,
+                                           self.object_var.var)
+
+    def eval(self, context):
+        if self.object_var == None:
+            obj = None
+        else:
+            try:
+                obj = self.object_var.resolve(context)
+            except template.VariableDoesNotExist:
+                obj = None
         try:
             user = template.resolve_variable("user", context)
         except template.VariableDoesNotExist:
             return settings.TEMPLATE_STRING_IF_INVALID
-        if self.link_type == HasPermChainNode.LinkTypes.or_:
-            for ifnot, perm_codename, obj_var in self.bool_exprs:
-                if obj_var is not None:
-                    try:
-                        obj = self.obj_var.resolve(context)
-                    except VariableDoesNotExist:
-                        obj = None
-                else:
-                    obj = None
-                value = user.has_perm(perm_codename, object = obj)
-                if (value and not ifnot) or (ifnot and not value):
-                    return self.nodelist_true.render(context)
-            return self.nodelist_false.render(context)
-        else:
-            for ifnot, perm_codename, obj_var in self.bool_exprs:
-                if obj_var is not None:
-                    try:
-                        obj = self.obj_var.resolve(context)
-                    except VariableDoesNotExist:
-                        obj = None
-                else:
-                    obj = None
-                value = user.has_perm(perm_codename, object = obj)
-                if not ((value and not ifnot) or (ifnot and not value)):
-                    return self.nodelist_false.render(context)
-            return self.nodelist_true.render(context)
 
-    class LinkTypes:
-        and_ = 0,
-        or_ = 1
+        return user.has_perm(self.perm, object=object)
+
+class FIVar(FIExpr):
+    def __init__(self, obj_var):
+        self.obj_var = obj_var
+
+    def __repr__(self):
+        return self.object_var.var
+
+    def eval(self, context):
+        try:
+            obj = self.object_var.resolve(context)
+        except template.VariableDoesNotExist:
+            obj = None
+        if value:
+            return True
+        return False

@@ -17,6 +17,13 @@ You cannot edit your posts in this forum
 You cannot delete your posts in this forum
 You cannot vote in polls in this forum
 
+closed:
+  only the owner or moderator of the discussion can make changes to the
+       discussion
+
+locked:
+  only moderators may make changes to the discussion
+
 o post to discussions
   o permission to post - done
   o template - 20%

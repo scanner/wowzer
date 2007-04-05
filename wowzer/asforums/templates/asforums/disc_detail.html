@@ -3,13 +3,18 @@
 {% block hierarchy %}<a href="/">Top</a>&nbsp&raquo;&nbsp;<a href="/asforums/">Forums Index</a>&nbsp&raquo;&nbsp;<a href="{{ discussion.forum.collection.get_absolute_url }}">{{ discussion.forum.collection.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ discussion.forum.get_absolute_url }}">{{ discussion.forum.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ request.get_full_path }}">{{ discussion.name }}</a>{% endblock %}
 {% block prelisting %}
 <h1>{{ discussion.name }}</h1>
-{% if not discussion.closed or "asforums.forum_moderate" discussion.forum %}
 <p>
-<div>
+<div id="disc_header">
   <span class="byline">{{ discussion.blurb }}</span><br>
   Author: {{ discussion.author }}<br>
   Number of Posts: {{ discussion.post_set.count }}<br>
   Number of views: {{ discussion.views }}<br>
+  {% if discussion.locked %}
+  Discussion is locked<br />
+  {% endif %}
+  {% if discussion.closed %}
+  Discussion is closed<br />
+  {% endif %}
   {% if discussion.post_set.all %}
   Last Post: <a href="{{ discussion.get_absolute_url }}?post={{ discussion.post_set.latest.id }}#{{ discussion.post_set.latest.id }}">{{ discussion.post_set.latest.created|timesince }}</a> ago
 by <a href="{{ discussion.post_set.latest.author.get_absolute_url }}">{{ discussion.post_set.latest.author }}</a><br>
@@ -21,18 +26,15 @@ by <a href="{{ discussion.post_set.latest.author.get_absolute_url }}">{{ discuss
 </p>
 <div class="toolbar">
   <ul>
-    {% if not discussion.locked %}
-      {% has_perm_chain "asforums.post_discussion" discussion or "asforums.moderate_forum" discussion.forum %} 
-      <li><a href="./create_post/">{% icon "comment" "Post a message." %}</a>
-      {% end_has_perm_chain %}
-    {% else %}
-      <li> Locked </li>
-      {% if_has_perm 
+    {% fancy_if ( or not ( or discussion.locked discussion.closed )
+                  "asforums.moderate_forum" discussion.forum ) %}
+    <li><a href="./create_post/">{% icon "comment" "Post a message." %}</a></li>
+    {% end_fancy_fi %}
   </ul>
 </div>
 {% endblock %}
 {% block listing %}
-<p>
+{% fancy_if or not discussion.locked "asforums.moderate_forum" discussion.forum %}
 {% if object_list %}
 <div class="posts">
 <table class="listing">
@@ -50,28 +52,45 @@ by <a href="{{ discussion.post_set.latest.author.get_absolute_url }}">{{ discuss
           {% if post.in_reply_to %}
           in reply to <a title="Go to {{ post.in_reply_to_author.username }}'s profile." href="{{ post.in_reply_to.author.get_absolute_url }}">{{ post.in_reply_to.author }}'s</a> <a href="{{ discussion.get_absolute_url }}?post={{ post.in_reply_to.id }}#{{ post.in_reply_to.id }}">Post #{{ post.in_reply_to.post_number}}</a> (from {{ post.in_reply_to.created|timesince }} ago.) 
           {% endif %}
-	  <div class="toolbar">
+        </div>
+        {% fancy_if or not post.deleted "asforums.moderate_forum" discussion.forum %}
+        <div class="toolbar">
 	  <ul>
-            {% has_perm_chain "asforums.post_discussion" post.discussion or "asforums.moderate_discussion" %}
+            {% fancy_if or not discussion.closed eq discussion.author user "asforums.moderate_forum" discussion.forum %}
+            if not closed or disc owner or moderator
 	    <li><a href="./create_post/?in_reply_to={{ post.id }}">{% icon "comment_add" "Reply to post" %}</a></li>
-            {% end_has_perm_chain %}
-            {% if_has_perm asforums.change_post post %} 
+            {% end_fancy_fi %}
+            if (not closed and post owner) or moderator
 	    <li><a href="{{ post.get_absolute_url }}update/">{% icon "comment_edit" "Edit Post" %}</a></li>
-	    {% end_if_has_perm %}
-            {% if_has_perm asforums.delete_post post %} 
+            if (not closed and post owner) or moderator
 	    <li><a href="{{ post.get_absolute_url }}delete/">{% icon "comment_delete" "Delete Post" %}</a></li>
-	    {% end_if_has_perm %}
+            if tag permission
+            <li><a href="{{ post.get_absolute_url }}tag/">{% icon "tag_blue_add" "Add Tag to Post" %}</a></li>
+            <li><a href="{{ post.get_absolute_url }}usertag/">{% icon "user_add" "Add Private User Tag to Post" %}</a></li>
+            <li><a href="{{ discussion.get_absolute_url }}?post={{ post.post_number }}">{% icon "link" "Permanent link to this post" %}</a></li>
 	  </ul>
-	  </div>
-        </div>
+	</div>
         <div class="postmessage">
-          {{ post.content }}
+          {% if post.content_html %}
+            {{ post.content_html }}
+          {% else %}
+            {{ post.content }}
+          {% endif %}
         </div>
+        {% end_fancy_if %}
+        {% if post.deleted %}
+        <div class="alert">
+          Post was deleted by <a href="{{ post.deleted_by.get_absolute_url }}">{{ post.deleted_by.username }}</a><br />
+          {% if post.deletion_reason %}
+          Reason: {{ post.deletion_reason }}
+          {% endif %}
+        </div>
+        {% endif %}
 	{% if post.replies_set %}
 	<div class="postreplies">
 	  {% for reply in post.replies_set.all %}
 	    {% if not reply.deleted %}
-	      <a href="{{ reply.get_absolute_url }}">{{ reply.id</a>
+	      <a href="{{ reply.get_absolute_url }}">{{ reply.id }}</a>
 	    {% endif %}
 	  {% endfor %}
 	</div>
@@ -84,12 +103,15 @@ by <a href="{{ discussion.post_set.latest.author.get_absolute_url }}">{{ discuss
 {% else %}
 There are no posts in this discussion.
 {% endif %}
-</p>
+{% end_fancy_if %}
 {% endblock %}
 {% block postlisting %}
 <div class="toolbar">
   <ul>
-    <li><a href="./create_post/">{% icon "comment" "Post a message." %}</a>
+    {% fancy_if ( or not ( or discussion.locked discussion.closed )
+                  "asforums.moderate_forum" discussion.forum ) %}
+    <li><a href="./create_post/">{% icon "comment" "Post a message." %}</a></li>
+    {% end_fancy_fi %}
   </ul>
 </div>
 {% endblock %}

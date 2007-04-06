@@ -127,11 +127,13 @@ h3 {
 /* @group Navigation */
 
 .toolbar {
-  float: right;
-  margin: 0 10px 0 0;
+	float: right;
+	margin: 0 10px 0 0;
   background: #bbb;
   padding: 3px 3px;
+	width: 200px;
 }
+
 ul.toolbar {
   margin-left: 0; 
   padding-left: 0;
@@ -139,6 +141,7 @@ ul.toolbar {
 }
 
 .toolbar li {
+  float: right;
   background: #aba;
   border: 1px solid gray;
   display: inline;

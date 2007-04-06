@@ -49,10 +49,12 @@ class ViewableByUserNode(template.Node):
             # wrong we need to log it somewhere else, not chuck it up the
             # call stack.
             #
-            return ""
+            pass
+        return ""
 
 ##############################################################################
 #
+@register.tag(name = 'fancy_if')
 def fancy_if(parser, token):
     """A fancy if tag. It has two notable features:
 
@@ -65,22 +67,20 @@ def fancy_if(parser, token):
     So, for example, to test if a discussion is not locked or the user
     has moderate permission on the forum the discussion is in:
 
-    {% fancy_if or not discussion.locked "asforums.has_moderate" discussion.forum %} ... {% else %} {% end_fancy_if %}
+    {% fancy_if or not discussion.locked 'asforums.has_moderate' discussion.forum %} ... {% else %} {% end_fancy_if %}
 
     The syntax is:
 
-    {% fancy_if expr ... %}
-
-    These top level terms are AND'd together.
+    {% fancy_if expr %}
 
     An expr may be:
     
        ( expr )
-       or expr ...
-       and expr ...
+       or expr ...   (a list of one or more expr's or'd together)
+       and expr ...  (a list of one or more expr's or'd together)
        not expr
-       "permission code name" <variable>|None
-       eq <variable>|"string" <variable>|"string"
+       'permission code name' <variable>|None
+       eq <variable>|'string' <variable>|'string'
        <variable>
 
     If you wish to nest or & and you use '(' ')' to express the
@@ -90,7 +90,7 @@ def fancy_if(parser, token):
     Bad:  (and foo bar biz bat)
 
     NOTE: Permissions are expressed by being surrounded by matching
-    double or single quotes. ie: "asforums.forum_moderate" or
+    double or single quotes. ie: 'asforums.forum_moderate' or
     'asforums.disc_read'.
 
     NOTE: The permission expression MUST be two tokens. A permission
@@ -98,11 +98,15 @@ def fancy_if(parser, token):
     checking using the value 'None' (with no quotes!) as the variable
     reference.
     """
+
+#    print "entered fancy_if!"
     bits = token.contents.split()
     tag = bits.pop(0)
     if not bits:
         raise template.TemplateSyntaxError, \
             "'fancy_if' statement requires at least one argument"
+    expr = parse_fi_expressions(bits, parser)
+    
     nodelist_true = parser.parse(('else', 'end_' + tag))
     token = parser.next_token()
     if token.contents == 'else':
@@ -110,32 +114,20 @@ def fancy_if(parser, token):
         parser.delete_first_token()
     else:
         nodelist_false = template.NodeList()
-    return FancyIfNode(bits, nodelist_true, nodelist_false)
-register.tag('fancy_if', fancy_if)
+
+    return FancyIfNode(expr, nodelist_true, nodelist_false)
 
 ##############################################################################
 #
 class FancyIfNode(template.Node):
     """The template Node object that represents our 'fancy if'.
     """
-    def __init__(self, tokens, nodelist_true, nodelist_false):
-        self.tokens = tokens
+    def __init__(self, expr, nodelist_true, nodelist_false):
+        self.expr = expr
         self.nodelist_true, self.nodelist_false = nodelist_true, nodelist_false
 
-        self.expr_list = []
-        while len(tokens) > 0:
-            self.expr_list.append(self.expr())
-
     def __repr__(self):
-        result = "<FancyIf: "
-        if len(tokens) > 1:
-            result += "(and: "
-            result += " ".join([repr(x) for x in self.expr_list])
-            result += " )"
-        else:
-            result += repr(self.expr_list[0])
-        result += " >"
-        return result
+        return "<FancyIf: %s >" % repr(self.expr)
 
     def __iter__(self):
         for node in self.nodelist_true:
@@ -152,48 +144,64 @@ class FancyIfNode(template.Node):
         return nodes
 
     def render(self, context):
-        for expr in self.expr_list:
-            if not expr.eval(context):
-                return self.nodelist_false.render(context)
-        return self.nodelist_true.render(context)
+        if self.expr.eval(context):
+            return self.nodelist_true.render(context)
+        return self.nodelist_false.render(context)
+
         
-    def expr(self):
-        res = []
-        token = self.tokens.pop(0)
+##############################################################################
+#
+def parse_fi_expressions(tokens, parser):
+    """Given a list of tokens that comprised the 'fancy_if' statement
+    parse them in to a list of node trees that represents the expressions to
+    be evaluated.
+    """
+#    print "entered pfie, tokens: %s" % str(tokens)
+    try:
+        token = tokens.pop(0)
         if token == "(":
-            res = self.expr()
-            if self.tokens.pop(0) != ")":
+#            print "Got a '%s' parsing sub-expression" % token
+            res = parse_fi_expressions(tokens, parser)
+            if tokens.pop(0) != ")":
                 raise template.TemplateSyntaxError, "Missing matching ')'"
             return res
         elif token  == "not":
-            if len(self.tokens) < 1:
+#            print "Got a '%s' parsing sub-expression" % token
+            if len(tokens) < 1:
                 raise TemplateSyntaxError, "'%s' must come with an expres" \
                     "sion to operate on." % token
-            return FINot(self.expr())
+            return FiNot(parse_fi_expressions(tokens, parser))
         elif token in ("and", "or"):
-            if len(self.tokens) < 1:
+#            print "Got a '%s' parsing sub-expression" % token
+            if len(tokens) < 1:
                 raise TemplateSyntaxError, "'%s' must come with a list of " \
                     "expressions to operate on." % token
             res = []
-            while len(self.tokens) > 0:
-                if self.tokens[0] == ")":
+            while len(tokens) > 0:
+                if tokens[0] == ")":
                     break
-                res.append(self.expr())
+                res.append(parse_fi_expressions(tokens, parser))
             if token == "and":
-                return FIAnd(res)
+                return FiAnd(res)
             return FiOr(res)
 
         elif token[0] == token[-1] and token[0] in ('"', "'"):
+#            print "Got a '%s' parsing sub-expression" % token
             return FiPerm(token[1:-1],
-                          parser.compile_filter(self.tokens.pop(0)))
+                          parser.compile_filter(tokens.pop(0)))
         elif token == "eq":
-            return FIEquals(parser.compile_filter(self.tokens.pop(0)),
-                            parser.compile_filter(self.tokens.pop(0)))
+#            print "Got a '%s' parsing sub-expression" % token
+            return FiEquals(parser.compile_filter(tokens.pop(0)),
+                            parser.compile_filter(tokens.pop(0)))
 
         # Otherwise it is just a variable reference.
         #
-        return FiVar(parser.compile_filter(self.tokens.pop(0)))
-
+#        print "Got a '%s' assuming FiVar" % token
+        return FiVar(parser.compile_filter(token))
+    except IndexError:
+        raise template.TemplateSyntaxError, "Mis-matched terms and " \
+              "operators. Ran out of tokens whilst parsing arguments."
+    
 ##############################################################################
 #
 # Here we have a simple set of classes to define our parsed expression
@@ -202,7 +210,7 @@ class FancyIfNode(template.Node):
 # have an eval() method which returns True or False, and a __repr__ method
 # that gives us a simple string representation.
 #
-class FIExpr(object):
+class FiExpr(object):
     """The root object for the expression tree in our fancy-if node.
     """
     def __repr__(self):
@@ -211,7 +219,7 @@ class FIExpr(object):
     def eval(self, context):
         raise NotImplementedError
 
-class FINot(FIExpr):
+class FiNot(FiExpr):
     def __init__(self, expr):
         self.expr = expr
 
@@ -221,7 +229,7 @@ class FINot(FIExpr):
     def eval(self, context):
         return not self.expr.eval(context)
 
-class FIAnd(FIExpr):
+class FiAnd(FiExpr):
     def __init__(self, expr_list):
         self.expr_list = expr_list
 
@@ -234,7 +242,7 @@ class FIAnd(FIExpr):
                 return False
         return True
 
-class FIOr(FIExpr):
+class FiOr(FiExpr):
     def __init__(self, expr_list):
         self.expr_list = expr_list
 
@@ -247,7 +255,7 @@ class FIOr(FIExpr):
                 return True
         return False
 
-class FIEquals(FIExpr):
+class FiEquals(FiExpr):
     def __init__(self, obj_var1, obj_var2):
         self.obj_var1 = obj_var1
         self.obj_var2 = obj_var2
@@ -266,21 +274,21 @@ class FIEquals(FIExpr):
             obj2 = None
         return obj1 == obj2
 
-class FIPerm(FIExpr):
-    def __init__(self, perm, object_var):
+class FiPerm(FiExpr):
+    def __init__(self, perm, obj_var):
         self.perm = perm
-        self.object_var = object_var
+        self.obj_var = obj_var
 
     def __repr__(self):
         return "(has perm '%s' on %s )" % (self.perm,
-                                           self.object_var.var)
+                                           self.obj_var.var)
 
     def eval(self, context):
-        if self.object_var == None:
+        if self.obj_var == None:
             obj = None
         else:
             try:
-                obj = self.object_var.resolve(context)
+                obj = self.obj_var.resolve(context)
             except template.VariableDoesNotExist:
                 obj = None
         try:
@@ -290,18 +298,18 @@ class FIPerm(FIExpr):
 
         return user.has_perm(self.perm, object=object)
 
-class FIVar(FIExpr):
+class FiVar(FiExpr):
     def __init__(self, obj_var):
         self.obj_var = obj_var
 
     def __repr__(self):
-        return self.object_var.var
+        return self.obj_var.var
 
     def eval(self, context):
         try:
-            obj = self.object_var.resolve(context)
+            obj = self.obj_var.resolve(context)
         except template.VariableDoesNotExist:
             obj = None
-        if value:
+        if obj:
             return True
         return False

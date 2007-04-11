@@ -1,0 +1,10 @@
+{% extends "asforums/base.html" %}
+{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="{{ post.discussion.forum.collection.get_absolute_url }}">{{ post.discussion.forum.collection.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ post.discussion.forum.get_absolute_url }}">{{ post.discussion.forum.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ post.discussion.get_full_path }}">{{ post.discussion.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ post.discussion.get_absolute_url }}?post={{ post.id }}">Post {{ post.id }}</a>&nbsp&raquo;&nbsp;<a href="{{ post.get_absolute_url }}delete/">Delete</a>{% endblock %}
+{% block content %}
+<h1>Delete Post {{ post.id }}</h1>
+{% include "asforums/post_fragment.html" %}
+<form method="post" action=".">
+  {{ form.as_p }}
+  <input type="submit" value="Delete Post" />
+</form>
+{% endblock %}

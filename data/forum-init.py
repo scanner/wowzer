@@ -137,7 +137,7 @@ for index in range(3):
         for d_index in range(num_discussions):
             d = disc_list[d_index]
             for i in range(posts_per_discussion):
-                text = '\n'.join(paragraphs(3, common = True))
+                text = '\n\n'.join(paragraphs(3, common = True))
                 html_text = to_html(text)
                 p = Post.objects.create(author = u, discussion = d,
                                         content = text,

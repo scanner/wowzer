@@ -547,8 +547,46 @@ def post_update(request, post_id):
 
 ############################################################################
 #
+class PostDeleteForm(forms.Form):
+    reason = forms.CharField(max_length = 128)
+    
 @login_required
 def post_delete(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
-    return delete_object(request, Post, post.discussion.get_absolute_url())
+    try:
+        post = Post.objects.select_related().get(pk = post_id)
+    except Post.DoesNotExist:
+        raise Http404
 
+    # In order to delete a post you must be a moderator of the forum
+    # or the discussion must not be locked and you must be the author of the
+    # post or author of the discussion.
+    #
+    if not ((request.user.has_perm("moderate_forum",
+                                   object = post.discussion.forum)) or \
+            (not post.discussion.locked and \
+             (post.author == request.user or \
+              post.discussion.author == request.user))):
+        return HttpResponseForbidden("You do not have "
+                                     "the requisite permissions to delete "
+                                     "this post.")
+
+
+    if request.method == "POST":
+        form = PostDeleteForm(request.POST)
+        if form.is_valid():
+            post.deleted = True
+            post.deleted_by = request.user
+            post.deletion_reason =  form.clean_data['reason']
+            post.save()
+
+            request.user.message_set.create(message = "Post deleted")
+            return HttpResponseRedirect(post.discussion.get_absolute_url() + \
+                                        "?post=%d" % post.id)
+    else:
+        form = PostDeleteForm()
+    t = get_template("asforums/post_delete.html")
+    c = Context(request, {
+        'post' : post,
+        'form' : form,
+        })
+    return HttpResponse(t.render(c))

@@ -205,14 +205,14 @@ text-decoration: none;
 /* @end */
 
 /* @group Right column */
-#rightcol
+/*#rightcol
 {
 	float: right;
 	width: 160px;
 	margin: 0;
 	padding: 0.5em;
 	background-color: #5f5;
-}
+} */
 
 /* @end */
 /* @group Content */

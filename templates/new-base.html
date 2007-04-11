@@ -58,12 +58,14 @@
 	</ul>
 	{% endblock %}
       </div>
+      {% comment %} No right column for now.
       <div id="rightcol">
         {% block rightcontent %}
 	<h3>Right column</h3>
 	<p>for those of us with extra stuff to add to the confusion it will go over hree.</p>
 	{% endblock %}
       </div>
+      {% endcomment %}
       <div id="content">
         <div id="hierarchy">{% block hierarchy %}&raquo;&nbsp;one&nbsp;&raquo;&nbsp;two&nbsp;&raquo;&nbsp;three&nbsp;&raquo;&nbsp;four{% endblock %}</div>
         <div id="breadcrumbs">&raquo;&nbsp;bone&nbsp;&raquo;&nbsp;btwo&nbsp;&raquo;&nbsp;bthree&nbsp;&raquo;&nbsp;bfour</div>

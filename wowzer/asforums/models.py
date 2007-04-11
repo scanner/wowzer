@@ -385,8 +385,15 @@ class Discussion(models.Model):
     # The exception is that if someone is a moderator on a forum they can
     # see and post to locked and closed discussions.
     #
+    # A 'closed' discussion can be read but not modified by anyone but
+    # a moderator of the forum the discussion is in.
+    #
+    # A 'locked' discussion can not be read or modified by anyone but
+    # a moderator of the forum the discussion is in.
+    #
     locked = models.BooleanField(default = False)
     closed = models.BooleanField(default = False)
+#    sticky = models.BooleanField(default = False)
 
     tags = models.GenericRelation(TaggedItem)
 

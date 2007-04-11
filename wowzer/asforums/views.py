@@ -465,30 +465,23 @@ def post_create(request, disc_id):
     except Discussion.DoesNotExist:
         raise Http404
 
+    # Only people with 'post' permission can post to this discussion.
+    #
     # If a discussion is locked or closed, no one except for moderators
     # of this forum can post to it.
     #
-    if (disc.locked or disc.closed) and \
-        not request.user.has_perm("moderate_forum", object = forum):
+    if not ((not disc.locked and \
+             not disc.closed and \
+             request.user.has_perm("post_discussion", object = disc)) or \
+            request.user.has_perm("moderate_forum", object = forum)):
         return HttpResponseForbidden("You do not have "
                                      "the requisite permissions to post to "
                                      "this discussion.")
-    
-    # They must have post permission on the discussion, forum, forum collection
-    # or a moderator of the forum.
-    #
-    if (not request.user.has_perm("moderate_forum")) or \
-       (not (request.user.has_perm("post_discussion", object = disc) and \
-             request.user.has_perm("post_forum", object = forum) and \
-             request.user.has_perm("post_forumcollection", object = fc))):
-        return HttpResponseForbidden("You do not have "
-                                     "the requisite permissions to post to "
-                                     "this discussion.")
-
     # If this post is in reply to another post, the other post's id
     # will passed in via a parameter under "in_reply_to". We make sure
     # that no monkey business is going on.
     #
+    irt = None
     if request.REQUEST.has_key('in_reply_to'):
         try:
             irt = Post.objects.select_related().get(\
@@ -501,8 +494,6 @@ def post_create(request, disc_id):
                                            "scussion %s. You can only reply to"
                                            " posts in the same discussion." % \
                                            (disc.name, irt.discussion.name))
-    else:
-        irt = None
 
     PostForm = forms.models.form_for_model(Post)
     PostForm.base_fields['content'].widget = \

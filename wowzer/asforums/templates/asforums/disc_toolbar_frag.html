@@ -1,0 +1,38 @@
+{% load auth wowzertags asforums_tags %}
+{% comment %}
+This is a html template fragment that has the toolbar for discussions
+with appropriate permission controls.
+{% endcomment %}
+<div class="toolbar">
+  <ul>
+    {% fancy_if or ( and not discussion.locked not discussion.closed "asforums.post_discussion" discussion ) "asforums.moderate_forum" discussion.forum %}
+      <li><a href="./create_post/">{% icon "comment" "Post a message." %}</a></li>
+    {% end_fancy_if %}
+    {% if_has_perm "asforums.moderate_forum" discussion.forum %}
+      {% if discussion.locked %}
+        <li><a id="unlock_disc" href="./unlock/">{% icon "lock_open" "Unlock" %}</a></li>
+      {% else %}
+        <li><a id="lock_disc" href="./lock/">{% icon "lock" "Lock" %}</a></li>
+      {% endif %}
+    {% end_if_has_perm %}
+    {% fancy_if or "asforums.change_discussion" discussion "asforums.moderate_forum" discussion.forum %}
+      {% if not discussion.locked and discussion.closed %}
+        <li><a id="open_disc" href="./open/">{% icon "key_delete" "Open" %}</a></li>
+      {% else %}
+        <li><a id="close_disc" href="./close/">{% icon "key" "Close" %}</a></li>
+      {% endif %}
+    {% end_fancy_if %}
+    {% fancy_if or "asforums.delete_discussion" discussion "asforums.moderate_forum" discussion.forum %}
+      <li><a href="./delete/">{% icon "delete" "Delete" %}</a></li>
+    {% end_fancy_if %}
+    {% if not discussion.locked %}
+      {% fancy_if or "asforums.update_discussion" discussion "asforums.moderate_forum" discussion.forum %}
+        <li><a href="./update/">{% icon "pencil" "Edit" %}</a></li>
+      {% end_fancy_if %}
+      {% fancy_if or "asforums.update_discussion" discussion "asforums.moderate_forum" discussion.forum %}
+        <li>{% icon "cog_edit" "Permissions" %}</li>
+      {% end_fancy_if %}
+    {% endif %}
+    <li><a href="./">{% icon "link" "Permanent link to this discussion" %}</a></li>
+  </ul>
+</div>

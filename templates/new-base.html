@@ -19,7 +19,7 @@
             <li>Hello <a title="Home" href="{{ user.get_absolute_url }}">{{ user.username }}!&nbsp;{% icon "house_go" "Home" %}</a></li>
 	    <li><a href="/accounts/logout/">{% icon "door_out" "Logout" %}</a></li>
 	  {% else %}
-	    <li><a href="/accounts/login/">Login {% icon "door_in" "Login" %}</a></li>
+	    <li><a href="/accounts/login/?next={{ request.path }}">Login {% icon "door_in" "Login" %}</a></li>
 	  {% endif %}
 	  
         </ul>

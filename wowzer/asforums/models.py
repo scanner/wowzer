@@ -393,7 +393,7 @@ class Discussion(models.Model):
     #
     locked = models.BooleanField(default = False)
     closed = models.BooleanField(default = False)
-#    sticky = models.BooleanField(default = False)
+    sticky = models.BooleanField(default = False)
 
     tags = models.GenericRelation(TaggedItem)
 

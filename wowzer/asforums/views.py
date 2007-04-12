@@ -48,6 +48,11 @@ paginate_by = 10
 
 ############################################################################
 #
+class DeleteForm(forms.Form):
+    reason = forms.CharField(max_length = 128)
+
+############################################################################
+#
 def index(request):
     """Simplistic top level index. Shows all forum collections and their
     forums
@@ -442,17 +447,36 @@ def disc_delete(request, disc_id):
     XXX stuff here and I feel better with this stub defined.
     """
     try:
-        disc = Discussion.objects.get(pk = disc_id)
+        disc = Discussion.objects.select_related().get(pk = disc_id)
         forum = disc.forum
     except Forum.DoesNotExist:
         raise Http404
 
-    # After delete redirect to the forum detail this discussion was in.
+    # Need to have delete permission on the discussion,
+    # or moderate permission on the forum. Can not delete locked
+    # discussions unless you are a moderator.
     #
-    return delete_object(request, Discussion,
-                         post_delete_redirect = forum.get_absolute_url(),
-                         object_id = disc_id)
+    if not ((request.user.has_perm("moderate_forum", object = forum)) or \
+            (not disc.locked and
+             request.user.has_perm("delete_discussion", object = disc))):
+        return HttpResponseForbidden("You do not have "
+                                     "the requisite permissions to delete "
+                                     "this discussion.")
+    if request.method == "POST":
+        form = DeleteForm(request.POST)
+        if form.is_valid():
+            disc.delete()
+            request.user.message_set.create(message = "Discussion deleted")
+            return HttpResponseRedirect(forum.get_absolute_url())
+    else:
+        form = DeleteForm()
 
+    t = get_template("asforums/disc_delete.html")
+    c = Context(request, {
+        'discussion' : disc,
+        'form' : form,
+        })
+    return HttpResponse(t.render(c))
 
 ############################################################################
 #
@@ -543,7 +567,48 @@ def post_detail(request, post_id):
 #
 @login_required
 def post_update(request, post_id):
-    return update_object(request, Post, post_id)
+    try:
+        post = Post.objects.select_related().get(pk = post_id)
+    except Post.DoesNotExist:
+        raise Http404
+
+    # You need to have update permission on a post or be moderator of
+    # the forum that the discussion is in that contains this post.
+    #
+    if not ((request.user.has_perm("moderate_forum",
+                                   object = post.discussion.forum)) or \
+            ((not post.discussion.locked and \
+              not post.discussion.closed)
+             (post.author == request.user or \
+              request.user.has_perm("update_post", object = post)))):
+        return HttpResponseForbidden("You do not have "
+                                     "the requisite permissions to delete "
+                                     "this post.")
+
+    PostForm = forms.models.form_for_instance(post)
+    PostForm.base_fields['content'].widget = \
+                widgets.Textarea(attrs = {'cols' : '80', 'rows' : '12'})
+
+    if request.method == "POST":
+        form = PostForm(request.POST)
+        if form.is_valid():
+            entry = form.save(commit = False)
+            entry.edited = True
+            entry.changed = datetime.utcnow()
+            entry.save()
+
+            msg_user(request.user, "Post was updated.")
+            return HttpResponseRedirect(entry.discussion.get_absolute_url() +
+                                        "?post=%d#%d" % (entry.id, entry.id))
+    else:
+        form = PostForm()
+
+    t = get_template("asforums/post_create.html")
+    c = Context(request, {
+        'discussion' : post.discussion,
+        'form'       : form,
+        })
+    return HttpResponse(t.render(c))
 
 ############################################################################
 #
@@ -565,11 +630,11 @@ def post_delete(request, post_id):
                                    object = post.discussion.forum)) or \
             (not post.discussion.locked and \
              (post.author == request.user or \
-              post.discussion.author == request.user))):
+              post.discussion.author == request.user or \
+              request.user.has_perm("delete_post", object = post)))):
         return HttpResponseForbidden("You do not have "
                                      "the requisite permissions to delete "
                                      "this post.")
-
 
     if request.method == "POST":
         form = PostDeleteForm(request.POST)
@@ -584,6 +649,7 @@ def post_delete(request, post_id):
                                         "?post=%d" % post.id)
     else:
         form = PostDeleteForm()
+
     t = get_template("asforums/post_delete.html")
     c = Context(request, {
         'post' : post,

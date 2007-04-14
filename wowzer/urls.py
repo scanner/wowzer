@@ -11,6 +11,7 @@ urlpatterns = patterns(
 
     # Basic account stuff.
     #
+#    (r'^accounts/$'), include ('')
     (r'^accounts/login/$', 'django.contrib.auth.views.login'),
     (r'^accounts/logout/$', 'django.contrib.auth.views.logout'),
     (r'^accounts/change_pw/$', 'django.contrib.auth.views.password_change'),

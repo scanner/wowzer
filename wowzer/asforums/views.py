@@ -28,6 +28,7 @@ from django.template.loader import get_template
 from django.template import RequestContext as Context
 from django.http import Http404
 from django.http import HttpResponse
+from django.http import HttpResponseForbidden
 from django.http import HttpResponseServerError
 from django.http import HttpResponseRedirect
 
@@ -92,7 +93,7 @@ def fc_detail(request, fc_id):
 
     # You must have read permission on a fc to read it.
     #
-    if not request.user.has_perm("read_forumcollection", object = fc):
+    if not request.user.has_perm("asforums.read_forumcollection", object = fc):
         return HttpResponseForbidden("You do not have the requisite "
                                      "permissions to see this forum "
                                      "collection")
@@ -119,7 +120,7 @@ def fc_update(request, fc_id):
 
     # You must have change permission on a fc.
     #
-    if not request.user.has_perm("change_forumcollection", object = fc):
+    if not request.user.has_perm("asforums.change_forumcollection", object = fc):
         return HttpResponseForbidden("You do not have the requisite "
                                      "permissions to change this forum "
                                      "collection")
@@ -154,7 +155,7 @@ def fc_delete(request):
 
     # You must have delete permission on a fc to delete it.
     #
-    if not request.user.has_perm("delete_forumcollection", object = fc):
+    if not request.user.has_perm("asforums.delete_forumcollection", object = fc):
         return HttpResponseForbidden("You do not have the requisite "
                                      "permissions to delete this forum "
                                      "collection")
@@ -240,19 +241,22 @@ def forum_detail(request, forum_id):
     except Forum.DoesNotExist:
         raise Http404
 
+    # To make thing shorter
+    #
+    r = request
+    
     # Must have moderate or read permissions on the forum collection
     # and forum.
     #
-    if (not request.user.has_perm("read_forumcollection", object = fc) or \
-        not request.user.has_perm("moderate_forumcollection", object = fc)) and \
-       (not request.user.has_perm("read_forum", object = forum) or \
-        not request.user.has_perm("moderate_forum", object = forum)):
+    if not (r.user.has_perm("asforums.moderate_forum", object = forum) or \
+            (r.user.has_perm("asforums.read_forumcollection", object = fc) and \
+             r.user.has_perm("asforums.read_forum", object = forum))):
         return HttpResponseForbidden("You do not have the requisite "
                                      "permissions to read this forum.")
 
     ec = { 'forum' : forum }
 
-    # All discussions in a forum that you can view are viewable.
+    # All discussions in a forum that you can read are viewable.
     #
     qs = forum.discussion_set.all().order_by('created')
     return object_list(request, forum.discussion_set.all(),
@@ -456,9 +460,9 @@ def disc_delete(request, disc_id):
     # or moderate permission on the forum. Can not delete locked
     # discussions unless you are a moderator.
     #
-    if not ((request.user.has_perm("moderate_forum", object = forum)) or \
+    if not ((request.user.has_perm("asforums.moderate_forum", object = forum)) or \
             (not disc.locked and
-             request.user.has_perm("delete_discussion", object = disc))):
+             request.user.has_perm("asforums.delete_discussion", object = disc))):
         return HttpResponseForbidden("You do not have "
                                      "the requisite permissions to delete "
                                      "this discussion.")
@@ -496,8 +500,8 @@ def post_create(request, disc_id):
     #
     if not ((not disc.locked and \
              not disc.closed and \
-             request.user.has_perm("post_discussion", object = disc)) or \
-            request.user.has_perm("moderate_forum", object = forum)):
+             request.user.has_perm("asforums.post_discussion", object = disc)) or \
+            request.user.has_perm("asforums.moderate_forum", object = forum)):
         return HttpResponseForbidden("You do not have "
                                      "the requisite permissions to post to "
                                      "this discussion.")
@@ -561,7 +565,23 @@ def post_create(request, disc_id):
 ############################################################################
 #
 def post_detail(request, post_id):
-    return object_detail(request, Post.objects.readable(request.user), object_id = post_id)
+    try:
+        post = Post.objects.select_related().get(pk = post_id)
+    except Post.DoesNotExist:
+        raise Http404
+
+    if not ((request.user.has_perm("asforums.moderate_forum",
+                                   object = post.discussion.forum)) or \
+            (not post.discussion.locked and \
+             not post.deleted and \
+             request.user.has_perm("asforums.read_discussion",
+                                   object = post.discussion))):
+        return HttpResponseForbidden("You do not have "
+                                     "the requisite permissions to read "
+                                     "this post.")
+    
+    return object_detail(request, Post.objects.readable(request.user),
+                         object_id = post_id)
 
 ############################################################################
 #
@@ -575,12 +595,12 @@ def post_update(request, post_id):
     # You need to have update permission on a post or be moderator of
     # the forum that the discussion is in that contains this post.
     #
-    if not ((request.user.has_perm("moderate_forum",
+    if not ((request.user.has_perm("asforums.moderate_forum",
                                    object = post.discussion.forum)) or \
             ((not post.discussion.locked and \
               not post.discussion.closed)
              (post.author == request.user or \
-              request.user.has_perm("update_post", object = post)))):
+              request.user.has_perm("asforums.update_post", object = post)))):
         return HttpResponseForbidden("You do not have "
                                      "the requisite permissions to delete "
                                      "this post.")
@@ -626,12 +646,12 @@ def post_delete(request, post_id):
     # or the discussion must not be locked and you must be the author of the
     # post or author of the discussion.
     #
-    if not ((request.user.has_perm("moderate_forum",
+    if not ((request.user.has_perm("asforums.moderate_forum",
                                    object = post.discussion.forum)) or \
             (not post.discussion.locked and \
              (post.author == request.user or \
               post.discussion.author == request.user or \
-              request.user.has_perm("delete_post", object = post)))):
+              request.user.has_perm("asforums.delete_post", object = post)))):
         return HttpResponseForbidden("You do not have "
                                      "the requisite permissions to delete "
                                      "this post.")

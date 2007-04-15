@@ -15,7 +15,7 @@ class Markup:
                 func, ignore = getattr(__import__("wowzer."+markup,
                                                   '', '', ['']), 
                                        "to_html"), {}
-                newpost['content_html'] = func(  newpost['description'] )
+                newpost['content_html'] = func(  newpost['content'] )
             if newpost.has_key('name'):
                 newpost['name'] = strip_tags(newpost['name'])
             request._post = newpost

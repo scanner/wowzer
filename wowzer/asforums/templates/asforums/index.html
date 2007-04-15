@@ -1,4 +1,4 @@
-{% load wowzertags %}
+{% load wowzertags auth asforums_tags %}
 {% extends "asforums/listing.html" %}
 {% block listing %}
 {% if object_list %}
@@ -12,12 +12,19 @@
   {% for forum in object_list %}
     {% ifchanged forum.collection %}
     <tr>
-      <td class="title" colspan=4><a href="{{ forum.collection.get_absolute_url }}">{{ forum.collection.name }}</a><br>
+      <td class="title" colspan=4>
+      {% fancy_if or "asforums.moderate_forumcollection" forum.collection "asforums.read_forumcollection" forum.collection %}
+      <a href="{{ forum.collection.get_absolute_url }}">{{ forum.collection.name }}</a>
+      {% else %}
+      {{ forum.collection.name }}
+      {% end_fancy_if %}
+      <br>
       <span class="byline">{{ forum.collection.blurb }}</span></td>
       <td class="forumcollection" colspan 2></td>
     </tr>
     {% endifchanged %}
     <tr class="{% cycle odd,even %}">
+      {% fancy_if or "asforums.moderate_forum" forum ( and "asforums.read_forumcollection" forum.collection "asforums.read_forum" forum ) %}
       <td><img src="{{ MEDIA_URL }}img/silk-icons/folder_heart.png"></td>
       <td>
         <b><a href="{{ forum.get_absolute_url }}">{{ forum.name }}</a></b><br>
@@ -25,6 +32,12 @@
       </td>
       <td>{{ forum.discussion_set.count }}</td>
       <td>Unimplemented</td>
+      {% else %}
+      <td></td>
+      <td>{{ forum.name }}</td>
+      <td></td>
+      <td></td>
+      {% end_fancy_if %}
     </tr>
   {% endfor %}
 </table>

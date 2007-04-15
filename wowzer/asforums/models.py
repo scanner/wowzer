@@ -517,19 +517,17 @@ class PostManager(models.Manager):
             q2 = Q(discussion__forum__collection__in = fc_moderate)
 
 
-        # Now we need to know what discussions the user has read on.
-        # OKay, this filter posts that are in forums and fc's the user
-        # has view or moderate permission on.
-        d_read = RowLevelPermission.objects.get_model_list(\
-            user, Discussion, 'read_discussion')
-        if len(d_read) == 0 and len(f_moderate) == 0:
+        # Now we need to know what forums the user has read on.
+        f_read = RowLevelPermission.objects.get_model_list(\
+            user, Forum, 'read_forum')
+        if len(f_read) == 0 and len(f_moderate) == 0:
             return self.none()
 
-        if len(d_read) !=0 and len(f_moderate) != 0:
-            q3 = Q(discussion__in = d_read) | \
+        if len(f_read) !=0 and len(f_moderate) != 0:
+            q3 = Q(discussion__in = f_read, discussion__locked = False) | \
                 Q(discussion__forum__in = f_moderate)
-        elif len(d_read) != 0:
-            q3 = Q(discussion__in = d_read)
+        elif len(f_read) != 0:
+            q3 = Q(discussion__in = f_read, discussion__locked = False)
         else:
             q3 = Q(discussion__forum__in = f_moderate)
 

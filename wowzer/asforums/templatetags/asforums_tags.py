@@ -296,7 +296,7 @@ class FiPerm(FiExpr):
         except template.VariableDoesNotExist:
             return settings.TEMPLATE_STRING_IF_INVALID
 
-        return user.has_perm(self.perm, object=object)
+        return user.has_perm(self.perm, object=obj)
 
 class FiVar(FiExpr):
     def __init__(self, obj_var):

@@ -20,6 +20,8 @@
 	    <li><a href="/accounts/logout/">{% icon "door_out" "Logout" %}</a></li>
 	  {% else %}
 	    <li><a href="/accounts/login/?next={{ request.path }}">Login {% icon "door_in" "Login" %}</a></li>
+	    
+	    <li><a href="/accounts/register/">Register</a></li>
 	  {% endif %}
 	  
         </ul>

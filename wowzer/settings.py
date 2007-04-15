@@ -61,6 +61,14 @@ MEDIA_URL = config.get('directories', 'MEDIA_URL')
 TEMPLATE_DIRS = []
 TEMPLATE_DIRS.append(config.get('directories', 'TEMPLATES'))
 
+# For the 'registration' app
+#
+ACCOUNT_ACTIVATION_DAYS = config.get('registration','ACCOUNT_ACTIVATION_DAYS')
+EMAIL_HOST = config.get('registration','EMAIL_HOST')
+EMAIL_PORT = config.get('registration','EMAIL_PORT')
+EMAIL_HOST_USER = config.get('registration','EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config.get('registration','EMAIL_HOST_PASSWORD')
+
 ###########################################################################
 ###########################################################################
 #
@@ -104,10 +112,12 @@ ROOT_URLCONF = 'wowzer.urls'
 
 INSTALLED_APPS = (
     'django.contrib.auth',
+    'django.contrib.humanize',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.admin',
+    'wowzer.registration',
     'wowzer.main',
     'wowzer.toons',
     'wowzer.items',

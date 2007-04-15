@@ -16,7 +16,11 @@ class Markup:
                                                   '', '', ['']), 
                                        "to_html"), {}
                 newpost['content_html'] = func(  newpost['content'] )
-            if newpost.has_key('name'):
-                newpost['name'] = strip_tags(newpost['name'])
-            request._post = newpost
+            # We have several 'expected' fields that we wish to make sure
+            # have html tags stripped.
+            #
+            for field_name in ('name', 'blurb', 'title'):
+                if newpost.has_key(field_name):
+                    newpost[field_name] = strip_tags(newpost[field_name])
+            request.POST = newpost
         return None

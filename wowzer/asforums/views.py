@@ -597,8 +597,7 @@ def post_update(request, post_id):
     #
     if not ((request.user.has_perm("asforums.moderate_forum",
                                    object = post.discussion.forum)) or \
-            ((not post.discussion.locked and \
-              not post.discussion.closed)
+            (not post.discussion.locked and not post.discussion.closed and \
              (post.author == request.user or \
               request.user.has_perm("asforums.update_post", object = post)))):
         return HttpResponseForbidden("You do not have "

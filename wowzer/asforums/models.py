@@ -553,8 +553,7 @@ class Post(models.Model):
     deletion_reason = models.CharField(maxlength = 128, blank = True,
                                        editable = False)
     content = models.TextField(maxlength = 4000, blank = True)
-    content_html = models.TextField(maxlength = 4000, blank = True,
-                                    editable = False)
+    content_html = models.TextField(maxlength = 4000, blank = True)
     markup = models.CharField(maxlength=80, blank=True, editable = False)
     in_reply_to = models.ForeignKey('self', related_name = 'replies',
                                     null = True, editable = False)

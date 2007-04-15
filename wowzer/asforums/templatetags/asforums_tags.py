@@ -62,7 +62,7 @@ def fancy_if(parser, token):
     2) you can test object like {% if %} AND you can test row level permissions
        in the same expression.
 
-    NOTE: To simplify my sanity, I use a simple prefix expression.
+    NOTE: To simplify my sanity, I use a simple prefix expression grammar.
 
     So, for example, to test if a discussion is not locked or the user
     has moderate permission on the forum the discussion is in:
@@ -99,7 +99,6 @@ def fancy_if(parser, token):
     reference.
     """
 
-#    print "entered fancy_if!"
     bits = token.contents.split()
     tag = bits.pop(0)
     if not bits:
@@ -156,23 +155,19 @@ def parse_fi_expressions(tokens, parser):
     parse them in to a list of node trees that represents the expressions to
     be evaluated.
     """
-#    print "entered pfie, tokens: %s" % str(tokens)
     try:
         token = tokens.pop(0)
         if token == "(":
-#            print "Got a '%s' parsing sub-expression" % token
             res = parse_fi_expressions(tokens, parser)
             if tokens.pop(0) != ")":
                 raise template.TemplateSyntaxError, "Missing matching ')'"
             return res
         elif token  == "not":
-#            print "Got a '%s' parsing sub-expression" % token
             if len(tokens) < 1:
                 raise TemplateSyntaxError, "'%s' must come with an expres" \
                     "sion to operate on." % token
             return FiNot(parse_fi_expressions(tokens, parser))
         elif token in ("and", "or"):
-#            print "Got a '%s' parsing sub-expression" % token
             if len(tokens) < 1:
                 raise TemplateSyntaxError, "'%s' must come with a list of " \
                     "expressions to operate on." % token
@@ -186,17 +181,14 @@ def parse_fi_expressions(tokens, parser):
             return FiOr(res)
 
         elif token[0] == token[-1] and token[0] in ('"', "'"):
-#            print "Got a '%s' parsing sub-expression" % token
             return FiPerm(token[1:-1],
                           parser.compile_filter(tokens.pop(0)))
         elif token == "eq":
-#            print "Got a '%s' parsing sub-expression" % token
             return FiEquals(parser.compile_filter(tokens.pop(0)),
                             parser.compile_filter(tokens.pop(0)))
 
         # Otherwise it is just a variable reference.
         #
-#        print "Got a '%s' assuming FiVar" % token
         return FiVar(parser.compile_filter(token))
     except IndexError:
         raise template.TemplateSyntaxError, "Mis-matched terms and " \

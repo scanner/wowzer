@@ -55,7 +55,7 @@ by <a href="{{ discussion.post_set.latest.author.get_absolute_url }}">{{ discuss
             <li><a href="{{ post.get_absolute_url }}tag/">{% icon "tag_blue_add" "Add Tag to Post" %}</a></li>
 	    {% end_if_has_perm %}
             <li><a href="{{ post.get_absolute_url }}usertag/">{% icon "user_add" "Add Private User Tag to Post" %}</a></li>
-            <li><a href="./?post={{ post.post_number }}">{% icon "link" "Permanent link to this post" %}</a></li>
+            <li><a href="./?post={{ post.id }}">{% icon "link" "Permanent link to this post" %}</a></li>
 	  </ul>
 	</div>
         {% end_fancy_if %}
@@ -75,6 +75,11 @@ by <a href="{{ discussion.post_set.latest.author.get_absolute_url }}">{{ discuss
           {% endif %}
         </div>
         {% end_fancy_if %}
+	{% if post.edited %}
+	<div class="byline">
+	Post edited at {{ post.changed|date:"D, M j, Y H:i" }} ({{ post.changed|timesince }} ago)
+	</div>
+	{% endif %}
         {% if post.deleted %}
         <div class="alert">
           Post was deleted by <a href="{{ post.deleted_by.get_absolute_url }}">{{ post.deleted_by.username }}</a><br />

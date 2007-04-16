@@ -526,6 +526,7 @@ def post_create(request, disc_id):
     PostForm = forms.models.form_for_model(Post)
     PostForm.base_fields['content'].widget = \
                 widgets.Textarea(attrs = {'cols' : '80', 'rows' : '12'})
+    PostForm.base_fields['content_html'].widget = widgets.HiddenInput()
 
     if request.method == "POST":
         form = PostForm(request.POST)
@@ -549,7 +550,7 @@ def post_create(request, disc_id):
             # quote of the post being replied to.
             #
             form = PostForm({ 'in_reply_to' : irt.id,
-                              'content'     : "[quote=%s]%s[/quote]" % \
+                              'content'     : '[quote="%s"]%s[/quote]' % \
                               (irt.author.username, irt.content)})
         else:
             form = PostForm()
@@ -607,6 +608,7 @@ def post_update(request, post_id):
     PostForm = forms.models.form_for_instance(post)
     PostForm.base_fields['content'].widget = \
                 widgets.Textarea(attrs = {'cols' : '80', 'rows' : '12'})
+    PostForm.base_fields['content_html'].widget = widgets.HiddenInput()
 
     if request.method == "POST":
         form = PostForm(request.POST)

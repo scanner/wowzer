@@ -234,6 +234,7 @@ class UrlTag(BBTag):
 
 class QuoteTag(BBTag):
     def render_node_xhtml(self, node):
+        print "QuoteTag, parameter: '%s'"  % node.parameter
         if node.parameter is None:
             node.parameter = ''
         else:
@@ -358,13 +359,13 @@ _EMOTICONS = {
         '0:-)': 'angel.gif',
         'O:-)':'angel.gif',
         ':angel:':'angel.gif',
-        ':)':'smile.gif',
-        ':(':'sad.gif',
+        ':)':'smiley.gif',
+        ':(':'sadcrying.gif',
         ':D':'grin.gif',
         ':p':'tongue.gif',
         ';)':'wink.gif',
-        ':-)':'smile.gif',
-        ':-(': 'sad.gif',
+        ':-)':'smiley.gif',
+        ':-(': 'sadcrying.gif',
         ':-D': 'grin.gif',
         ':-P': 'tongue.gif',
         ':-p': 'tongue.gif',

@@ -175,3 +175,9 @@ def icon(icon_name, icon_title=""):
              'icon_title': icon_title }
 
 
+#############################################################################
+#
+@register.filter(name="testit")
+def testit(value, arg):
+    print "Hey, arg was: % s" % str(arg)
+    return value

@@ -5,6 +5,10 @@
 # $Id$
 #
 
+# System imports
+#
+import pytz
+
 # Django imports
 #
 from django.db import models
@@ -91,40 +95,7 @@ class Style(models.Model):
 
 ############################################################################
 #
-TZ_CHOICES = (
-    (-500, 'EST'),
-    (-600, 'CST'),
-    (-700, 'MST'),
-    (-800, 'PST'),
-    (-1000, 'HST'),
-    (900, 'JST'),
-    (1000, 'AEST'),
-    (100, 'UTC+01'),
-    (200, 'UTC+02'),
-    (300, 'UTC+03'),
-    (400, 'UTC+04'),
-    (500, 'UTC+05'),
-    (600, 'UTC+06'),
-    (700, 'UTC+07'),
-    (800, 'UTC+08'),
-    (900, 'UTC+09'),
-    (930, 'UTC+0930'),
-    (1000, 'UTC+10'),
-    (1100, 'UTC+11'),
-    (1200, 'UTC+12'),
-    (000, 'UTC'),
-    (-100, 'UTC-01'),
-    (-200, 'UTC-02'),
-    (-300, 'UTC-03'),
-    (-400, 'UTC-04'),
-    (-500, 'UTC-05'),
-    (-600, 'UTC-06'),
-    (-700, 'UTC-07'),
-    (-800, 'UTC-08'),
-    (-1000, 'UTC-10'),
-    (-1100, 'UTC-11'),
-    (-1200, 'UTC-12'),
-    )
+TZ_CHOICES = tuple([(x,x) for x in pytz.common_timezones])
 
 # The supported kinds of markup a usr can choose from.  NOTE:
 # Basically we apply the markup when they POST an object that has a
@@ -150,6 +121,7 @@ class UserProfile(models.Model):
     
     # If blank defaults to the timezone of django site.
     #
-    timezone = models.IntegerField(choices = TZ_CHOICES)
+    timezone = models.CharField(maxlength = 128, choices = TZ_CHOICES,
+                                default = 'US/Eastern')
     avatar = models.ImageField(upload_to = "img/accounts/%d/avatars",
                                height_field = True, width_field = True)

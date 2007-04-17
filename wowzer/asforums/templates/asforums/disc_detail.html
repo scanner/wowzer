@@ -1,6 +1,7 @@
 {% load auth wowzertags asforums_tags %}
 {% extends "asforums/listing.html" %}
-{% block hierarchy %}<a href="/">Top</a>&nbsp&raquo;&nbsp;<a href="/asforums/">Forums Index</a>&nbsp&raquo;&nbsp;<a href="{{ discussion.forum.collection.get_absolute_url }}">{{ discussion.forum.collection.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ discussion.forum.get_absolute_url }}">{{ discussion.forum.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ request.get_full_path }}">{{ discussion.name }}</a>{% endblock %}
+{% spaceless %}
+{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="{{ discussion.forum.collection.get_absolute_url }}">{{ discussion.forum.collection.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ discussion.forum.get_absolute_url }}">{{ discussion.forum.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ request.get_full_path }}">{{ discussion.name }}</a>{% if is_paginated %}&nbsp&raquo;&nbsp;<a href="{{ request.get_full_path }}">Page #{{ page }}</a>{% endif %}{% endblock %}{% endspaceless %}
 {% block prelisting %}
 <h1>{{ discussion.name }}</h1>
 <p>
@@ -61,7 +62,7 @@ by <a href="{{ discussion.post_set.latest.author.get_absolute_url }}">{{ discuss
         {% end_fancy_if %}
         <div class="byline">
 	  <a name="{{ post.id }}">Post #{{ post.post_number }}</a><br>
-          Posted at: {{ post.created|user_tz:user|date:"D, M j, Y H:i" }} ({{ post.created|timesince }} ago)
+          Posted at: {{ post.created|tz_std_date_ago:user }}
           {% if post.in_reply_to %}
           in reply to <a title="Go to {{ post.in_reply_to_author.username }}'s profile." href="{{ post.in_reply_to.author.get_absolute_url }}">{{ post.in_reply_to.author }}'s</a> <a href="./?post={{ post.in_reply_to.id }}#{{ post.in_reply_to.id }}">Post #{{ post.in_reply_to.post_number}}</a> (from {{ post.in_reply_to.created|timesince }} ago.) 
           {% endif %}
@@ -77,7 +78,7 @@ by <a href="{{ discussion.post_set.latest.author.get_absolute_url }}">{{ discuss
         {% end_fancy_if %}
 	{% if post.edited %}
 	<div class="byline">
-	Post edited at {{ post.changed|date:"D, M j, Y H:i" }} ({{ post.changed|timesince }} ago)
+	Post edited at {{ post.changed|tz_std_date_ago:user }}
 	</div>
 	{% endif %}
         {% if post.deleted %}

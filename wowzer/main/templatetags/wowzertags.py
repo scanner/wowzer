@@ -216,3 +216,29 @@ def user_tz(value, user):
         result = value.replace(tzinfo=pytz.timezone(settings.TIME_ZONE)).astimezone(pytz.timezone(tz))
     return result
 
+#############################################################################
+#
+@register.filter()
+def tz_std_date(value, user):
+    """This is a simplification of the kinds of time stamps we
+    frequently use in our app framework. The given datetime, expressed
+    in the user's profile's time zone in a standard format (that is
+    defined using the django standard settings.DATETIME_FORMAT.
+
+    XXX Later on we may add the ability for a user to specify their own date
+    XXX time format to use.
+    """
+    from django.utils.dateformat import DateFormat
+    df = DateFormat(user_tz(value, user))
+    return df.format(settings.DATETIME_FORMAT)
+
+#############################################################################
+#
+@register.filter()
+def tz_std_date_ago(value, user):
+    """This is a further simplification of the kinds of time stamps we
+    frequently use in our app framework. It is just like tz_std_date, except
+    we return the datetime string with ' (<timesince> ago)'
+    """
+    from django.utils.timesince import timesince
+    return "%s (%s ago)" % (tz_std_date(value, user), timesince(value))

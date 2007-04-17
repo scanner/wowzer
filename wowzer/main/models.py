@@ -111,8 +111,8 @@ MARKUP_CHOICES =  (('text.bbcode', 'BBCode'),
                    
 class UserProfile(models.Model):
     user = models.ForeignKey(User, unique = True)
-    homepage = models.URLField()
-    style = models.ForeignKey(Style)
+    homepage = models.URLField(blank = True)
+    style = models.ForeignKey(Style, blank = True, null = True)
     editing_markup = models.CharField(maxlength=128, choices = MARKUP_CHOICES,
                                       default = "text.bbcode")
     signature = models.TextField(maxlength = 1024, blank = True)
@@ -124,4 +124,5 @@ class UserProfile(models.Model):
     timezone = models.CharField(maxlength = 128, choices = TZ_CHOICES,
                                 default = 'US/Eastern')
     avatar = models.ImageField(upload_to = "img/accounts/%d/avatars",
-                               height_field = True, width_field = True)
+                               height_field = True, width_field = True,
+                               blank = True)

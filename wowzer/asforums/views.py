@@ -54,6 +54,7 @@ class DeleteForm(forms.Form):
 
 ############################################################################
 #
+@login_required
 def index(request):
     """Simplistic top level index. Shows all forum collections and their
     forums
@@ -68,6 +69,7 @@ def index(request):
 
 ############################################################################
 #
+@login_required
 def fc_list(request):
     """A list of forum collections that the user can view.
     XXX For now until we get the form filled and our such we are going to
@@ -82,6 +84,7 @@ def fc_list(request):
 
 ############################################################################
 #
+@login_required
 def fc_detail(request, fc_id):
     """A list of forum collections that the user can view.
     XXX For now until we get the form filled and our such we are going to
@@ -189,6 +192,7 @@ def fc_create(request):
 
 ############################################################################
 #
+@login_required
 def obj_list_redir(request):
     """For index url's for which we have no specific view we send the user
     back to the top level view of this app."""
@@ -232,6 +236,7 @@ def forum_create(request,fc_id):
 
 ############################################################################
 #
+@login_required
 def forum_detail(request, forum_id):
     """A forum detail shows just the forum and its details. Not much here.
     """
@@ -304,6 +309,7 @@ def forum_delete(request, forum_id):
 
 ############################################################################
 #
+@login_required
 def disc_list(request):
     """This will produce a list of discussions that match some arbitrary
     criteria specified as parameters.
@@ -377,6 +383,7 @@ def disc_create(request, forum_id):
 
 ############################################################################
 #
+@login_required
 def disc_detail(request, disc_id):
     """A discussion detail shows the discussion details and a list of
     all posts that match the filter/sort criteria.
@@ -565,6 +572,7 @@ def post_create(request, disc_id):
 
 ############################################################################
 #
+@login_required
 def post_detail(request, post_id):
     try:
         post = Post.objects.select_related().get(pk = post_id)

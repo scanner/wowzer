@@ -3,8 +3,21 @@
 #
 """
 """
+
+# System imports.
+#
+import pytz
+
+# Django imports
+#
 from django import template
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+
+# Models
+#
+from django.contrib.auth.models import User
+from wowzer.main.models import UserProfile
 
 register = template.Library()
 
@@ -177,7 +190,29 @@ def icon(icon_name, icon_title=""):
 
 #############################################################################
 #
-@register.filter(name="testit")
-def testit(value, arg):
-    print "Hey, arg was: % s" % str(arg)
-    return value
+@register.filter()
+def user_tz(value, user):
+    """Expects a datetime as the value. Expects a User object as the arg.
+    Looks up the 'timezone' value in the user's profile, and converts
+    the given datetime in to one in the user's timezone.
+
+    NOTE: This assumes that you have the 'pytz' module
+    (pytz.sourceforge.net) and that the user profile has a field
+    called 'timezone' that is a character string and that the timezone
+    thus specified is a valid timezone supported by pytz.
+    """
+    tz = settings.TIME_ZONE
+    if isinstance(user, User):
+        try:
+            tz = user.get_profile().timezone
+        except ObjectDoesNotExist:
+            pass
+    try:
+        result = value.astimezone(pytz.timezone(tz))
+    except ValueError:
+        # Hm.. the datetime was stored 'naieve' ie: without timezone info.
+        # we assume the timezone in 'settings' for all naieve objects.
+        #
+        result = value.replace(tzinfo=pytz.timezone(settings.TIME_ZONE)).astimezone(pytz.timezone(tz))
+    return result
+

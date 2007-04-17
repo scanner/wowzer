@@ -8,6 +8,7 @@
 # System imports
 #
 from datetime import datetime, timedelta
+import pytz
 
 # Django imports
 #
@@ -582,11 +583,11 @@ class Post(models.Model):
     def save(self):
         if not self.id:
             created = True
-            self.created = datetime.utcnow()
+            self.created = datetime.now(pytz.utc)
             self.post_number = self.discussion.post_set.count() + 1
         else:
             created = False
-            self.changed = datetime.utcnow()
+            self.changed = datetime.now(pytz.utc)
 
         res = super(Post,self).save()
 

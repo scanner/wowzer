@@ -61,7 +61,7 @@ by <a href="{{ discussion.post_set.latest.author.get_absolute_url }}">{{ discuss
         {% end_fancy_if %}
         <div class="byline">
 	  <a name="{{ post.id }}">Post #{{ post.post_number }}</a><br>
-          Posted at: {{ post.created|date:"D, M j, Y H:i" }} ({{ post.created|timesince }} ago)
+          Posted at: {{ post.created|user_tz:user|date:"D, M j, Y H:i" }} ({{ post.created|timesince }} ago)
           {% if post.in_reply_to %}
           in reply to <a title="Go to {{ post.in_reply_to_author.username }}'s profile." href="{{ post.in_reply_to.author.get_absolute_url }}">{{ post.in_reply_to.author }}'s</a> <a href="./?post={{ post.in_reply_to.id }}#{{ post.in_reply_to.id }}">Post #{{ post.in_reply_to.post_number}}</a> (from {{ post.in_reply_to.created|timesince }} ago.) 
           {% endif %}

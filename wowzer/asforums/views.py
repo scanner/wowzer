@@ -525,7 +525,7 @@ def disc_delete(request, disc_id):
         form = DeleteForm(request.POST)
         if form.is_valid():
             disc.delete()
-            request.user.message_set.create(message = "Discussion deleted")
+            msg_user(request.user, "Discussion deleted")
             return HttpResponseRedirect(forum.get_absolute_url())
     else:
         form = DeleteForm()

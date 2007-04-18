@@ -8,6 +8,7 @@ urlpatterns = patterns(
     (r'^items/', include('wowzer.items.urls')),
     (r'^raidtracker/', include('wowzer.raidtracker.urls')),
     (r'^asforums/', include('wowzer.asforums.urls')),
+    (r'^users/', include ('wowzer.users.urls')),
 
     # The 'registration' app takes over the accounts/ urls.
     #

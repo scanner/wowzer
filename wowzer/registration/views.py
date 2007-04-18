@@ -10,6 +10,12 @@ from django.template import RequestContext
 from models import RegistrationProfile
 from forms import RegistrationForm
 
+def profile(request):
+    """The default url after one logs in goes here. We redirect this to the
+    user's page.
+    """
+    return HttpResponseRedirect(request.user.get_absolute_url())
+
 def activate(request, activation_key):
     """
     Activates a user's account, if their key is valid and hasn't

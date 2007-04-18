@@ -10,7 +10,7 @@ root URLConf to include this URLConf for any URL begninning with
 from django.conf.urls.defaults import *
 from django.views.generic.simple import direct_to_template
 from django.contrib.auth.views import login, logout
-from views import activate, register
+from views import activate, register, profile
 
 urlpatterns = patterns('',
                        # Activation keys get matched by \w+ instead of the more specific
@@ -18,6 +18,7 @@ urlpatterns = patterns('',
                        # that way it can return a sensible "invalid key" message instead of a
                        # confusing 404.
                        (r'^activate/(?P<activation_key>\w+)/$', activate),
+                       (r'^profile/$', profile),
                        (r'^login/$', login, {'template_name': 'registration/login.html'}),
                        (r'^logout/$', logout, {'template_name': 'registration/logout.html'}),
                        (r'^change_pw/$', 'django.contrib.auth.views.password_change'),

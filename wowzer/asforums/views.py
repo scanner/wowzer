@@ -128,13 +128,13 @@ def fc_update(request, fc_id):
                                      "permissions to change this forum "
                                      "collection")
 
-    FCForm = forms.models.form_for_model(ForumCollection)
+    FCForm = forms.models.form_forinstance(fc)
     if request.method == "POST":
         form = FCForm(request.POST)
         if form.is_valid():
             entry = form.save()
-            msg_user(request.user, "Your modification of forum collection "
-                     "'%s' was successfull." % entry.name)
+            msg_user(request.user,
+                     "Forum collection '%s' updated." % entry.name)
             return HttpResponseRedirect(entry.get_absolute_url)
     else:
         form = FCForm()
@@ -158,7 +158,8 @@ def fc_delete(request):
 
     # You must have delete permission on a fc to delete it.
     #
-    if not request.user.has_perm("asforums.delete_forumcollection", object = fc):
+    if not request.user.has_perm("asforums.delete_forumcollection",
+                                 object = fc):
         return HttpResponseForbidden("You do not have the requisite "
                                      "permissions to delete this forum "
                                      "collection")
@@ -180,8 +181,8 @@ def fc_create(request):
             entry = form.save(commit = False)
             entry.author = request.user
             entry.save()
-            msg_user(request.user, "Your have created forum collection "
-                     "'%s'." % entry.name)
+            msg_user(request.user, "Forum collection '%s' created." % \
+                     entry.name)
             return HttpResponseRedirect(entry.get_absolute_url)
     else:
         form = FCForm()
@@ -263,7 +264,7 @@ def forum_detail(request, forum_id):
 
     # All discussions in a forum that you can read are viewable.
     #
-    qs = forum.discussion_set.all().order_by('created')
+    qs = forum.discussion_set.all().order_by('sticky','created')
     return object_list(request, forum.discussion_set.all(),
                        paginate_by = 10,
                        template_name = "asforums/forum_detail.html",
@@ -274,12 +275,35 @@ def forum_detail(request, forum_id):
 @login_required
 def forum_update(request, forum_id):
     """Modify an existing forum object.
-    XXX For now until we get the form filled and our such we are going to
-    XXX hand stuff off to the generic crud views. I am doing it this way
-    XXX instead of entirely in the urls.py file because I am going to put
-    XXX stuff here and I feel better with this stub defined.
     """
-    return update_object(request, Forum, object_id = forum_id)
+    try:
+        f = Forum.objects.select_related().get(pk = forum_id)
+        fc = f.collection
+    except Forum.DoesNotExist:
+        raise Http404
+
+    # You need moderate permission on the forum collection it
+    # is in or update permission on the forum.
+    #
+    if not (request.user.has_perm("asforums.moderate_forumcollection",
+                                  object = fc) or \
+            request.user.has_perm("asforums.update_forum", object = f)):
+        return HttpResponseForbidden("You do not have "
+                                     "the requisite permissions to update "
+                                     "this forum.")
+    ForumForm = forms.models.form_for_instance(f)
+
+    if request.method == "POST":
+        form = ForumForm(request.POST)
+        if form.is_valid():
+            entry = form.save()
+            msg_user(request.user, "Forum was updated.")
+            return HttpResponseRedirect(entry.get_absolute_url)
+    else:
+        form = ForumForm()
+    t = get_template("asforums/forum_update.html")
+    c = Context(request, {'forumcollection' : fc, 'form' : form })
+    return HttpResponse(t.render(c))
 
 ############################################################################
 #
@@ -301,6 +325,15 @@ def forum_delete(request, forum_id):
     except Forum.DoesNotExist:
         raise Http404
 
+    # You must have moderate on the forumcollection or delete permission
+    # on this forum.
+    #
+    if not (request.user.has_perm("asforums.moderate_forumcollection",
+                                  object = fc) or \
+            request.user.has_perm("asforums.delete_forum", object = forum)):
+        return HttpResponseForbidden("You do not have the requisite "
+                                     "permissions to delete this forum.")
+        
     # After delete redirect to the forum collection this forum was in
     #
     return delete_object(request, Forum,
@@ -318,7 +351,8 @@ def disc_list(request):
     XXX discussions.
     """
 
-    query_set = Discussion.objects.viewable(request.user).order_by('created')
+    query_set = Discussion.objects.viewable(request.user).order_by('sticky',
+                                                                   'created')
     return object_list(request, query_set,
                        paginate_by = 10,
                        template_name = "asforums/disc_list.html")
@@ -328,57 +362,38 @@ def disc_list(request):
 @login_required
 def disc_create(request, forum_id):
     """Creation of a new discussion.
-    XXX For now until we get the form filled and our such we are going to
-    XXX hand stuff off to the generic crud views. I am doing it this way
-    XXX instead of entirely in the urls.py file because I am going to put
-    XXX stuff here and I feel better with this stub defined.
-
     XXX When you create a discussion instead of dynamically referring to the
     XXX permissions of the forum & forum collection we will have the
     XXX permissions copied in to the discussion object. This if a person
     XXX has 'post' permissions on a forum, then all discussions that are
     XXX created will be created with 'post' permissions.
     """
-    forum = get_object_or_404(Forum, pk = forum_id)
+    f = get_object_or_404(Forum, pk = forum_id)
 
-    manipulator = Discussion.AddManipulator()
-    if request.method == "POST":
-        # XXX Does user have 'post' permission in this discussion,
-        # XXX forum, forum collection (they need to explicitly have
-        # XXX the permission at some level.)
-        # if not request.user.has_perm():
-        #     raise HttpResponseForbidden("discussion")
-        #     raise HttpResponseForbidden("forum")
-        #     raise HttpResponseForbidden("forum collection")
-        new_data = request.POST.copy()
-        new_data['forum'] = forum.id
-            
-        # Check for errors
-        errors = manipulator.get_validation_errors(new_data)
-        manipulator.do_html2python(new_data)
+    # They need 'moderate' or 'discuss' permissions on this forum.
+    #
+    if not (request.user.has_perm("asforums.moderate_forum", object = f) or \
+            request.user.has_perm("asforums.discuss_forum", object = f)):
+        return HttpResponseForbidden("You do not have the requisite "
+                                     "permissions to create discussions in "
+                                     "this forum.")
 
-        if not errors:
-            # No errors -- this means we can save the data!
-            new_object = manipulator.save(new_data)
-
-            if request.user.is_authenticated():
-                request.user.message_set.create(\
-                    message="The discussion %s was created "
-                    "successfully." % new_object.name)
-
-            return HttpResponseRedirect(new_object.get_absolute_url())
+    DiscForm = forms.models.form_for_model(Discussion)
+    if request.method = "POST":
+        form = DiscForm(request.POST)
+        if form.is_valid():
+            entry = form.save(commit = False)
+            entry.author = request.user
+            entry.forum = f
+            entry.save()
+            msg_user(request.user, "Your have created the discussion "
+                     "'%s'." % entry.name)
+            return HttpResponseRedirect(entry.get_absolute_url)
     else:
-        # No POST, so we want a brand new form without any data or errors
-        errors = {}
-        new_data = manipulator.flatten_data()
+        form = DiscForm()
 
-    # Create the FormWrapper, template, context, response
-    form = oldforms.FormWrapper(manipulator, new_data, errors)
-    t = get_template("asforums/disc_form.html")
-    c = Context(request, {
-            'forum_collecton' : fc,
-            'form'       : form,
-            })
+    t = get_template("asforums/disc_create.html")
+    c = Context(request, { 'forum' : f, 'form' : form })
     return HttpResponse(t.render(c))
 
 ############################################################################
@@ -405,10 +420,21 @@ def disc_detail(request, disc_id):
         print "Referrer url was: %s" % request.META["HTTP_REFERER"]
     
     try:
-        disc = Discussion.objects.get(pk=disc_id)
+        disc = Discussion.objects.selected_related().get(pk=disc_id)
+        f = disc.forum
     except Discussion.DoesNotExist:
         raise Http404
 
+    # To read a discussion they must have 'read' on the forum it is contained
+    # in. The discussion must not be locked, unless they are a moderator.
+    #
+    if not (request.user.has_perm("asforums.moderate_forum", object = f) or \
+            (not d.locked and
+             request.user.has_perm("asforums.read_forum", object = f))):
+        return HttpResponseForbidden("You do not have "
+                                     "the requisite permissions to read "
+                                     "this discussion.")
+        
     # Getting a discussion detail bumps its view count.
     #
     #    disc.increment_viewed() # We tried custom sql. It did not work.
@@ -432,12 +458,34 @@ def disc_detail(request, disc_id):
 @login_required
 def disc_update(request, disc_id):
     """Modify an existing discussion object.
-    XXX For now until we get the form filled and our such we are going to
-    XXX hand stuff off to the generic crud views. I am doing it this way
-    XXX instead of entirely in the urls.py file because I am going to put
-    XXX stuff here and I feel better with this stub defined.
     """
-    return update_object(request, Discussion, object_id = disc_id)
+    try:
+        d = Discussion.objects.select_related().get(pk = disc_id)
+        f = disc.forum
+    except Discussion.DoesNotExist:
+        raise Http404
+
+    if not (request.user.has_perm("asforums.moderate_forum", object = f) or \
+            (not d.locked and
+             request.user.has_perm("asforums.update_discussion", object = d))):
+        return HttpResponseForbidden("You do not have "
+                                     "the requisite permissions to update "
+                                     "this discussion.")
+
+    DiscForm = forms.models.form_for_instance(d)
+    if request.method == "POST":
+        form = DiscForm(request.POST)
+        if form.is_valid():
+            entry = form.save()
+            msg_user(request.user, "Discussion %s updated." % entry.name)
+            return HttpResponseRedirect(entry.get_absolute_url)
+    else:
+        form = DiscForm()
+
+    t = get_template("asforums/disc_update.html")
+    c = Context(request, { 'forum' : f,
+                           'form'  : form })
+    return HttpResponse(t.render(c))
 
 ############################################################################
 #
@@ -610,7 +658,7 @@ def post_update(request, post_id):
              (post.author == request.user or \
               request.user.has_perm("asforums.update_post", object = post)))):
         return HttpResponseForbidden("You do not have "
-                                     "the requisite permissions to delete "
+                                     "the requisite permissions to update "
                                      "this post.")
 
     PostForm = forms.models.form_for_instance(post)

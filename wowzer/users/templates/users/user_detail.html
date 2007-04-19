@@ -1,0 +1,50 @@
+{% load wowzertags asforums_tags auth %}
+{% extends "users/base.html" %}
+{% block subtitle %}{{ object.username }}{% endblock %}
+{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="./">{{ user.username }}</a>{% endblock %}
+{% block content %}
+<ul>
+  <li>Username: {{ object.username }}</li>
+  {% fancy_if or eq user.username object.username "auth.change_user" object %}
+    <li><a href="./update/">Edit</a>
+  {% else %}
+    {% if user.is_staff %}
+      <li><a href="./update/">Edit</a>
+    {% endif %}
+  {% end_fancy_if %}
+  {% if object.is_active %}
+    {% if_has_perm "auth.delete_user" object %}
+      <li><a href="./delete/">Deactivate user</a></li>
+    {% else %}
+      {% if user.is_staff %}
+        <li><a href="./delete/">Deactivate</a>
+      {% endif %}
+    {% end_if_has_perm %}
+  {% else %}
+    {% if user.is_staff %}
+      <li><a href="./activate/">Reactivate</a>
+    {% endif %}
+  {% endif %}
+  <li>Last login: {{ object.last_login|tz_std_date_ago:user }}</li>
+  <li>Date joined: {{ object.date_joined|tz_std_date:user }}</li>
+  {% if object.is_staff %}
+    <li>Staff account</li>
+  {% endif %}
+  {% if object.groups.all %}
+    <li> Groups {{ object.username }} is in:
+      <ul>
+        {% for group in object.groups.all %}
+          <li><a href="../groups/{{ group.name }}/">{{ group.name }}</a></li>
+        {% endfor %}
+      </ul></li>
+  {% endif %}
+  {% if object.toon_set.all %}
+    <li> Associated characters:
+      <ul>
+        {% for toon in object.toon_set.all %}
+          <li><a href="{{ toon.get_absolute_url }}">{{ toon }}</a></li>
+        {% endfor %}
+      </ul></li>
+   {% endif %}      
+</ul>
+{% endblock %}

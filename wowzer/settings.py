@@ -124,6 +124,7 @@ INSTALLED_APPS = (
     'wowzer.raidtracker',
     'wowzer.asforums',
     'wowzer.main',
+    'wowzer.users',
 #    'wowzer.madhouse',
 #    'wowzer.gatherbox',
 #    'wowzer.realm',

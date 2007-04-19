@@ -28,6 +28,7 @@ from django.http import HttpResponseRedirect
 #
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import user_passes_test
 
 # Wowzer utility functions
 #
@@ -64,7 +65,9 @@ def user_detail(request, username):
     """
     u = get_object_or_404(User, username = username)
 
-    return object_detail(request, User.objects.all(), object_id = u.id)
+    t = get_template("users/user_detail.html")
+    c = Context(request, {'object' : u })
+    return HttpResponse(t.render(c))
 
 ############################################################################
 #
@@ -91,11 +94,16 @@ def user_update(request, username):
             entry = form.save()
             msg_user(request.user, "User '%s' was updated." % entry.username)
             return HttpResponseRedirect(entry.get_absolute_url())
+    else:
+        form = UserForm()
+    t = get_template("users/user_update.html")
+    c = Context(request, {'form' : form })
+    return HttpResponse(t.render(c))
 
 ############################################################################
 #
 class DeleteForm(forms.Form):
-    reason = forms.CharField(max_length = 128, blank = False)
+    reason = forms.CharField(max_length = 128)
 
 ############################################################################
 #

@@ -1,0 +1,50 @@
+{% load wowzertags %}
+{% extends "users/base.html" %}
+{% block content %}
+{% if object_list %}
+  {% if is_paginated %}
+  <div class="paginator">{% paginator %}</div>
+  {% endif %}
+  <table class="listing">
+    <tr>
+      {% if user.is_staff %}
+        <th>Active</th>
+      {% endif %}
+      <th>Staff</th>
+      <th>Username</th>
+      <th>Last login</th>
+      <th>Characters</th>
+    </tr>
+    {% for usr in object_list %}
+      <tr class="{% cycle odd,even %}">
+        {% if user.is_staff %}
+          {% if usr.is_active %}
+            <td>{% icon "accept" "Enabled" %}</td>
+          {% else %}
+            <td>{% icon "cross" "Disabled" %}</td>
+          {% endif %}
+        {% endif %}
+        {% if usr.is_staff %}
+          <td>{% icon "accept" "Enabled" %}</td>
+        {% else %}
+          <td></td>
+        {% endif %}
+        <td><a href="{{ usr.get_absolute_url }}">{{ usr.username }}</a></td>
+        <td>{{ usr.last_login|tz_std_date_ago:user }}</td>
+        <td>
+          {% if usr.toon_set.all %}
+            {% for toon in usr.toon_set.all %}
+              <a href="{{ toon.get_absolute_url }}">{{ toon }}</a>
+            {% endfor %}
+          {% else %}
+              No characters associated.
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  {% if is_paginated %}
+  <div class="paginator">{% paginator %}</div>
+  {% endif %}
+{% endif %}
+{% endblock %}

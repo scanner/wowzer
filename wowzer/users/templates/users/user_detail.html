@@ -6,60 +6,65 @@
 {% fancy_if or eq user.username object.username user.is_staff %}
 <h1>Options</h1>
 <ul>
-  <li>Change email address</li>
-  <li>Edit profile</li>
-  <li>Change password</li>
+  <li><a href="/accounts/change_pw/">Change password</a></li>
+  {% if user.is_staff %}
+    <li><a href="/accounts/reset_pw/">Reset password</a></li>
+  {% endif %}
   <li>Associate Characters</li>
   <li>Subscribe to discussions</li>
-  {% if user.is_staff %}
-    {% if object.is_active %}
-      <li>Deactivate user</li>
-    {% else %}
-      <li>Activate user</li>
-    {% endif %}
-  {% endif %}
+  <li>Create group</li>
 </ul>
 {% end_fancy_if %}
 {% endblock %}
 {% block content %}
-<ul>
-  <li>Username: {{ object.username }}</li>
+  Username: {{ object.username }}
   {% fancy_if or eq user.username object.username "auth.change_user" object user.is_staff %}
-    <li><a href="./update/">Edit</a>
-  {% end_fancy_if %}
-  {% if object.is_active %}
-    {% if_has_perm "auth.delete_user" object %}
-      <li><a href="./delete/">Deactivate user</a></li>
-    {% else %}
-      {% if user.is_staff %}
-        <li><a href="./delete/">Deactivate</a>
-      {% endif %}
-    {% end_if_has_perm %}
-  {% else %}
+  <form method="post" action=".">
     {% if user.is_staff %}
-      <li><a href="./activate/">Reactivate</a>
+      {{ activate_form.as_p }}
+      {% if object.is_active %}
+        <input type="submit" name="submit" value="Deactivate" />
+      {% else %}
+        <input type="submit" name="submit" value="Activate" />
+      {% endif %}
     {% endif %}
-  {% endif %}
-  <li>Last login: {{ object.last_login|tz_std_date_ago:user }}</li>
-  <li>Date joined: {{ object.date_joined|tz_std_date:user }}</li>
-  {% if object.is_staff %}
-    <li>Staff account</li>
-  {% endif %}
-  {% if object.groups.all %}
-    <li> Groups {{ object.username }} is in:
-      <ul>
+    {{ email_form.as_p }}
+    <input type="submit" name="submit" value="Change email address" />
+    {{ profile_form.as_p }}
+    <input type="submit" name="submit" value="Save profile" />
+  </form>
+  {% else %}
+    {% if profile.homepage %}
+      Homepage: <a href="profile.homepage">{{ profile.homepage }}</a><br />
+    {% endif %}
+    Timezone: {{ profile.timezone }}<br />
+    Avatar: {{ profile.avatar }}<br>
+  {% end_fancy_if %}
+  <p>
+    Last login: {{ object.last_login|tz_std_date_ago:user }}<br />
+    Date joined: {{ object.date_joined|tz_std_date:user }}<br />
+    {% if object.is_staff %}
+      Staff account<br />
+    {% endif %}
+    {% if object.groups.all %}
+      Groups {{ object.username }} is in:
+      <table>
         {% for group in object.groups.all %}
-          <li><a href="../groups/{{ group.name }}/">{{ group.name }}</a></li>
-        {% endfor %}
-      </ul></li>
-  {% endif %}
-  {% if object.toon_set.all %}
-    <li> Associated characters:
-      <ul>
+           {% columnize 5 '' odd,even %}
+	     <a href="../groups/{{ group.name }}/">{{ group.name }}</a>
+	   {% endcolumnize %}
+	{% endfor %}
+      </table>
+    {% endif %}
+    {% if object.toon_set.all %}
+      Associated characters:
+      <table>
         {% for toon in object.toon_set.all %}
-          <li><a href="{{ toon.get_absolute_url }}">{{ toon }}</a></li>
+	  {% columnize 5 '' odd,even %}
+            <a href="{{ toon.get_absolute_url }}">{{ toon }}</a>
+	  {% endcolumnize %}
         {% endfor %}
-      </ul></li>
-   {% endif %}      
-</ul>
+      </table>
+    {% endif %}
+  </p>
 {% endblock %}

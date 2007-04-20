@@ -43,7 +43,7 @@ from wowzer.main.models import UserProfile
 #
 class ActivateForm(forms.Form):
     active = forms.BooleanField()
-    reason = forms.CharField(max_length = 128, blank = False)
+    reason = forms.CharField(max_length = 128)
 
 class EmailForm(forms.Form):
     email = forms.EmailField()
@@ -89,13 +89,18 @@ def user_detail(request, username):
         profile = UserProfile(user = u)
         profile.save()
     ProfileForm = forms.models.form_for_instance(profile)
+    ProfileForm.base_fields['timezone'].widget = \
+                          widgets.Select(choices=UserProfile.TZ_CHOICES)
+    ProfileForm.base_fields['markup'].widget = \
+                          widgets.Select(choices=UserProfile.MARKUP_CHOICES)
 
     if request.method == "POST":
         # Only staff, or the user themselves, or someone with update
         # permission on the user can submit changes.
         #
+        print "submit is: %s" % request.POST["submit"]
         if not (request.user.is_staff or
-                request.user.username = username or
+                request.user.username == username or
                 request.user.has_perm("auth.change_user", object = u)):
             return HttpResponseForbidden("You do not have the requisite "
                                          "permissions to edit this user.")
@@ -108,42 +113,42 @@ def user_detail(request, username):
 
         # Their "profile" data.
         #
-        if request.POST["submit"] == "profile":
+        if request.POST["submit"] == "Save profile":
             profile_form = ProfileForm(request.POST)
             if profile_form.is_valid():
-                entry = form.save(commit = False)
+                entry = profile_form.save(commit = False)
 
                 # We need to post-convert any submitted 'signature' into
                 # html we can use via their chosen markup language.
                 #
-                func, ignore = getattr(__import__("wowzer."+entry['markup'],
-                                                  '', '', ['']), 
+                func, ignore = getattr(__import__("wowzer."+entry.markup,
+                                                  '', '', ['']),
                                        "to_html"), {}
-                entry['signature_html'] = func(entry['signature'])
+                entry.signature_html = func(entry.signature)
                 entry.save()
                 msg_user(request.user, "User '%s' profile updated." % \
                          u.username)
-                return HttpResponseRedirect(u.get_absolute_url)
+                return HttpResponseRedirect(u.get_absolute_url())
         else:
             profile_form = ProfileForm()
 
         # Their "email" data.. ie: what they can edit in the user model.
         #
-        if request.POST["submit"] == "email":
+        if request.POST["submit"] == "Change email address":
             email_form = EmailForm(request.POST)
             if email_form.is_valid():
                 u.email = email_form.clean_data['email']
                 u.save()
                 msg_user(request.user, "User '%s' email address updated." % \
                          u.username)
-                return HttpResponseRedirect(u.get_absolute_url)
+                return HttpResponseRedirect(u.get_absolute_url())
         else:
             email_form = EmailForm()
 
         # Finally the "activate" "deactivate" form. We only accept this
         # one if the user is staff.
         #
-        if request.POST["submit"] == "activate" and request.user.is_staff:
+        if request.POST["submit"][-7:] == "ctivate" and request.user.is_staff:
             activate_form = ActivateForm(request.POST)
             if activate_form.is_valid():
                 if activate_form.clean_data['active']:
@@ -154,7 +159,7 @@ def user_detail(request, username):
                     u.is_active = False
                     msg_user(request.user, "User '%s' deactivated." % \
                              u.username)
-                return HttpResponseRedirect(u.get_absolute_url)
+                return HttpResponseRedirect(u.get_absolute_url())
         else:
             activate_form = ActivateForm()
     else:
@@ -166,52 +171,9 @@ def user_detail(request, username):
 
     t = get_template("users/user_detail.html")
     c = Context(request, {'object'        : u,
+                          'profile'       : profile,
                           'email_form'    : email_form,
                           'profile_form'  : profile_form,
                           'activate_form' : activate_form })
     return HttpResponse(t.render(c))
 
-############################################################################
-#
-@login_required
-def user_update(request, username):
-    """Allows editing of a user object. You must be staff or have
-    'change_user' permission or be the user being updated (because of
-    that last requirement we can not use the 'user_passes_test'
-    decorator to control access to this view.
-    """
-
-    u = get_object_or_404(User, username = username)
-    if not (request.user.is_staff or \
-            request.user.has_perm("auth.change_user") or \
-            username == request.user.username):
-        return HttpResponseForbidden("You do not have the requisite "
-                                     "permissions to edit this user.")
-
-    UserForm = forms.models.form_for_instance(u)
-
-    if request.method == "POST":
-        form = UserForm(request.POST)
-        if form.is_valid():
-            entry = form.save()
-            msg_user(request.user, "User '%s' was updated." % entry.username)
-            return HttpResponseRedirect(entry.get_absolute_url())
-    else:
-        form = UserForm()
-    t = get_template("users/user_update.html")
-    c = Context(request, {'form' : form })
-    return HttpResponse(t.render(c))
-
-############################################################################
-#
-class DeleteForm(forms.Form):
-    reason = forms.CharField(max_length = 128)
-
-############################################################################
-#
-@user_passes_test(lambda u: u.is_staff or u.has_perm("auth.delete_user"))
-def user_deactivate(request, username):
-    """Deactivates a user account (we do not allow deletions. You can
-    just deactivate a user so that they can not log in anymore.
-    """
-    u = get_object_or_404(User, username = username)

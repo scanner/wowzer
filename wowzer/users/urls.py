@@ -4,7 +4,7 @@ urlpatterns = patterns(
     'wowzer.users.views',
     
     (r'^$', 'index'),
-    (r'^create/$', 'user_create')
+    (r'^create/$', 'user_create'),
     (r'^groups/$', 'group_list'),
     (r'^groups/(?P<groupname>\w+)/$', 'group_detail'),
 

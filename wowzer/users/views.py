@@ -37,6 +37,16 @@ from wowzer.utils import msg_user
 # Data models.
 #
 from django.contrib.auth.models import User, Group
+from wowzer.main.models import UserProfile
+
+############################################################################
+#
+class ActivateForm(forms.Form):
+    active = forms.BooleanField()
+    reason = forms.CharField(max_length = 128, blank = False)
+
+class EmailForm(forms.Form):
+    email = forms.EmailField()
 
 ############################################################################
 #
@@ -65,8 +75,100 @@ def user_detail(request, username):
     """
     u = get_object_or_404(User, username = username)
 
+    # The user detail page also shows their profile information. To make
+    # things a little easier if they do not have a profile then we create
+    # one for them.
+    #
+    # NOTE: Other parts of the system still must assume that a profile
+    # may not exist for a user. We are doing this here to make the
+    # form and form processing for user profiles a little simpler.
+    #
+    try:
+        profile = u.get_profile()
+    except ObjectDoesNotExist:
+        profile = UserProfile(user = u)
+        profile.save()
+    ProfileForm = forms.models.form_for_instance(profile)
+
+    if request.method == "POST":
+        # Only staff, or the user themselves, or someone with update
+        # permission on the user can submit changes.
+        #
+        if not (request.user.is_staff or
+                request.user.username = username or
+                request.user.has_perm("auth.change_user", object = u)):
+            return HttpResponseForbidden("You do not have the requisite "
+                                         "permissions to edit this user.")
+
+        # Now the user detail page had on it several different forms each with
+        # their own submit button. We need to see which button was pushed
+        # and process that form. For every form that was not processed
+        # we need to create the empty with defaults.
+        #
+
+        # Their "profile" data.
+        #
+        if request.POST["submit"] == "profile":
+            profile_form = ProfileForm(request.POST)
+            if profile_form.is_valid():
+                entry = form.save(commit = False)
+
+                # We need to post-convert any submitted 'signature' into
+                # html we can use via their chosen markup language.
+                #
+                func, ignore = getattr(__import__("wowzer."+entry['markup'],
+                                                  '', '', ['']), 
+                                       "to_html"), {}
+                entry['signature_html'] = func(entry['signature'])
+                entry.save()
+                msg_user(request.user, "User '%s' profile updated." % \
+                         u.username)
+                return HttpResponseRedirect(u.get_absolute_url)
+        else:
+            profile_form = ProfileForm()
+
+        # Their "email" data.. ie: what they can edit in the user model.
+        #
+        if request.POST["submit"] == "email":
+            email_form = EmailForm(request.POST)
+            if email_form.is_valid():
+                u.email = email_form.clean_data['email']
+                u.save()
+                msg_user(request.user, "User '%s' email address updated." % \
+                         u.username)
+                return HttpResponseRedirect(u.get_absolute_url)
+        else:
+            email_form = EmailForm()
+
+        # Finally the "activate" "deactivate" form. We only accept this
+        # one if the user is staff.
+        #
+        if request.POST["submit"] == "activate" and request.user.is_staff:
+            activate_form = ActivateForm(request.POST)
+            if activate_form.is_valid():
+                if activate_form.clean_data['active']:
+                    u.is_active = True
+                    msg_user(request.user, "User '%s' activated." % \
+                             u.username)
+                else:
+                    u.is_active = False
+                    msg_user(request.user, "User '%s' deactivated." % \
+                             u.username)
+                return HttpResponseRedirect(u.get_absolute_url)
+        else:
+            activate_form = ActivateForm()
+    else:
+        # This was a GET not a POST, so just create forms with default values.
+        #
+        profile_form = ProfileForm()
+        email_form = EmailForm({'email' : u.email })
+        activate_form = ActivateForm({'active' : u.is_active })
+
     t = get_template("users/user_detail.html")
-    c = Context(request, {'object' : u })
+    c = Context(request, {'object'        : u,
+                          'email_form'    : email_form,
+                          'profile_form'  : profile_form,
+                          'activate_form' : activate_form })
     return HttpResponse(t.render(c))
 
 ############################################################################

@@ -110,14 +110,15 @@ MARKUP_CHOICES =  (('text.bbcode', 'BBCode'),
                    ('text.plain', 'Plain'))
                    
 class UserProfile(models.Model):
-    user = models.ForeignKey(User, unique = True)
+    user = models.ForeignKey(User, unique = True, editable = False,
+                             null = False)
     homepage = models.URLField(blank = True)
     style = models.ForeignKey(Style, blank = True, null = True)
-    editing_markup = models.CharField(maxlength=128, choices = MARKUP_CHOICES,
-                                      default = "text.bbcode")
+    markup = models.CharField(maxlength=128, choices = MARKUP_CHOICES,
+                              default = "text.bbcode")
     signature = models.TextField(maxlength = 1024, blank = True)
-    signature_html = models.TextField(maxlength = 1024, blank = True)
-    markup = models.CharField(maxlength=80, blank=True)
+    signature_html = models.TextField(maxlength = 1024, blank = True,
+                                      editable = False)
     
     # If blank defaults to the timezone of django site.
     #
@@ -125,4 +126,4 @@ class UserProfile(models.Model):
                                 default = 'US/Eastern')
     avatar = models.ImageField(upload_to = "img/accounts/%d/avatars",
                                height_field = True, width_field = True,
-                               blank = True)
+                               blank = True, null = True)

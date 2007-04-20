@@ -2,15 +2,30 @@
 {% extends "users/base.html" %}
 {% block subtitle %}{{ object.username }}{% endblock %}
 {% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="./">{{ user.username }}</a>{% endblock %}
+{% block sidebar %}
+{% fancy_if or eq user.username object.username user.is_staff %}
+<h1>Options</h1>
+<ul>
+  <li>Change email address</li>
+  <li>Edit profile</li>
+  <li>Change password</li>
+  <li>Associate Characters</li>
+  <li>Subscribe to discussions</li>
+  {% if user.is_staff %}
+    {% if object.is_active %}
+      <li>Deactivate user</li>
+    {% else %}
+      <li>Activate user</li>
+    {% endif %}
+  {% endif %}
+</ul>
+{% end_fancy_if %}
+{% endblock %}
 {% block content %}
 <ul>
   <li>Username: {{ object.username }}</li>
-  {% fancy_if or eq user.username object.username "auth.change_user" object %}
+  {% fancy_if or eq user.username object.username "auth.change_user" object user.is_staff %}
     <li><a href="./update/">Edit</a>
-  {% else %}
-    {% if user.is_staff %}
-      <li><a href="./update/">Edit</a>
-    {% endif %}
   {% end_fancy_if %}
   {% if object.is_active %}
     {% if_has_perm "auth.delete_user" object %}

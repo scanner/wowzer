@@ -1,0 +1,11 @@
+{% load wowzertags asforums_tags auth %}
+{% extends "users/base.html" %}
+{% block subtitle %}Create User{% endblock %}
+{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href=".">Create User</a>{% endblock %}
+{% block content %}
+<h1>Create User</h1>
+<form method="post" action=".">
+  {{ form.as_ul }}
+  <input type="submit" name="submit" value="Create User" />
+</form>
+{% endblock %}

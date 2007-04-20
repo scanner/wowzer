@@ -14,7 +14,7 @@ Also, be sure to see the note on RegistrationProfile about use of the
 import datetime, random, re, sha
 from django.db import models
 from django.template import Context, loader
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.contrib.sites.models import Site
 from django.conf import settings
 
@@ -62,6 +62,11 @@ class RegistrationManager(models.Manager):
                 user = user_profile.user
                 user.is_active = True
                 user.save()
+                try:
+                    u.groups.add(Group.objects.get(name="system:everyone"),
+                                 Group.objects.get(name="system:authenticated"))
+                except Group.DoesNotExist:
+                    pass
                 return user
         return False
     

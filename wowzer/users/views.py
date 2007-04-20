@@ -45,9 +45,81 @@ class ActivateForm(forms.Form):
     active = forms.BooleanField()
     reason = forms.CharField(max_length = 128)
 
+############################################################################
+#
 class EmailForm(forms.Form):
     email = forms.EmailField()
 
+############################################################################
+#
+class UserField(forms.CharField):
+    def clean(self, value):
+        super(UserField, self).clean(value)
+        try:
+            User.objects.get(username=value)
+            raise forms.ValidationError("Someone is already using this "
+                                        "username. Please pick an other.")
+        except User.DoesNotExist:
+            return value
+
+class SignupForm(forms.Form):
+    username = UserField(max_length=30)
+    password = forms.CharField(widget=forms.PasswordInput())
+    password2 = forms.CharField(widget=forms.PasswordInput(),
+                                label="Repeat your password")
+    email = forms.EmailField()
+    email2 = forms.EmailField(label="Repeat your email")
+    
+    def clean_email(self):
+        if self.data['email'] != self.data['email2']:
+            raise forms.ValidationError('Emails are not the same')
+        return self.data['email']
+
+    def clean_password(self):
+        if self.data['password'] != self.data['password2']:
+            raise forms.ValidationError('Passwords are not the same')
+        return self.data['password']
+    
+    def clean(self,*args, **kwargs):
+        self.clean_email()
+        self.clean_password()
+        return super(SignupForm, self).clean(*args, **kwargs)
+
+class CreateUserForm(SignupForm):
+    """The 'SignupForm' is meant to be used on a page where a user is
+    submitting their own signup information. Such users can not set
+    the staff bit. However, on the create user form, that only staff
+    can access they can set who and who is not staff (yeah, this is a
+    bit weak policy wise but it is all we need right now.)"""
+    staff = forms.BooleanField()
+
+    # IF 'notify' is true we will send the user email indicating that
+    # their account has been created.
+    #
+    # XXX Warning, this email will contain their password!
+    #
+    send_email = forms.BooleanField()
+
+############################################################################
+#
+def sendout_email(user, password):
+    """This helper function will send out email to the given user
+    indicating that their account has been created. It will include
+    the password that was set on their account. """
+
+    from django.core.mail import send_mail
+    current_domain = Site.objects.get_current().domain
+    subject = "Accounted created for %s" % current_domain
+    message_template = loader.get_template('users/creation_email.txt')
+    message_context = Context(\
+        { 'site_url': 'http://%s/' % current_domain,
+          'password_change_url' : 'http://%s/accounts/change_pw/' % current_domain,
+          'username': user.username,
+          'password': password })
+    message = message_template.render(message_context)
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+    return
+    
 ############################################################################
 #
 @login_required
@@ -66,6 +138,49 @@ def index(request):
         
     return object_list(request, qs, paginate_by = 20,
                        template_name = "users/index.html")
+
+############################################################################
+#
+@user_passes_test(lambda u: u.is_staff or u.has_perm("auth.create_user"))
+def user_create(request):
+    """Create a user. Very simplistic.
+    """
+    if request.method == "POST":
+        form = CreateUserForm(request.POST)
+        if form.is_valid():
+            u = User.objects.create_user(form.clean_data['username'],
+                                         form.clean_data['email'],
+                                         form.clean_data['password'])
+            if form.clean_data['staff']:
+                u.is_staff = True
+
+            # Create an empty profile for this user.
+            #
+            profile = UserProfile(user = u)
+            profile.save()
+
+            # Every user is part of the group "system:everyone" and
+            # "system:authenticated"
+            #
+            try:
+                u.groups.add(Group.objects.get(name="system:everyone"),
+                             Group.objects.get(name="system:authenticated"))
+            except Group.DoesNotExist:
+                pass
+
+            # If the submitted asked us to notify the user via email
+            # that their account was created, do so.
+            #
+            if form.clean_data['send_email']:
+                sendout_email(u, form.clean_data['password'])
+
+            msg_user(request.user, "User '%s' created." % u.username)
+            HttpResponseRedirect(u.get_absolute_url())
+    else:
+        form = CreateUserForm()
+    t = get_template("users/user_create.html")
+    c = Context(request, { 'form' : form })
+    return HttpResponse(t.render(c))
 
 ############################################################################
 #
@@ -98,7 +213,6 @@ def user_detail(request, username):
         # Only staff, or the user themselves, or someone with update
         # permission on the user can submit changes.
         #
-        print "submit is: %s" % request.POST["submit"]
         if not (request.user.is_staff or
                 request.user.username == username or
                 request.user.has_perm("auth.change_user", object = u)):

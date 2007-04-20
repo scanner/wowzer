@@ -1,0 +1,16 @@
+Hello {{ username }}!
+
+This is to tell you that your account has been activated.
+
+You can access the site at: {{ site_url }}
+
+Your password is: {{ password }}.
+
+You should change this ASAP via the url:
+
+  {{ password_change_url }}
+
+Sincerely,
+
+   the management.
+

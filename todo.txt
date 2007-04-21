@@ -156,3 +156,49 @@ o toons
     o items
 o gallery
   o need gallery filter (like wiki for easy linking of pictures)
+
+=== permissions control form:
+
+Simple form, non-ajax version:
+
+Permissions:
+
+create:
+  user: john
+  group: doe
+
+update:        select:  .... <add update>
+  user: john
+  group: doe
+
+delete:        select: user/group, name: ...  <add delete>
+  user: buddy
+
+<remove delete>
+
+<cancel>
+
+Basically we loop through all of the permissions that a model can
+have.
+
+We have a multiple select widget that lists the users/groups that actually have
+that permission, and if it is negative or not.
+
+We have a submit button for each select widget that when submitted
+takes the given names and removes them from that list of permissions.
+
+We have a select widget for'user'/'group', a text field to enter the
+name in, a check box for 'negative', and a submit button to add that
+single entry to the list of permissions.
+
+I think this can be totally generic. Make the views and render part of
+the 'main' or 'utils' app, with some json views for partial data
+retrieval.
+
+In the ajax version it will replace the various post elements with
+in-line submission and in-line filling in from the server. Maybe even
+make it a dialog widget so they do not go to a new page.
+
+
+
+

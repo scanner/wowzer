@@ -13,7 +13,7 @@ posts_per_discussion = 11
 users = []
 groups = []
 
-everyone, created = Group.objects.get_or_create(name = "everyone")
+everyone, created = Group.objects.get_or_create(name = "system:everyone")
 moderators, created = Group.objects.get_or_create(name = "moderators")
 
 for index in range(2):

@@ -40,3 +40,17 @@ def index(request):
 
 #############################################################################
 #
+def rlp_edit(request, obj_id, ct_id):
+    """This is a generic view that is given an object id and the content type
+    of that object.
+
+    
+    In the 'GET' form will look up the permissions that object can have, and
+    then any row level permissions related to that object. These will be
+    turned in to forms that are sent back to the browser for display.
+
+    In the 'POST' form we will find out which action was taken - posting the
+    set of entities that have a specific permission or adding some entity to
+    a permission.
+    """
+    pass

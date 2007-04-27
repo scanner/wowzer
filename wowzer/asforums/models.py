@@ -124,7 +124,30 @@ class ForumCollectionManager(models.Manager):
 #############################################################################
 #
 class ForumCollection(models.Model):
-    """A collection of forums.
+    """
+    A collection of forums.
+
+    # Create some forum collections.
+    #
+    # To create forum collections, we need users.
+    #
+    >>> from django.contrib.auth.models import User
+    >>> u,ign = User.objects.get_or_create(username='fctest')
+
+    >>> fc1,ign = ForumCollection.objects.get_or_create(name='foo1',
+    ...                                                 author = u,
+    ...                                                 blurb = 'no blurb')
+    >>> fc2,ign = ForumCollection.objects.get_or_create(name='foo2',
+    ...                                                 author = u,
+    ...                                                 blurb = 'no blurb')
+    
+    # See where they live.
+    #
+    >>> fc1.get_absolute_url()
+    '/asforums/forum_collections/1/'
+    >>> fc2.get_absolute_url()
+    '/asforums/forum_collections/2/'
+
     """
     name = models.CharField(maxlength = 128, db_index = True, unique = True,
                             blank = False)
@@ -132,6 +155,7 @@ class ForumCollection(models.Model):
     author = models.ForeignKey(User, db_index = True)
     created = models.DateTimeField(auto_now_add = True, editable = False)
     tags = models.GenericRelation(TaggedItem)
+    
     objects = ForumCollectionManager()
 
     class Admin:
@@ -156,7 +180,7 @@ class ForumCollection(models.Model):
     #########################################################################
     #
     def __str__(self):
-        return "Forum %s" % self.name
+        return self.name
 
     #########################################################################
     #
@@ -225,7 +249,29 @@ class ForumManager(models.Manager):
 #############################################################################
 #
 class Forum(models.Model):
-    """A forum is a collection of discussions
+    """A forum is a collection of discussions. It resides in a ForumCollection.
+
+    # We need to create a forum collection, and we need an author.
+    #
+    >>> from django.contrib.auth.models import User
+    >>> u, ign = User.objects.get_or_create(username='fctest')
+
+    >>> fc,ign = ForumCollection.objects.get_or_create(name='foo1',
+    ...                                                author = u,
+    ...                                                blurb = 'no blurb')
+    
+    >>> f,ign = Forum.objects.get_or_create(name='forum1', blurb = 'no blurb',
+    ...                                     author = u, collection = fc)
+
+    >>> f.get_absolute_url()
+    '/asforums/forums/1/'
+
+    >>> f.collection
+    <ForumCollection: foo1>
+
+    >>> fc.forum_set.all()
+    [<Forum: forum1>]
+
     """
 
     name = models.CharField(maxlength = 128, db_index = True, blank = False)
@@ -262,7 +308,7 @@ class Forum(models.Model):
     #########################################################################
     #
     def __str__(self):
-        return "Forum %s" % self.name
+        return self.name
 
     #########################################################################
     #
@@ -364,7 +410,28 @@ class DiscussionManager(models.Manager):
 #############################################################################
 #
 class Discussion(models.Model):
-    """Discussions, in a forum.
+    """Discussions, in a forum. There is where all the action takes place.
+
+    # Discussions are posted by an author and exist in a forum
+    #
+    >>> from django.contrib.auth.models import User
+    >>> u, ign = User.objects.get_or_create(username='fctest')
+    >>> fc,ign = ForumCollection.objects.get_or_create(name='foo1',
+    ...                                                author = u,
+    ...                                                blurb = 'no blurb')
+
+    >>> f,ign = Forum.objects.get_or_create(name='forum1', blurb = 'no blurb',
+    ...                                     author = u, collection = fc)
+
+    >>> d, ign = Discussion.objects.get_or_create(name = 'disucssion boo',
+    ...                                           forum = f, author = u,
+    ...                                           blurb = 'blurbless')
+
+    >>> d.get_absolute_url()
+    '/asforums/discs/1/'
+    >>> d.forum
+    <Forum: forum1>
+    
     """
 
     name = models.CharField(maxlength = 128, db_index = True, blank = False)

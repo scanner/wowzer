@@ -18,7 +18,7 @@ from django.newforms import widgets
 
 from django.shortcuts import get_object_or_404
 from django.core.paginator import ObjectPaginator, InvalidPage
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.views.generic.list_detail import object_list
 from django.views.generic.list_detail import object_detail
 from django.views.generic.create_update import create_object
@@ -61,7 +61,7 @@ def index(request):
     """
     query_set = Forum.objects.viewable(request.user).order_by('collection','created')
     ec = {}
-    
+
     return object_list(request, query_set,
                        paginate_by = 10,
                        template_name = 'asforums/index.html',
@@ -100,7 +100,7 @@ def fc_detail(request, fc_id):
         return HttpResponseForbidden("You do not have the requisite "
                                      "permissions to see this forum "
                                      "collection")
-    
+
     ec = { 'forum_collection' : fc }
     query_set = fc.forum_set.viewable(request.user).order_by('created')
     return object_list(request, query_set,
@@ -118,7 +118,7 @@ def fc_update(request, fc_id):
     XXX instead of entirely in the urls.py file because I am going to put
     XXX stuff here and I feel better with this stub defined.
     """
-    
+
     fc = get_object_or_404(ForumCollection, pk = fc_id)
 
     # You must have change permission on a fc.
@@ -250,7 +250,7 @@ def forum_detail(request, forum_id):
     # To make thing shorter
     #
     r = request
-    
+
     # Must have moderate or read permissions on the forum collection
     # and forum.
     #
@@ -313,7 +313,7 @@ def forum_delete(request, forum_id):
     proper bits set, delete the forum.
 
     This will permanently delete all discussions and posts in this forum.
-    
+
     XXX For now until we get the form filled and our such we are going to
     XXX hand stuff off to the generic crud views. I am doing it this way
     XXX instead of entirely in the urls.py file because I am going to put
@@ -333,7 +333,7 @@ def forum_delete(request, forum_id):
             request.user.has_perm("asforums.delete_forum", object = forum)):
         return HttpResponseForbidden("You do not have the requisite "
                                      "permissions to delete this forum.")
-        
+
     # After delete redirect to the forum collection this forum was in
     #
     return delete_object(request, Forum,
@@ -356,7 +356,7 @@ def disc_list(request):
     return object_list(request, query_set,
                        paginate_by = 10,
                        template_name = "asforums/disc_list.html")
-    
+
 ############################################################################
 #
 @login_required
@@ -379,7 +379,7 @@ def disc_create(request, forum_id):
                                      "this forum.")
 
     DiscForm = forms.models.form_for_model(Discussion)
-    if request.method = "POST":
+    if request.method == "POST":
         form = DiscForm(request.POST)
         if form.is_valid():
             entry = form.save(commit = False)
@@ -418,9 +418,9 @@ def disc_detail(request, disc_id):
 
     if request.META.has_key("HTTP_REFERER"):
         print "Referrer url was: %s" % request.META["HTTP_REFERER"]
-    
+
     try:
-        disc = Discussion.objects.selected_related().get(pk=disc_id)
+        disc = Discussion.objects.select_related().get(pk=disc_id)
         f = disc.forum
     except Discussion.DoesNotExist:
         raise Http404
@@ -434,7 +434,7 @@ def disc_detail(request, disc_id):
         return HttpResponseForbidden("You do not have "
                                      "the requisite permissions to read "
                                      "this discussion.")
-        
+
     # Getting a discussion detail bumps its view count.
     #
     #    disc.increment_viewed() # We tried custom sql. It did not work.
@@ -444,7 +444,7 @@ def disc_detail(request, disc_id):
     # time you go to the next page of posts in a multi-page listing)
     disc.views += 1
     disc.save()
-    
+
     ec = { 'discussion' : disc }
 
     qs = Post.objects.readable(request.user).filter(discussion = disc).order_by('created')
@@ -499,7 +499,7 @@ def disc_delete(request, disc_id):
     XXX Only a moderator and the super user can delete this.
     XXX The owner can only 'shutdown' it, which is makes it unviewable
     XXX and unpostable by everyone but moderators and the super user.
-    
+
     XXX For now until we get the form filled and our such we are going to
     XXX hand stuff off to the generic crud views. I am doing it this way
     XXX instead of entirely in the urls.py file because I am going to put
@@ -636,7 +636,7 @@ def post_detail(request, post_id):
         return HttpResponseForbidden("You do not have "
                                      "the requisite permissions to read "
                                      "this post.")
-    
+
     return object_detail(request, Post.objects.readable(request.user),
                          object_id = post_id)
 
@@ -691,7 +691,7 @@ def post_update(request, post_id):
 #
 class PostDeleteForm(forms.Form):
     reason = forms.CharField(max_length = 128)
-    
+
 @login_required
 def post_delete(request, post_id):
     try:

@@ -48,8 +48,6 @@ def index(request):
 #############################################################################
 #
 class PermissionForm(forms.Form):
-    permission = forms.CharField(max_length = 128,
-                                 widget = widgets.HiddenInput())
     user_or_group = forms.ChoiceField(choices = ("user", "group"),
                                       label = "User or group", help_text = \
                                       "To set whether you are adding a "
@@ -71,30 +69,66 @@ class PermissionForm(forms.Form):
 
 #############################################################################
 #
-def rlp_edit(request, obj, ct):
-    """This is a generic view that is given an object and the content
-    type of that object. It is meant to be wrapped by an actual view
-    that looks up the object and its content type and validates that
-    the user has permission to change the permissions on the object,
-
-    
-    In the 'GET' form will look up the permissions that object can have, and
-    then any row level permissions related to that object. These will be
-    turned in to forms that are sent back to the browser for display.
-
-    In the 'POST' form we will find out which action was taken - posting the
-    set of entities that have a specific permission or adding some entity to
-    a permission.
+def form_form_permissions(obj, ct):
+    """
+    This helper function will construct a form class for setting the
+    row level permissions on the given object.
     """
 
+#############################################################################
+#
+def rlp_edit(request, obj, template = "main/rlp_generic_template.html",
+             extra_context = {} ):
+    """
+    This is a generic helper view. It is passed an object that has row
+    level permissions. We build a form based on the permissions
+    present on GET and render it. If we are a post then we modify the
+    permissions associated with the object according to what was in
+    the form.
+    """
+
+    # XXX There should be an easy way to find the "change" permission
+    # XXX for the object we were passed and do the check here to see
+    # XXX if they have "change" permission on this object.
+    # XXX basically we need to construct the "appname" . "change_<modelname lc>
+
+    ct = ContentType.objects.get_for_model(obj)
     obj_perms = Permission.objects.select_related().filter(content_type = ct)
-    
+    rlps = RowLevelPermission.objects.filter(model_id = obj.id, model_ct = ct)
+    rlp_choices = []
+    for rlp in rlps:
+        if rlp.negative:
+            perm_name = "NOT %s" % rlp.permission.name
+        else:
+            perm_name = rlp.permission.name
+        if isinstance(rlp.owner, Group):
+            string = "Group: %s - %s" % (rlp.owner.name, perm_name)
+        else:
+            string = "User: %s - %s" % (rlp.owner.username, perm_name)
+        rlp_choices.append((rlp.id, string))
+        
+    PermissionForm.base_fields['permission'].widget = \
+               widgets.Select(choices = [(x.id, x.name) for x in obj_perms])
+    PermissionForm.base_fields['current_perms'].widget = \
+               widgets.CheckboxSelectMultiple(choices = rlp_choices)
+
     # If this is a post they are either removing a permission, or
-    # adding a permission. We determine which by the permission field
+    # adding a permission. We determine which by the  field
     # in the form submitted.
     #
     if request.method == "POST":
-        for perm in obj_perms:
+        form = PermissionForm(request.POST)
+        if form.is_valid():
+            if request.POST["submit"] == "Add Permission":
+                pass
+            elif request.POST["submit"] == "Remove Permissions":
+                pass
 
-            if request.POST["permission"] == perm.codename:
-                form = PermissionForm
+            return HttpResponseRedirect(".")
+    else:
+        form = PermissionForm()
+
+    t = get_template(template)
+    c = Context(request, { 'object' : obj,
+                           'form'   : form, })
+    return HttpResponse(t.render(c))

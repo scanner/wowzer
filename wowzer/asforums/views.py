@@ -40,6 +40,7 @@ from django.contrib.auth.decorators import permission_required
 # Wowzer utility functions
 #
 from wowzer.utils import msg_user
+from wowzer.main.views import rlp_edit
 
 # The data models from our apps:
 #
@@ -107,6 +108,23 @@ def fc_detail(request, fc_id):
                        paginate_by = 10,
                        template_name = "asforums/fc_detail.html",
                        extra_context = ec)
+
+############################################################################
+#
+@login_required
+def fc_perms(request, fc_id):
+    """
+    Display / edit the row level permissions for a specific forum collection.
+    """
+    fc = get_object_or_404(ForumCollection, pk = fc_id)
+
+    # You must have edit permission on a fc to read it.
+    #
+    if not request.user.has_perm("asforums.change_forumcollection",
+                                 object = fc):
+        raise PermissionDenied
+
+    return rlp_edit(request, fc)
 
 ############################################################################
 #

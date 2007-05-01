@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Editing permissions on <a href="{{ obj.get_absolute_url }}">{{ obj }}</a></h1>
+{% if form.has_errors %}
+<h2 class="errors">Please correct the following error{{ form.error_dict|pluralize }}:</h2>
+{% endif %}
+<form method="post" action=".">
+  {{ form.as_p }}
+  <input type="submit" value="Add Permission" />
+  <input type="submit" value="Remove Permissions" />
+</form>
+{% endblock %}

@@ -30,8 +30,8 @@ from django.contrib.auth.decorators import login_required
 # Django provided contrib models.
 #
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.modles import RowLevelPermission, Permission
-from django.contrib.auth.modles import User, Group
+from django.contrib.auth.models import RowLevelPermission, Permission
+from django.contrib.auth.models import User, Group
 
 # The data models from our apps:
 #
@@ -69,14 +69,7 @@ class PermissionForm(forms.Form):
 
 #############################################################################
 #
-def form_form_permissions(obj, ct):
-    """
-    This helper function will construct a form class for setting the
-    row level permissions on the given object.
-    """
-
-#############################################################################
-#
+@login_required
 def rlp_edit(request, obj, template = "main/rlp_generic_template.html",
              extra_context = {} ):
     """
@@ -106,7 +99,7 @@ def rlp_edit(request, obj, template = "main/rlp_generic_template.html",
         else:
             string = "User: %s - %s" % (rlp.owner.username, perm_name)
         rlp_choices.append((rlp.id, string))
-        
+
     PermissionForm.base_fields['permission'].widget = \
                widgets.Select(choices = [(x.id, x.name) for x in obj_perms])
     PermissionForm.base_fields['current_perms'].widget = \
@@ -120,10 +113,9 @@ def rlp_edit(request, obj, template = "main/rlp_generic_template.html",
         form = PermissionForm(request.POST)
         if form.is_valid():
             if request.POST["submit"] == "Add Permission":
-                pass
+                print "Adding permission."
             elif request.POST["submit"] == "Remove Permissions":
-                pass
-
+                print "Remove permission."
             return HttpResponseRedirect(".")
     else:
         form = PermissionForm()

@@ -118,12 +118,15 @@ def fc_perms(request, fc_id):
     """
     fc = get_object_or_404(ForumCollection, pk = fc_id)
 
-    # You must have edit permission on a fc to read it.
+    # You must have edit permission on a fc to modify the permissions.
+    # You must have view permission on a fc to see its permissions.
     #
-    if not request.user.has_perm("asforums.change_forumcollection",
-                                 object = fc):
+    if (not request.user.has_perm("asforums.view_forumcollection",
+                                  object = fc)) or \
+       (request.method == "POST" and \
+        not request.user.has_perm("asforums.change_forumcollection",
+                                  object = fc)):
         raise PermissionDenied
-
     return rlp_edit(request, fc)
 
 ############################################################################
@@ -322,6 +325,24 @@ def forum_update(request, forum_id):
     t = get_template("asforums/forum_update.html")
     c = Context(request, {'forumcollection' : fc, 'form' : form })
     return HttpResponse(t.render(c))
+
+############################################################################
+#
+@login_required
+def forum_perms(request, forum_id):
+    """
+    Display / edit the row level permissions for a specific forum collection.
+    """
+    f = get_object_or_404(Forum, pk = forum_id)
+
+    # You must have edit permission to modify the permissions.
+    # You must have read permission to see its permissions.
+    #
+    if (not request.user.has_perm("asforums.read_forum", object = f)) or \
+        (request.method == "POST" and \
+         not request.user.has_perm("asforums.change_forum", object = f)):
+        raise PermissionDenied
+    return rlp_edit(request, f)
 
 ############################################################################
 #

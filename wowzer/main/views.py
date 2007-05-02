@@ -48,7 +48,8 @@ def index(request):
 #############################################################################
 #
 class PermissionForm(forms.Form):
-    user_or_group = forms.ChoiceField(choices = ("user", "group"),
+    user_or_group = forms.ChoiceField(choices = (("user","User"),
+                                                 ("group","Group")),
                                       label = "User or group", help_text = \
                                       "To set whether you are adding a "
                                       "permission for a user or a group.")

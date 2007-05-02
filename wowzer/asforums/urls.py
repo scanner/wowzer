@@ -1,3 +1,4 @@
+
 from django.conf.urls.defaults import *
 
 urlpatterns = patterns(
@@ -17,6 +18,7 @@ urlpatterns = patterns(
 
     (r'^forums/$', 'obj_list_redir'),
     (r'^forums/(?P<forum_id>\d+)/$', 'forum_detail'),
+    (r'^forums/(?P<forum_id>\d+)/perms/$', 'forum_perms'),
     (r'^forums/(?P<forum_id>\d+)/update/$', 'forum_update'),
     (r'^forums/(?P<forum_id>\d+)/tag/$', 'forum_tag'),
     (r'^forums/(?P<forum_id>\d+)/user_tag/$', 'forum_usertag'),

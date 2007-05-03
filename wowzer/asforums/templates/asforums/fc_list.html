@@ -1,5 +1,6 @@
 {% load wowzertags asforums_tags %}
 {% extends "asforums/listing.html" %}
+{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="/asforums/forum_collections/">Forum Collections</a>{% endblock %}
 {% block listing %}
 <table>
   <tr>

@@ -27,6 +27,7 @@ urlpatterns = patterns(
 
     (r'^discs/$', 'disc_list'),
     (r'^discs/(?P<disc_id>\d+)/$', 'disc_detail'),
+    (r'^discs/(?P<disc_id>\d+)/perms/$', 'disc_perms'),
     (r'^discs/(?P<disc_id>\d+)/update/$', 'disc_update'),
     (r'^discs/(?P<disc_id>\d+)/tag/$', 'disc_tag'),
     (r'^discs/(?P<disc_id>\d+)/user_tag/$', 'disc_usertag'),
@@ -39,6 +40,7 @@ urlpatterns = patterns(
 
     (r'^posts/$', 'obj_list_redir'),
     (r'^posts/(?P<post_id>\d+)/$','post_detail'),
+    (r'^posts/(?P<post_id>\d+)/perms/$','post_detail'),
     (r'^posts/(?P<post_id>\d+)/update/$','post_update'),
     (r'^posts/(?P<post_id>\d+)/tag/$','post_tag'),
     (r'^posts/(?P<post_id>\d+)/user_tag/$','post_usertag'),

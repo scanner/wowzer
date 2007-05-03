@@ -1,0 +1,6 @@
+{% extends "asforums/base.html" %}
+{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="/asforums/forum_collections/">Forum Collections</a>&nbsp&raquo;&nbsp;<a href="..">{{ object.name }}</a>&nbsp&raquo;&nbsp;<a href=".">Permissions</a>{% endblock %}
+{% block content %}
+<h1>Permissiosn for {{ object.name }}</h1>
+{% include "rlp_stub.html" %}
+{% endblock %}

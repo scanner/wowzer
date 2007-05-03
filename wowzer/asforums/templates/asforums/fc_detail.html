@@ -1,4 +1,5 @@
 {% extends "asforums/listing.html" %}
+{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="/asforums/forum_collections/">Forum Collections</a>&nbsp&raquo;&nbsp;<a href=".">{{ forum_collection.name }}</a>{% endblock %}
 {% block prelisting %}
 <h1>{{ forum_collection.name }}</h1>
 <p>

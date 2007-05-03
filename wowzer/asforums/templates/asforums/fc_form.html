@@ -1,4 +1,5 @@
 {% extends "asforums/base.html" %}
+{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="/asforums/forum_collections/">Forum Collections</a>&nbsp&raquo;&nbsp;<a href="..">{{ forum_collection.name }}</a>&nbsp&raquo;&nbsp;<a href=".">Update</a>{% endblock %}
 {% block content %}
 <h1>Update {{ object.name }}</h1>
 {% if form.has_errors %}

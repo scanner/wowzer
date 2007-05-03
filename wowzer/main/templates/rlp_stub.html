@@ -1,0 +1,8 @@
+{% if form.has_errors %}
+<h2 class="errors">Please correct the following error{{ form.error_dict|pluralize }}:</h2>
+{% endif %}
+<form method="post" action=".">
+  {{ form.as_p }}
+  <input type="submit" value="Add Permission" />
+  <input type="submit" value="Remove Permissions" />
+</form>

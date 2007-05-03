@@ -127,7 +127,7 @@ def fc_perms(request, fc_id):
         not request.user.has_perm("asforums.change_forumcollection",
                                   object = fc)):
         raise PermissionDenied
-    return rlp_edit(request, fc)
+    return rlp_edit(request, fc, template = "asforums/fc_perms.html")
 
 ############################################################################
 #
@@ -342,7 +342,7 @@ def forum_perms(request, forum_id):
         (request.method == "POST" and \
          not request.user.has_perm("asforums.change_forum", object = f)):
         raise PermissionDenied
-    return rlp_edit(request, f)
+    return rlp_edit(request, f, template = "asforums/forum_perms.html")
 
 ############################################################################
 #
@@ -491,6 +491,24 @@ def disc_detail(request, disc_id):
                        paginate_by = 10,
                        template_name = "asforums/disc_detail.html",
                        extra_context = ec)
+
+############################################################################
+#
+@login_required
+def disc_perms(request, disc_id):
+    """
+    Display / edit the row level permissions for a specific discussion.
+    """
+    d = get_object_or_404(Discussion, pk = disc_id)
+
+    # You must have edit permission on the discussion to modify the permissions.
+    # You must have read permission on the forum to see its permissions.
+    #
+    if (not request.user.has_perm("asforums.read_forum", object = d.forum)) or \
+        (request.method == "POST" and \
+         not request.user.has_perm("asforums.change_discussion", object = d)):
+        raise PermissionDenied
+    return rlp_edit(request, d, template = "asforums/disc_perms.html")
 
 ############################################################################
 #
@@ -678,6 +696,24 @@ def post_detail(request, post_id):
 
     return object_detail(request, Post.objects.readable(request.user),
                          object_id = post_id)
+
+############################################################################
+#
+@login_required
+def post_perms(request, post_id):
+    """
+    Display / edit the row level permissions for a post.
+    """
+    p = get_object_or_404(Post, pk = post_id)
+
+    # You must have edit permission on the post to modify the permissions.
+    # You must have read permission on the discussion to see its permissions.
+    #
+    if (not request.user.has_perm("asforums.read_discussion", object = p.discussion)) or \
+        (request.method == "POST" and \
+         not request.user.has_perm("asforums.change_post", object = p)):
+        raise PermissionDenied
+    return rlp_edit(request, p, template = "asforums/post_perms.html")
 
 ############################################################################
 #

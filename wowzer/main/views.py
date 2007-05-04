@@ -58,6 +58,8 @@ class PermissionForm(forms.Form):
                            "group you wish to add a permission for.")
     permission = forms.IntegerField(help_text = "Select the permission you "
                                     "wish to add.")
+    negative = forms.BooleanField(help_text = "Negative permission.",
+                                  initial = False)
     current_perms = forms.MultipleChoiceField(label = "Current Permissions",
                                               help_text = "Select the permissi"
                                               "ons you wish to remove from "

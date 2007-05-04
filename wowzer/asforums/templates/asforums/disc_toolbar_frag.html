@@ -30,7 +30,7 @@ with appropriate permission controls.
         <li><a href="./update/">{% icon "pencil" "Edit" %}</a></li>
       {% end_fancy_if %}
       {% fancy_if or "asforums.update_discussion" discussion "asforums.moderate_forum" discussion.forum %}
-        <li>{% icon "cog_edit" "Permissions" %}</li>
+        <li><a href="./perms/">{% icon "cog_edit" "Permissions" %}</a></li>
       {% end_fancy_if %}
     {% endif %}
     <li><a href="./">{% icon "link" "Permanent link to this discussion" %}</a></li>

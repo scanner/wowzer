@@ -1,22 +1,36 @@
 {% extends "asforums/listing.html" %}
+{% load auth wowzertags asforums_tags %}
 {% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="/asforums/forum_collections/">Forum Collections</a>&nbsp&raquo;&nbsp;<a href=".">{{ forum_collection.name }}</a>{% endblock %}
 {% block prelisting %}
 <h1>{{ forum_collection.name }}</h1>
 <p>
-<div>
+<div id="disc_header">
   <span class="byline">{{ forum_collection.blurb }}</span><br>
-  Creator: {{ forum_collection.creator }}<br>
+  Creator: {{ forum_collection.author }}<br>
   Number of forums: {{ forum_collection.forum_set.count }}<br>
   Number of Active Discussions: Unimplemented<br>
   Last Post: Unimplemented<br>
 </div>
 <div class="tags">
-
+</div>
+<div class="toolbar">
+  <ul>
+    {% if_has_perm "asforums.delete_forumcollection" forum_collection %}
+      <li><a href="./delete/">{% icon "delete" "Delete" %}</a></li>
+    {% end_if_has_perm %}
+    {% if_has_perm "asforums.change_forumcollection" forum_collection %}
+      <li><a href="./update/">{% icon "pencil" "Edit" %}</a></li>
+      <li><a href="./perms/">{% icon "cog_edit" "Permissions" %}</a></li>
+    {% end_if_has_perm %}
+    {% if_has_perm "asforums.createforum_forumcollection" forum_collection %}
+      <li><a href="./create_forum/">{% icon "folder_add" "Create Forum" %}</a></li>
+    {% end_if_has_perm %}
+  </ul>
 </div>
 </p>
 {% endblock %}
 {% block listing %}
-<p>
+<div class="forums">
 {% if object_list %}
 <table class="listing">
   <tr>
@@ -40,5 +54,21 @@
 {% else %}
 There are no forums in this forum collection.
 {% endif %}
-</p>
+</div>
+{% endblock %}
+{% block postlisting %}
+<div class="toolbar">
+  <ul>
+    {% if_has_perm "asforums.delete_forumcollection" forum_collection %}
+      <li><a href="./delete/">{% icon "delete" "Delete" %}</a></li>
+    {% end_if_has_perm %}
+    {% if_has_perm "asforums.change_forumcollection" forum_collection %}
+      <li><a href="./update/">{% icon "pencil" "Edit" %}</a></li>
+      <li><a href="./perms/">{% icon "cog_edit" "Permissions" %}</a></li>
+    {% end_if_has_perm %}
+    {% if_has_perm "asforums.createforum_forumcollection" forum_collection %}
+      <li><a href="./create_forum/">{% icon "folder_add" "Create Forum" %}</a></li>
+    {% end_if_has_perm %}
+  </ul>
+</div>
 {% endblock %}

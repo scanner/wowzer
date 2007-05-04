@@ -1,4 +1,6 @@
 {% extends "asforums/listing.html" %}
+{% load auth wowzertags asforums_tags %}
+{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="/asforums/forum_collections/">Forum Collections</a>&nbsp&raquo;&nbsp;<a href="{{ forum.collection.get_absolute_url }}">{{ forum.collection.name }}</a>&nbsp&raquo;&nbsp;<a href=".">{{ forum.name }}</a>{% endblock %}
 {% block prelisting %}
 <h1>{{ forum.name }}</h1>
 <p>
@@ -11,6 +13,20 @@
 </div>
 <div class="tags">
 
+</div>
+<div class="toolbar">
+  <ul>
+    {% if_has_perm "asforums.delete_forum" forum %}
+      <li><a href="./delete/">{% icon "delete" "Delete" %}</a></li>
+    {% end_if_has_perm %}
+    {% if_has_perm "asforums.change_forum" forum %}
+      <li><a href="./update/">{% icon "pencil" "Edit" %}</a></li>
+      <li><a href="./perms/">{% icon "cog_edit" "Permissions" %}</a></li>
+    {% end_if_has_perm %}
+    {% if_has_perm "asforums.discuss_forum" forum %}
+      <li><a href="./create_discussion/">{% icon "report_add" "Create Discussion" %}</a></li>
+    {% end_if_has_perm %}
+  </ul>
 </div>
 </p>
 {% endblock %}
@@ -40,4 +56,20 @@
 There are no discussions in this forum.
 {% endif %}
 </p>
+{% endblock %}
+{% block postlisting %}
+<div class="toolbar">
+  <ul>
+    {% if_has_perm "asforums.delete_forum" forum %}
+      <li><a href="./delete/">{% icon "delete" "Delete" %}</a></li>
+    {% end_if_has_perm %}
+    {% if_has_perm "asforums.change_forum" forum %}
+      <li><a href="./update/">{% icon "pencil" "Edit" %}</a></li>
+      <li><a href="./perms/">{% icon "cog_edit" "Permissions" %}</a></li>
+    {% end_if_has_perm %}
+    {% if_has_perm "asforums.discuss_forum" forum %}
+      <li><a href="./create_discussion/">{% icon "report_add" "Create Discussion" %}</a></li>
+    {% end_if_has_perm %}
+  </ul>
+</div>
 {% endblock %}

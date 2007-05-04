@@ -141,13 +141,13 @@ blockquote {
 
 .toolbar {
 	float: right;
-	margin: 0 10px 0 0;
-  background: #bbb;
-  padding: 3px 3px;
+	margin: 0 0 0 0;
+	background: #bbb;
+	padding: 3px 3px;
 	width: 200px;
 }
 
-ul.toolbar {
+.toolbar ul {
   margin-left: 0; 
   padding-left: 0;
   white-space: nowrap;
@@ -239,7 +239,9 @@ text-decoration: none;
     padding: 1em;
 }
 
-#body table { width: 100%; }
+#body table { width: 100%;
+	clear: right;
+}
 #body table th {
   background: #c9cfc3;
   font-variant: small-caps;

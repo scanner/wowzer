@@ -69,7 +69,7 @@ for index in range(3):
                                                         'view_forumcollection')
     for perm in ('view_forumcollection', 'read_forumcollection',
                  'discuss_forumcollection', 'post_forumcollection'):
-        print  "Setting permission %s" % perm
+        print  "On %s - setting permission %s for %s" % (fc, perm, everyone)
         if index == 0:
             # Everyone can view, read, post, and create discussions in forum
             # collection 0.
@@ -127,7 +127,7 @@ for index in range(3):
             disc_list.append(d)
             if not created:
                 continue
-            
+
             print "Created discussion %s" % d.name
 
 for index in range(3):

@@ -67,6 +67,19 @@ def inherit_permissions(object, container):
 
 #############################################################################
 #
+def add_all_permissions(obj, owner):
+    """
+    Adds all permissions that an object has, including its default
+    'change' and 'delete' (but not 'add') as row level permissios for the
+    given user.
+    """
+    RowLevelPermission.objects.create_default_row_permissions(obj,owner)
+    for perm,ign in obj._meta.permissions:
+        RowLevelPermission.objects.create_row_level_permission(obj, owner, perm)
+    return
+
+#############################################################################
+#
 def slugify(value, length):
     """Take the given string and slugify it, making sure it does not exceed
     the specified length.
@@ -120,7 +133,7 @@ class ForumCollectionManager(models.Manager):
             q = Q(id__in = fc_moderate)
 
         return self.filter(q)
-    
+
 #############################################################################
 #
 class ForumCollection(models.Model):
@@ -140,7 +153,7 @@ class ForumCollection(models.Model):
     >>> fc2,ign = ForumCollection.objects.get_or_create(name='foo2',
     ...                                                 author = u,
     ...                                                 blurb = 'no blurb')
-    
+
     # See where they live.
     #
     >>> fc1.get_absolute_url()
@@ -155,7 +168,7 @@ class ForumCollection(models.Model):
     author = models.ForeignKey(User, db_index = True)
     created = models.DateTimeField(auto_now_add = True, editable = False)
     tags = models.GenericRelation(TaggedItem)
-    
+
     objects = ForumCollectionManager()
 
     class Admin:
@@ -167,15 +180,15 @@ class ForumCollection(models.Model):
         permissions = (("view_forumcollection",
                         "Can see the forum collection"),
                        ("moderate_forumcollection",
-                        "Can moderate all the forums in collection"),
+                        "Can moderate all the forums in the collection"),
                        ("createforum_forumcollection",
-                        "Can create a forum in collection"),
+                        "Can create a forum in the collection"),
                        ("discuss_forumcollection",
-                        "Can create a discussion in forum"),
+                        "Can create a discussion in the forum"),
                        ("read_forumcollection",
-                        "Can ready discussions in forum"),
+                        "Can read discussions in the forum"),
                        ("post_forumcollection",
-                        "Can post in a discussion in forum"))
+                        "Can post to a discussion in the forum"))
 
     #########################################################################
     #
@@ -186,6 +199,32 @@ class ForumCollection(models.Model):
     #
     def get_absolute_url(self):
         return "/asforums/forum_collections/%d/" % self.id
+
+    #########################################################################
+    #
+    def save(self):
+        """
+        When creating a forum collection we make sure that the creator has
+        all of the basic row level permissions for this forum collection.
+        """
+
+        # If this fc is being created we need to save that so that we can
+        # add the row level permissions after it has been saved.
+        #
+        created = False
+        if not self.id:
+            created = True
+
+        res = super(ForumCollection, self).save()
+
+        if created:
+            # If this was freshly created. Give the author all
+            # permissions (except 'add' because that does not relate
+            # to any instance of a fc)
+            #
+            add_all_permissions(self, self.author)
+
+        return
 
 #############################################################################
 #
@@ -259,7 +298,7 @@ class Forum(models.Model):
     >>> fc,ign = ForumCollection.objects.get_or_create(name='foo1',
     ...                                                author = u,
     ...                                                blurb = 'no blurb')
-    
+
     >>> f,ign = Forum.objects.get_or_create(name='forum1', blurb = 'no blurb',
     ...                                     author = u, collection = fc)
 
@@ -301,9 +340,9 @@ class Forum(models.Model):
                        ("discuss_forum",
                         "Can create discussions in the forum"),
                        ("read_forum",
-                        "Can ready discussions in forum"),
+                        "Can read discussions in the forum"),
                        ("post_forum",
-                        "Can post in discussions in the forum"))
+                        "Can post to discussions in the forum"))
 
     #########################################################################
     #
@@ -331,13 +370,17 @@ class Forum(models.Model):
             created = True
 
         res = super(Forum,self).save()
-    
+
         # Okay, if this save() created this forum, then create new row level
         # permissions on the forum based on the permissions on the forum
         # collection that are said to inherit (see the 'permission_inheritance'
         # dictionary.
         #
+        # The creator of the forum also gets all of the forum permissions
+        # as well.
+        #
         if created:
+            add_all_permissions(self, self.author)
             inherit_permissions(self, self.collection)
 
         return res
@@ -431,7 +474,7 @@ class Discussion(models.Model):
     '/asforums/discs/1/'
     >>> d.forum
     <Forum: forum1>
-    
+
     """
 
     name = models.CharField(maxlength = 128, db_index = True, blank = False)
@@ -476,7 +519,7 @@ class Discussion(models.Model):
         unique_together = (("name", "forum"),)
         permissions = (("post_discussion",
                         "Can post to the discussion"),)
-        
+
     #########################################################################
     #
     def __str__(self):
@@ -503,14 +546,16 @@ class Discussion(models.Model):
             created = True
 
         res = super(Discussion,self).save()
-    
+
         # Okay, if this save() created this forum, then create new row level
         # permissions on the discussion based on the permissions on the forum
         # that are said to inherit (see the 'permission_inheritance'
-        # dictionary.
+        # dictionary. The creator of the discussion also gets all the
+        # permissions for the discussion.
         #
         if created:
             inherit_permissions(self, self.forum)
+            add_all_permissions(self, self.author)
 
         return res
 
@@ -660,14 +705,15 @@ class Post(models.Model):
 
         if created:
             inherit_permissions(self, self.discussion)
+            add_all_permissions(self, self.author)
 
         return res
-    
+
     #########################################################################
     #
     def __str__(self):
         return "Post %d in discussion %s in forum %s" % \
-            (self.id,
+            (self.post_number,
              self.discussion.name,
              self.discussion.forum.name)
 

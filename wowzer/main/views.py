@@ -101,8 +101,15 @@ def rlp_edit(request, obj, template = "main/rlp_generic_template.html",
             string = "User: %s - %s" % (rlp.owner.username, perm_name)
         rlp_choices.append((rlp.id, string))
 
+    # The row level permissions that can be added to this object. This is all
+    # of the permissions that the object has, minus the 'add_' permission.
+    #
+    add_codename = 'add_%s' % ct.model
+    print "Add codename is: '%s'" % add_codename
     PermissionForm.base_fields['permission'].widget = \
-               widgets.Select(choices = [(x.id, x.name) for x in obj_perms])
+               widgets.Select(choices = [(x.id, x.name) \
+                                         for x in obj_perms \
+                                         if x.codename != add_codename])
     PermissionForm.base_fields['current_perms'].widget = \
                widgets.CheckboxSelectMultiple(choices = rlp_choices)
 

@@ -114,25 +114,14 @@ class ForumCollectionManager(models.Manager):
         # lack one of the permissions the 'select' will fail due to
         # something like "in ()" where the '()' is empty.
 
-        fc_view = RowLevelPermission.objects.get_model_list(\
+        fc_list = RowLevelPermission.objects.get_model_list(\
             user, ForumCollection, 'view_forumcollection')
-        fc_moderate = RowLevelPermission.objects.get_model_list(\
-            user, ForumCollection, 'moderate_forumcollection')
+        fc_list.extend(RowLevelPermission.objects.get_model_list(\
+                user, ForumCollection, 'moderate_forumcollection'))
 
-        print "Forum collections with view: %s" % str(fc_view)
-        print "Forum collections with moderate: %s" % str(fc_moderate)
-
-        if len(fc_view) == 0 and len(fc_moderate) == 0:
+        if len(fc_list) == 0:
             return self.none()
-
-        if len(fc_view) != 0 and len(fc_moderate) != 0:
-            q = Q(id__in = fc_view) | Q(id__in = fc_moderate)
-        elif len(f_view) != 0:
-            q = Q(id__in = fc_view)
-        else:
-            q = Q(id__in = fc_moderate)
-
-        return self.filter(q)
+        return self.filter(id__in = fc_list)
 
 #############################################################################
 #
@@ -154,12 +143,58 @@ class ForumCollection(models.Model):
     ...                                                 author = u,
     ...                                                 blurb = 'no blurb')
 
-    # See where they live.
+    # See that they exist.
     #
-    >>> fc1.get_absolute_url()
-    '/asforums/forum_collections/1/'
-    >>> fc2.get_absolute_url()
-    '/asforums/forum_collections/2/'
+    >>> fc1
+    <ForumCollection: foo1>
+    >>> fc2
+    <ForumCollection: foo2>
+
+    # Get the listing of forums collections viewable by the author.
+    #
+    >>> ForumCollection.objects.viewable(u).count()
+    2
+    >>> ForumCollection.objects.viewable(u)
+    [<ForumCollection: foo1>, <ForumCollection: foo2>]
+
+    # Create a second user that does not have view permissions, make sure
+    # that we get no forum collections back when attempting to view them.
+    #
+    >>> u2,ign = User.objects.get_or_create(username='noview')
+    >>> ForumCollection.objects.viewable(u2).count()
+    0
+    >>> ForumCollection.objects.viewable(u2)
+    []
+
+    # Add view permission to fc2 and make sure that u2 can see it.
+    #
+    >>> RowLevelPermission.objects.create_row_level_permission(fc2, u2,
+    ...                                                'view_forumcollection')
+    forum collection | Can see the forum collection | user:noview | forum collection:foo2
+    >>> ForumCollection.objects.viewable(u2).count()
+    1
+    >>> ForumCollection.objects.viewable(u2)
+    [<ForumCollection: foo2>]
+
+    # Create a third user, and give him moderate priveleges. This should let him
+    # see the forum collection
+    #
+    >>> u3,ign = User.objects.get_or_create(username='moderator')
+    >>> ForumCollection.objects.viewable(u3).count()
+    0
+    >>> RowLevelPermission.objects.create_row_level_permission(fc1, u3,
+    ...                                             'moderate_forumcollection')
+    forum collection | Can moderate all the forums in the collection | user:moderator | forum collection:foo1
+    >>> ForumCollection.objects.viewable(u3)
+    [<ForumCollection: foo1>]
+
+    # When all is said and done delete the objects we created.
+    #
+    >>> fc1.delete()
+    >>> fc2.delete()
+    >>> u.delete()
+    >>> u2.delete()
+    >>> u3.delete()
 
     """
     name = models.CharField(maxlength = 128, db_index = True, unique = True,
@@ -176,13 +211,18 @@ class ForumCollection(models.Model):
 
     class Meta:
         get_latest_by = 'created'
+        ordering = ['name']
         row_level_permissions = True
         permissions = (("view_forumcollection",
                         "Can see the forum collection"),
-                       ("moderate_forumcollection",
-                        "Can moderate all the forums in the collection"),
                        ("createforum_forumcollection",
                         "Can create a forum in the collection"),
+                       # The following permissions - discuss,read,post,moderate
+                       # are not permissions on forumcollection actions.
+                       # they are permissions that are set on forums
+                       # created in this forum collection.
+                       ("moderate_forumcollection",
+                        "Can moderate all the forums in the collection"),
                        ("discuss_forumcollection",
                         "Can create a discussion in the forum"),
                        ("read_forumcollection",
@@ -238,6 +278,7 @@ class ForumManager(models.Manager):
         must also have 'view' or 'moderate' permission on the forum
         collections that forum is contained in.
         """
+        import sys # for print stderr
 
         # Super user can see everything.
         #
@@ -251,39 +292,18 @@ class ForumManager(models.Manager):
         # lack one of the permissions the 'select' will fail due to
         # something like "in ()" where the '()' is empty.
         #
-        f_view = RowLevelPermission.objects.get_model_list(\
+        f_list = RowLevelPermission.objects.get_model_list(\
             user, self.model, 'view_forum')
-        f_moderate = RowLevelPermission.objects.get_model_list(\
-            user, self.model, 'moderate_forum')
-        fc_view = RowLevelPermission.objects.get_model_list(\
+        f_list.extend(RowLevelPermission.objects.get_model_list(\
+                user, self.model, 'moderate_forum'))
+        fc_list = RowLevelPermission.objects.get_model_list(\
             user, ForumCollection, 'view_forumcollection')
-        fc_moderate = RowLevelPermission.objects.get_model_list(\
-            user, ForumCollection, 'moderate_forumcollection')
+        fc_list.extend(RowLevelPermission.objects.get_model_list(\
+                user, ForumCollection, 'moderate_forumcollection'))
 
-        print "Forums with view: %s" % str(f_view)
-        print "Forums with moderate: %s" % str(f_moderate)
-        print "Forum collections with view: %s" % str(fc_view)
-        print "Forum collections with moderate: %s" % str(fc_moderate)
-
-        if (len(f_view) == 0 and len(f_moderate) == 0) or \
-            (len(fc_view) == 0 and len(fc_moderate) == 0):
+        if len(f_list) == 0 or len(fc_list) == 0:
             return self.none()
-
-        if len(f_view) != 0 and len(f_moderate) != 0:
-            q1 = Q(id__in = f_view) | Q(id__in = f_moderate)
-        elif len(f_view) != 0:
-            q1 = Q(id__in = f_view)
-        else:
-            q1 = Q(id__in = f_moderate)
-
-        if len(fc_view) != 0 and len(fc_moderate) != 0:
-            q2 = Q(collection__in = fc_view) | Q(collection__in = fc_moderate)
-        elif len(f_view) != 0:
-            q2 = Q(collection__in = fc_view)
-        else:
-            q2 = Q(collection__in = fc_moderate)
-
-        return self.filter(q1).filter(q2)
+        return self.filter(id__in = f_list).filter(collection__in = fc_list)
 
 #############################################################################
 #
@@ -292,7 +312,7 @@ class Forum(models.Model):
 
     # We need to create a forum collection, and we need an author.
     #
-    >>> from django.contrib.auth.models import User
+    >>> from django.contrib.auth.models import User, RowLevelPermission
     >>> u, ign = User.objects.get_or_create(username='fctest')
 
     >>> fc,ign = ForumCollection.objects.get_or_create(name='foo1',
@@ -302,8 +322,8 @@ class Forum(models.Model):
     >>> f,ign = Forum.objects.get_or_create(name='forum1', blurb = 'no blurb',
     ...                                     author = u, collection = fc)
 
-    >>> f.get_absolute_url()
-    '/asforums/forums/1/'
+    >>> f
+    <Forum: forum1>
 
     >>> f.collection
     <ForumCollection: foo1>
@@ -311,6 +331,44 @@ class Forum(models.Model):
     >>> fc.forum_set.all()
     [<Forum: forum1>]
 
+    # Create another user, that does not have view permission on the forum and
+    # make sure that they are not able to see this forum.
+    #
+    >>> u2,ign = User.objects.get_or_create(username='noview')
+    >>> Forum.objects.viewable(u2)
+    []
+
+    # Now give them view permission and make sure that they can see the forum.
+    #
+    >>> RowLevelPermission.objects.create_row_level_permission(fc, u2,
+    ...                                                'view_forumcollection')
+    forum collection | Can see the forum collection | user:noview | forum collection:foo1
+    >>> RowLevelPermission.objects.create_row_level_permission(f, u2,
+    ...                                                        'view_forum')
+    forum | Can see the forum | user:noview | forum:forum1
+    >>> Forum.objects.viewable(u2)
+    [<Forum: forum1>]
+
+    # Make a 3rd user, give them moderate permission and make sure that they
+    # can see the forum.
+    #
+    >>> u3,ign = User.objects.get_or_create(username='moderator')
+    >>> RowLevelPermission.objects.create_row_level_permission(fc, u3,
+    ...                                                'view_forumcollection')
+    forum collection | Can see the forum collection | user:moderator | forum collection:foo1
+    >>> RowLevelPermission.objects.create_row_level_permission(f, u3,
+    ...                                                        'moderate_forum')
+    forum | Can moderate the forum | user:moderator | forum:forum1
+    >>> Forum.objects.viewable(u3)
+    [<Forum: forum1>]
+
+    # When all is said and done delete the objects we created.
+    #
+    >>> f.delete()
+    >>> fc.delete()
+    >>> u.delete()
+    >>> u2.delete()
+    >>> u3.delete()
     """
 
     name = models.CharField(maxlength = 128, db_index = True, blank = False)
@@ -331,6 +389,8 @@ class Forum(models.Model):
 
     class Meta:
         get_latest_by = 'created'
+        order_with_respect_to = 'collection'
+        ordering = ['created']
         row_level_permissions = True
         unique_together = (("name", "collection"),)
         permissions = (("view_forum",
@@ -395,7 +455,7 @@ class DiscussionManager(models.Manager):
     """
     def viewable(self, user):
         """Returns a list of discussions filtered by the given user having
-        'view' or 'moderate' permission on the forum instance that the
+        'read' or 'moderate' permission on the forum instance that the
         discussion is in. They must also have 'view' or 'moderate'
         permission on the forum collections that forum is contained
         in.  """
@@ -405,50 +465,39 @@ class DiscussionManager(models.Manager):
         if user.is_authenticated() and user.is_superuser:
             return self.all()
 
-        # We need to see if they have any 'moderate' or 'view' permissions
-        # and build our query up conditionally based on which they have.
+        # To see a discussion they must have: read and view or
+        # moderate on the forum the discussion is in. They must have
+        # view or moderate on the forum collection that the forum is
+        # in.
         #
-        # This is because if we do it all inline in one query and they
-        # lack one of the permissions the 'select' will fail due to
-        # something like "in ()" where the '()' is empty.
+        # NOTE: Yes, it is possible for someone to have set it up so
+        # that someone has read permission on a forum but not view on
+        # the forum collection thus preventing them from seeing
+        # discussions.
         #
         f_view = RowLevelPermission.objects.get_model_list(\
             user, Forum, 'view_forum')
+        f_read = RowLevelPermission.objects.get_model_list(\
+            user, Forum, 'read_forum')
         f_moderate = RowLevelPermission.objects.get_model_list(\
             user, Forum, 'moderate_forum')
-        fc_view = RowLevelPermission.objects.get_model_list(\
+        f_view.extend(f_moderate)
+        f_read.extend(f_moderate)
+        fc_list = RowLevelPermission.objects.get_model_list(\
             user, ForumCollection, 'view_forumcollection')
-        fc_moderate = RowLevelPermission.objects.get_model_list(\
-            user, ForumCollection, 'moderate_forumcollection')
+        fc_list.extend(RowLevelPermission.objects.get_model_list(\
+                user, ForumCollection, 'moderate_forumcollection'))
 
-        print "Forums with view: %s" % str(f_view)
-        print "Forums with moderate: %s" % str(f_moderate)
-        print "Forum collections with view: %s" % str(fc_view)
-        print "Forum collections with moderate: %s" % str(fc_moderate)
-
-        # If they do not have moderate or view on any forums or forum
-        # collections then they can see no discussions.
+        # If any of our lists is empty then they do not have the
+        # requisite permissions.
         #
-        if (len(f_view) == 0 and len(f_moderate) == 0) or \
-            (len(fc_view) == 0 and len(fc_moderate) == 0):
+        if len(f_view) == 0 or len(f_read) == 0 or len(fc_list) == 0:
             return self.none()
 
-        if len(f_view) != 0 and len(f_moderate) != 0:
-            q1 = Q(forum__in = f_view) | Q(forum__in = f_moderate)
-        elif len(f_view) != 0:
-            q1 = Q(forum__in = f_view)
-        else:
-            q1 = Q(forum__in = f_moderate)
+        q1 = Q(forum__collection__in = fc_list)
+        q2 = Q(forum__in = f_view) & Q(forum__in = f_read)
 
-        if len(fc_view) != 0 and len(fc_moderate) != 0:
-            q2 = Q(forum__collection__in = fc_view) | \
-                Q(forum__collection__in = fc_moderate)
-        elif len(f_view) != 0:
-            q2 = Q(forum__collection__in = fc_view)
-        else:
-            q2 = Q(forum__collection__in = fc_moderate)
-
-        posts = self.filter(q2).filter(q2)
+        return self.filter(q1).filter(q2)
 
 #############################################################################
 #
@@ -457,24 +506,69 @@ class Discussion(models.Model):
 
     # Discussions are posted by an author and exist in a forum
     #
-    >>> from django.contrib.auth.models import User
-    >>> u, ign = User.objects.get_or_create(username='fctest')
-    >>> fc,ign = ForumCollection.objects.get_or_create(name='foo1',
-    ...                                                author = u,
-    ...                                                blurb = 'no blurb')
+    >>> from django.contrib.auth.models import User, RowLevelPermission
+    >>> u = User.objects.create(username='fctest')
+    >>> fc = ForumCollection.objects.create(name='foo1', author = u,
+    ...                                     blurb = 'no blurb')
+    >>> f = Forum.objects.create(name='forum1', blurb = 'no blurb',
+    ...                          author = u, collection = fc)
+    >>> d1 = Discussion.objects.create(name = 'disucssion boo',
+    ...                                forum = f, author = u,
+    ...                                blurb = 'blurbless')
+    >>> d2 = Discussion.objects.create(name = 'disucssion boo 2',
+    ...                                forum = f, author = u,
+    ...                                blurb = 'blurbless')
+    >>> d3 = Discussion.objects.create(name = 'disucssion boo 3',
+    ...                                forum = f, author = u,
+    ...                                blurb = 'blurbless')
 
-    >>> f,ign = Forum.objects.get_or_create(name='forum1', blurb = 'no blurb',
-    ...                                     author = u, collection = fc)
-
-    >>> d, ign = Discussion.objects.get_or_create(name = 'disucssion boo',
-    ...                                           forum = f, author = u,
-    ...                                           blurb = 'blurbless')
-
-    >>> d.get_absolute_url()
-    '/asforums/discs/1/'
-    >>> d.forum
+    >>> d1
+    <Discussion: Discussion disucssion boo in forum forum1>
+    >>> d1.forum
     <Forum: forum1>
 
+    # The author should be able to see the created discussions.
+    #
+    >>> Discussion.objects.viewable(u)
+    [<Discussion: Discussion disucssion boo in forum forum1>, <Discussion: Discussion disucssion boo 2 in forum forum1>, <Discussion: Discussion disucssion boo 3 in forum forum1>]
+
+    # Create a new user that does not have view permissions (yet) and make sure
+    # that they can not see any discussions.
+    #
+    >>> u2 = User.objects.create(username="noview")
+    >>> Discussion.objects.viewable(u2)
+    []
+
+    # Now create a new forum and grant this user view permission on
+    # the forum collection, then create some discussions. They should
+    # be able to see these discussions but still not see the original
+    # three. This should happen because the forum when created will
+    # inherit read & view because the user had view on the forum
+    # collection.
+    #
+    >>> RowLevelPermission.objects.create_row_level_permission(fc, u2,
+    ...                                                  'view_forumcollection')
+    forum collection | Can see the forum collection | user:noview | forum collection:foo1
+    >>> f2 = Forum.objects.create(name='forum viewable', blurb = 'no blurb',
+    ...                           author = u, collection = fc)
+    >>> d4 = Discussion.objects.create(name = 'disucssion boo 4',
+    ...                                forum = f2, author = u,
+    ...                                blurb = 'blurbless')
+    >>> d5 = Discussion.objects.create(name = 'disucssion boo 5',
+    ...                                forum = f2, author = u,
+    ...                                blurb = 'blurbless')
+    >>> d6 = Discussion.objects.create(name = 'disucssion boo 6',
+    ...                                forum = f2, author = u,
+    ...                                blurb = 'blurbless')
+    >>> Discussion.objects.viewable(u2)
+    [<Discussion: Discussion disucssion boo 4 in forum forum viewable>, <Discussion: Discussion disucssion boo 5 in forum forum viewable>, <Discussion: Discussion disucssion boo 6 in forum forum viewable>]
+
+    # And delete our forum collection when we are done.. that should get rid
+    # of all forums and discussions.
+    #
+    >>> fc.delete()
+    >>> u.delete()
+    >>> u2.delete()
     """
 
     name = models.CharField(maxlength = 128, db_index = True, blank = False)
@@ -517,6 +611,8 @@ class Discussion(models.Model):
         get_latest_by = 'created'
         row_level_permissions = True
         unique_together = (("name", "forum"),)
+        order_with_respect_to = 'forum'
+        ordering = ['created']
         permissions = (("post_discussion",
                         "Can post to the discussion"),)
 
@@ -572,84 +668,126 @@ class PostManager(models.Manager):
     """
 
     def readable(self, user):
-        """Returns a query set of posts that are readable by the given user. A
-        post is readable if the user has view permissions on the forum
-        and forum collection and read permission on the discussion
-        containing a post. A post is also readable if the user has
-        moderate permissions on the forum containing the discussion
-        containing the post."""
+        """
+        Returns a query set of posts that are readable by the given
+        user. A post is readable if read and view or moderate on the
+        forum the discussion is in. They must have view or moderate on
+        the forum collection that the forum is in.
 
-        # Super user can see everything.
+        If a discussion is 'locked' then the posts in that discussion
+        are not readable, unless the user has moderate permission on the
+        forum that the discussion is in.
+
+        NOTE: Yes, it is possible for someone to have set it up so
+        that someone has read permission on a forum but not view on
+        the forum collection thus preventing them from seeing
+        discussions.
+        """
+        # Superuser can see everything.
         #
         if user.is_authenticated() and user.is_superuser:
             return self.all()
 
-        # So, the user must have moderate|view permissions on the
-        # containing forum and forum collection, and read permission
-        # on the discussion the post is contained in.
-        #
         f_view = RowLevelPermission.objects.get_model_list(\
             user, Forum, 'view_forum')
-        f_moderate = RowLevelPermission.objects.get_model_list(\
-            user, Forum, 'moderate_forum')
-        fc_view = RowLevelPermission.objects.get_model_list(\
-            user, ForumCollection, 'view_forumcollection')
-        fc_moderate = RowLevelPermission.objects.get_model_list(\
-            user, ForumCollection, 'moderate_forumcollection')
-
-        # If they do not have moderate or view on any forums or forum
-        # collections then having read on a specific discussion does
-        # no good.
-        #
-        if (len(f_view) == 0 and len(f_moderate) == 0) or \
-            (len(fc_view) == 0 and len(fc_moderate) == 0):
-            return self.none()
-
-        # if they have moderate or view on a fc and moderate on a f
-        # they can read all posts in all discussions in the f they
-        # have moderate on
-        #
-        # If they have moderate or view on a fc and view on a f and
-        # read on a discussion then they can read all posts in that
-        # discussion.
-        #
-        if len(f_view) != 0 and len(f_moderate) != 0:
-            q1 = Q(discussion__forum__in = f_view) | \
-                Q(discussion__forum__in = f_moderate)
-        elif len(f_view) != 0:
-            q1 = Q(discussion__forum__in = f_view)
-        else:
-            q1 = Q(discussion__forum__in = f_moderate)
-
-        if len(fc_view) != 0 and len(fc_moderate) != 0:
-            q2 = Q(discussion__forum__collection__in = fc_view) | \
-                Q(discussion__forum__collection__in = fc_moderate)
-        elif len(f_view) != 0:
-            q2 = Q(discussion__forum__collection__in = fc_view)
-        else:
-            q2 = Q(discussion__forum__collection__in = fc_moderate)
-
-
-        # Now we need to know what forums the user has read on.
         f_read = RowLevelPermission.objects.get_model_list(\
             user, Forum, 'read_forum')
-        if len(f_read) == 0 and len(f_moderate) == 0:
+        f_moderate = RowLevelPermission.objects.get_model_list(\
+            user, Forum, 'moderate_forum')
+        f_view.extend(f_moderate)
+        f_read.extend(f_moderate)
+        fc_list = RowLevelPermission.objects.get_model_list(\
+            user, ForumCollection, 'view_forumcollection')
+        fc_list.extend(RowLevelPermission.objects.get_model_list(\
+                user, ForumCollection, 'moderate_forumcollection'))
+
+        # If any of our lists is empty then they do not have the
+        # requisite permissions.
+        #
+        if len(f_view) == 0 or len(f_read) == 0 or len(fc_list) == 0:
             return self.none()
 
-        if len(f_read) !=0 and len(f_moderate) != 0:
-            q3 = Q(discussion__in = f_read, discussion__locked = False) | \
-                Q(discussion__forum__in = f_moderate)
-        elif len(f_read) != 0:
-            q3 = Q(discussion__in = f_read, discussion__locked = False)
-        else:
-            q3 = Q(discussion__forum__in = f_moderate)
-
-        return self.filter(q3).filter(q2).filter(q1)
+        q1 = Q(discussion__forum__collection__in = fc_list)
+        q2 = Q(discussion__forum__in = f_view) & Q(discussion__forum__in = f_read) & Q(discussion__locked = False)
+        q3 = Q(discussion__forum__in = f_moderate)
+        q4 = q2 | q3
+        return self.filter(q1).filter(q4)
 
 #############################################################################
 #
 class Post(models.Model):
-    """Posts, in a discussion, in a forum.
+    """
+    Posts, in a discussion, in a forum.
+
+    >>> u = User.objects.create(username='fctest')
+    >>> fc = ForumCollection.objects.create(name='foo1', author = u,
+    ...                                     blurb = 'no blurb')
+    >>> f = Forum.objects.create(name='forum1', blurb = 'no blurb',
+    ...                          author = u, collection = fc)
+    >>> d1 = Discussion.objects.create(name = 'disucssion boo',
+    ...                                forum = f, author = u,
+    ...                                blurb = 'blurbless')
+    >>> d2 = Discussion.objects.create(name = 'disucssion boo 2',
+    ...                                forum = f, author = u,
+    ...                                blurb = 'blurbless')
+    >>> p1 = d1.post_set.create(author = u, content = "test content")
+    >>> d1.post_set.create(author = u, content = "test content2",
+    ...                    in_reply_to = p1)
+    <Post: Post 2 in discussion disucssion boo in forum forum1>
+    >>> p1.replies.all()
+    [<Post: Post 2 in discussion disucssion boo in forum forum1>]
+
+    >>> p2 = d2.post_set.create(author = u, content = "U!")
+    >>> d2.post_set.create(author = u, content = "NO U!", in_reply_to = p2)
+    <Post: Post 2 in discussion disucssion boo 2 in forum forum1>
+
+    >>> p2.replies.all()
+    [<Post: Post 2 in discussion disucssion boo 2 in forum forum1>]
+
+    >>> d1.post_set.all()
+    [<Post: Post 1 in discussion disucssion boo in forum forum1>, <Post: Post 2 in discussion disucssion boo in forum forum1>]
+
+    >>> d2.post_set.all()
+    [<Post: Post 1 in discussion disucssion boo 2 in forum forum1>, <Post: Post 2 in discussion disucssion boo 2 in forum forum1>]
+
+    >>> Post.objects.readable(u).order_by('discussion', 'post_number')
+    [<Post: Post 1 in discussion disucssion boo in forum forum1>, <Post: Post 2 in discussion disucssion boo in forum forum1>, <Post: Post 1 in discussion disucssion boo 2 in forum forum1>, <Post: Post 2 in discussion disucssion boo 2 in forum forum1>]
+
+    # Now we make a new user. At first he will not have sufficient permissions
+    # so no posts should be readable.
+    #
+    >>> u2 = User.objects.create(username="noview")
+    >>> Post.objects.readable(u2).order_by('discussion', 'post_number')
+    []
+
+    # Now we give u2 the necessary permissions to read posts in our forum.
+    # (NOTE: but not moderate!)
+    #
+    >>> RowLevelPermission.objects.create_row_level_permission(fc, u2,
+    ...                                                  'view_forumcollection')
+    forum collection | Can see the forum collection | user:noview | forum collection:foo1
+    >>> RowLevelPermission.objects.create_row_level_permission(f, u2,
+    ...                                                  'view_forum')
+    forum | Can see the forum | user:noview | forum:forum1
+    >>> RowLevelPermission.objects.create_row_level_permission(f, u2,
+    ...                                                  'read_forum')
+    forum | Can read discussions in the forum | user:noview | forum:forum1
+    >>> Post.objects.readable(u2).order_by('discussion', 'post_number')
+    [<Post: Post 1 in discussion disucssion boo in forum forum1>, <Post: Post 2 in discussion disucssion boo in forum forum1>, <Post: Post 1 in discussion disucssion boo 2 in forum forum1>, <Post: Post 2 in discussion disucssion boo 2 in forum forum1>]
+
+    # Now we 'lock' discussion 'boo 2' because it has inappropriate
+    # content.  u should still be able to read it, since they are a
+    # moderator of f.  However u2 should not be able to see the posts
+    # in 'boo 2' (but still see the ones in 'boo') because they are
+    # NOT a moderator.
+    >>> d2.locked = True
+    >>> d2.save()
+
+    >>> Post.objects.readable(u).order_by('discussion', 'post_number')
+    [<Post: Post 1 in discussion disucssion boo in forum forum1>, <Post: Post 2 in discussion disucssion boo in forum forum1>, <Post: Post 1 in discussion disucssion boo 2 in forum forum1>, <Post: Post 2 in discussion disucssion boo 2 in forum forum1>]
+
+    >>> Post.objects.readable(u2).order_by('discussion', 'post_number')
+    [<Post: Post 1 in discussion disucssion boo in forum forum1>, <Post: Post 2 in discussion disucssion boo in forum forum1>]
     """
 
     author = models.ForeignKey(User, db_index = True, editable = False)
@@ -684,6 +822,8 @@ class Post(models.Model):
     class Meta:
         get_latest_by = 'created'
         row_level_permissions = True
+        order_with_respect_to = 'discussion'
+        ordering = ['post_number']
 
         # because of how we assign post numbers we can not insure that they
         # are unique per discussion.

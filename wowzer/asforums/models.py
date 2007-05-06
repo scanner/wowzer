@@ -788,6 +788,12 @@ class Post(models.Model):
 
     >>> Post.objects.readable(u2).order_by('discussion', 'post_number')
     [<Post: Post 1 in discussion disucssion boo in forum forum1>, <Post: Post 2 in discussion disucssion boo in forum forum1>]
+
+    # And clean up.
+    #
+    >>> fc.delete()
+    >>> u.delete()
+    >>> u2.delete()
     """
 
     author = models.ForeignKey(User, db_index = True, editable = False)

@@ -36,11 +36,18 @@ from django.http import HttpResponseRedirect
 #
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import user_passes_test
 
 # Wowzer utility functions
 #
 from wowzer.utils import msg_user
 from wowzer.main.views import rlp_edit
+from wowzer.main.fields import UserOrGroupField
+
+# Django contrib models
+#
+from django.contrib.auth.models import User, Group, Permission
+from django.contrib.contenttypes.models import ContentType
 
 # The data models from our apps:
 #
@@ -98,9 +105,7 @@ def fc_detail(request, fc_id):
     # You must have read permission on a fc to read it.
     #
     if not request.user.has_perm("asforums.read_forumcollection", object = fc):
-        return HttpResponseForbidden("You do not have the requisite "
-                                     "permissions to see this forum "
-                                     "collection")
+        raise PermissionDenied
 
     ec = { 'forum_collection' : fc }
     query_set = fc.forum_set.viewable(request.user).order_by('created')
@@ -109,6 +114,125 @@ def fc_detail(request, fc_id):
                        template_name = "asforums/fc_detail.html",
                        extra_context = ec)
 
+############################################################################
+#
+class AddForumCollectionCreatePermForm(forms.Form):
+    user_or_group = UserOrGroupField(label = "User or Group",
+                                     help_text = "The user or group to grant "
+                                     "forum collection create priveleges to.")
+
+############################################################################
+#
+class DelForumCollectionCreatePermForm(forms.Form):
+    groups = forms.MultipleChoiceField(label = "Groups",
+                                       required = False,
+                                       help_text = "Groups " \
+                                       "that have 'create' forum " \
+                                       "collection permission. Check the " \
+                                       "ones that you wish to remove the " \
+                                       "permission from.")
+    users = forms.MultipleChoiceField(label = "Users",
+                                      required = False,
+                                      help_text = "Users " \
+                                      "that have 'create' forum " \
+                                      "collection permission. Check the ones "\
+                                      "that you wish to remove the permission"\
+                                      " from.")
+    
+############################################################################
+#
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def fc_create_perm(request):
+    """
+    The permission to create a forum collection is a class or model
+    permission. It uses the simple style django permission to set that
+    you can create a forum collection object.
+
+    This is the only permission that can be set this way via the webui
+    for the entire forum system. As forms go it is also pretty
+    simple. Whether the entity is a user or a group, the name of the
+    user or group.
+    """
+
+    # We need to construct the values for the current set of users and groups
+    # that have this permission.
+    #
+    create_perm = Permission.objects.select_related().get(\
+             codename="add_forumcollection",
+             content_type = ContentType.objects.get_for_model(ForumCollection))
+
+    user_choices = []
+    group_choices = []
+    for user in create_perm.user_set.all():
+        user_choices.append((str(user.id), user.username))
+    for group in create_perm.group_set.all():
+        group_choices.append((str(group.id), group.name))
+
+    DelForumCollectionCreatePermForm.base_fields['groups'].choices = \
+                                                                  group_choices
+    DelForumCollectionCreatePermForm.base_fields['groups'].widget = \
+                    widgets.CheckboxSelectMultiple(choices = group_choices)
+    DelForumCollectionCreatePermForm.base_fields['users'].choices = \
+                                                                  user_choices
+    DelForumCollectionCreatePermForm.base_fields['users'].widget = \
+                    widgets.CheckboxSelectMultiple(choices = user_choices)
+    
+    # This is a post they have submitted one of the two forms. Based on the
+    # 'submit' button they pushed we determine which form was submitted.
+    #
+    if request.method == "POST":
+        # The 'add create permission' form
+        #
+        if request.POST["submit"] == "Add create permission":
+            add_form = AddForumCollectionCreatePermForm(request.POST)
+            if add_form.is_valid():
+                u_or_g, name = add_form.clean_data['user_or_group'].split(',')
+                if u_or_g == "user":
+                    u = User.objects.get(username=name)
+                    u.user_permissions.add(create_perm)
+                else:
+                    g = Group.objects.get(name=name)
+                    g.permissions.add(create_perm)
+                msg_user(request.user, "Added '%s' permission to %s " \
+                         "%s." % (create_perm, u_or_g, name))
+                return HttpResponseRedirect(".")
+        else:
+            add_form = AddForumCollectionCreatePermForm()
+
+        # The 'delete create permission' form. This is a teeny bit
+        # trickier as the 'selected' items in our form are the entities
+        # to remove the 'create forum collection' permission from.
+        #
+        if request.POST["submit"] == "Remove create permission":
+            rem_form = DelForumCollectionCreatePermForm(request.POST)
+            if rem_form.is_valid():
+                for g_id in rem_form.clean_data['groups']:
+                    try:
+                        g = Group.objects.get(pk = g_id)
+                        g.permissions.remove(create_perm)
+                        msg_user(request.user, "Removed '%s' permission " \
+                                 "from group %s." % (create_perm, g.name))
+                    except Group.DoesNotExist:
+                        pass
+                for u_id in rem_form.clean_data['users']:
+                    try:
+                        u = User.objects.get(pk = u_id)
+                        u.user_permissions.remove(create_perm)
+                        msg_user(request.user, "Removed '%s' permission " \
+                                 "from user %s." % (create_perm, u.username))
+                    except Group.DoesNotExist:
+                        pass
+                return HttpResponseRedirect(".")
+        else:
+            rem_form = DelForumCollectionCreatePermForm()
+    else:
+        add_form = AddForumCollectionCreatePermForm()
+        rem_form = DelForumCollectionCreatePermForm()
+        
+    t = get_template("asforums/fc_create_perm.html")
+    c = Context(request, {'add_form' : add_form, 'rem_form' : rem_form })
+    return HttpResponse(t.render(c))
+    
 ############################################################################
 #
 @login_required
@@ -144,10 +268,9 @@ def fc_update(request, fc_id):
 
     # You must have change permission on a fc.
     #
-    if not request.user.has_perm("asforums.change_forumcollection", object = fc):
-        return HttpResponseForbidden("You do not have the requisite "
-                                     "permissions to change this forum "
-                                     "collection")
+    if not request.user.has_perm("asforums.change_forumcollection",
+                                 object = fc):
+        raise PermissionDenied
 
     FCForm = forms.models.form_forinstance(fc)
     if request.method == "POST":
@@ -181,9 +304,8 @@ def fc_delete(request):
     #
     if not request.user.has_perm("asforums.delete_forumcollection",
                                  object = fc):
-        return HttpResponseForbidden("You do not have the requisite "
-                                     "permissions to delete this forum "
-                                     "collection")
+        raise PermissionDenied
+
     return delete_object(request, ForumCollection,
                          "/asforums/forum_collections/",
                          object_id = fc_id,
@@ -234,8 +356,7 @@ def forum_create(request,fc_id):
     fc = get_object_or_404(ForumCollection, pk = fc_id)
 
     if not request.user.has_perm('createforum_forumcollection', object = fc):
-        return HttpResponseForbidden("You do not have the requisite "
-                                     "permissions to create this forum.")
+        raise PermissionDenied
 
     ForumForm = forms.models.form_for_model(Forum)
 
@@ -278,9 +399,8 @@ def forum_detail(request, forum_id):
     if not (r.user.has_perm("asforums.moderate_forum", object = forum) or \
             (r.user.has_perm("asforums.read_forumcollection", object = fc) and \
              r.user.has_perm("asforums.read_forum", object = forum))):
-        return HttpResponseForbidden("You do not have the requisite "
-                                     "permissions to read this forum.")
-
+        raise PermissionDenied
+    
     ec = { 'forum' : forum }
 
     # All discussions in a forum that you can read are viewable.
@@ -309,9 +429,8 @@ def forum_update(request, forum_id):
     if not (request.user.has_perm("asforums.moderate_forumcollection",
                                   object = fc) or \
             request.user.has_perm("asforums.update_forum", object = f)):
-        return HttpResponseForbidden("You do not have "
-                                     "the requisite permissions to update "
-                                     "this forum.")
+        raise PerissionDenied
+    
     ForumForm = forms.models.form_for_instance(f)
 
     if request.method == "POST":
@@ -359,7 +478,7 @@ def forum_delete(request, forum_id):
     XXX stuff here and I feel better with this stub defined.
     """
     try:
-        forum = Forum.objects.get(pk = forum_id)
+        forum = Forum.objects.select_related().get(pk = forum_id)
         fc = forum.collection
     except Forum.DoesNotExist:
         raise Http404
@@ -370,9 +489,8 @@ def forum_delete(request, forum_id):
     if not (request.user.has_perm("asforums.moderate_forumcollection",
                                   object = fc) or \
             request.user.has_perm("asforums.delete_forum", object = forum)):
-        return HttpResponseForbidden("You do not have the requisite "
-                                     "permissions to delete this forum.")
-
+        raise PermissionDenied
+    
     # After delete redirect to the forum collection this forum was in
     #
     return delete_object(request, Forum,
@@ -413,10 +531,8 @@ def disc_create(request, forum_id):
     #
     if not (request.user.has_perm("asforums.moderate_forum", object = f) or \
             request.user.has_perm("asforums.discuss_forum", object = f)):
-        return HttpResponseForbidden("You do not have the requisite "
-                                     "permissions to create discussions in "
-                                     "this forum.")
-
+        raise PermissionDenied
+    
     DiscForm = forms.models.form_for_model(Discussion)
     if request.method == "POST":
         form = DiscForm(request.POST)
@@ -470,9 +586,7 @@ def disc_detail(request, disc_id):
     if not (request.user.has_perm("asforums.moderate_forum", object = f) or \
             (not d.locked and
              request.user.has_perm("asforums.read_forum", object = f))):
-        return HttpResponseForbidden("You do not have "
-                                     "the requisite permissions to read "
-                                     "this discussion.")
+        raise PermissionDenied
 
     # Getting a discussion detail bumps its view count.
     #
@@ -501,12 +615,14 @@ def disc_perms(request, disc_id):
     """
     d = get_object_or_404(Discussion, pk = disc_id)
 
-    # You must have edit permission on the discussion to modify the permissions.
-    # You must have read permission on the forum to see its permissions.
+    # You must have edit permission on the discussion to modify the
+    # permissions.  You must have read permission on the forum to see
+    # its permissions.
     #
-    if (not request.user.has_perm("asforums.read_forum", object = d.forum)) or \
-        (request.method == "POST" and \
-         not request.user.has_perm("asforums.change_discussion", object = d)):
+    if (not request.user.has_perm("asforums.read_forum",
+                                  object = d.forum)) or \
+       (request.method == "POST" and \
+        not request.user.has_perm("asforums.change_discussion", object = d)):
         raise PermissionDenied
     return rlp_edit(request, d, template = "asforums/disc_perms.html")
 
@@ -525,10 +641,8 @@ def disc_update(request, disc_id):
     if not (request.user.has_perm("asforums.moderate_forum", object = f) or \
             (not d.locked and
              request.user.has_perm("asforums.update_discussion", object = d))):
-        return HttpResponseForbidden("You do not have "
-                                     "the requisite permissions to update "
-                                     "this discussion.")
-
+        raise PermissionDenied
+    
     DiscForm = forms.models.form_for_instance(d)
     if request.method == "POST":
         form = DiscForm(request.POST)
@@ -575,9 +689,8 @@ def disc_delete(request, disc_id):
     if not ((request.user.has_perm("asforums.moderate_forum", object = forum)) or \
             (not disc.locked and
              request.user.has_perm("asforums.delete_discussion", object = disc))):
-        return HttpResponseForbidden("You do not have "
-                                     "the requisite permissions to delete "
-                                     "this discussion.")
+        raise PermissionDenied
+
     if request.method == "POST":
         form = DeleteForm(request.POST)
         if form.is_valid():
@@ -614,9 +727,8 @@ def post_create(request, disc_id):
              not disc.closed and \
              request.user.has_perm("asforums.post_discussion", object = disc)) or \
             request.user.has_perm("asforums.moderate_forum", object = forum)):
-        return HttpResponseForbidden("You do not have "
-                                     "the requisite permissions to post to "
-                                     "this discussion.")
+        raise PermissionDenied
+
     # If this post is in reply to another post, the other post's id
     # will passed in via a parameter under "in_reply_to". We make sure
     # that no monkey business is going on.
@@ -690,10 +802,8 @@ def post_detail(request, post_id):
              not post.deleted and \
              request.user.has_perm("asforums.read_discussion",
                                    object = post.discussion))):
-        return HttpResponseForbidden("You do not have "
-                                     "the requisite permissions to read "
-                                     "this post.")
-
+        raise PermissionDenied
+    
     return object_detail(request, Post.objects.readable(request.user),
                          object_id = post_id)
 
@@ -732,10 +842,8 @@ def post_update(request, post_id):
             (not post.discussion.locked and not post.discussion.closed and \
              (post.author == request.user or \
               request.user.has_perm("asforums.update_post", object = post)))):
-        return HttpResponseForbidden("You do not have "
-                                     "the requisite permissions to update "
-                                     "this post.")
-
+        raise PermissionDenied
+    
     PostForm = forms.models.form_for_instance(post)
     PostForm.base_fields['content'].widget = \
                 widgets.Textarea(attrs = {'cols' : '80', 'rows' : '12'})
@@ -784,10 +892,8 @@ def post_delete(request, post_id):
              (post.author == request.user or \
               post.discussion.author == request.user or \
               request.user.has_perm("asforums.delete_post", object = post)))):
-        return HttpResponseForbidden("You do not have "
-                                     "the requisite permissions to delete "
-                                     "this post.")
-
+        raise PermissionDenied
+    
     if request.method == "POST":
         form = PostDeleteForm(request.POST)
         if form.is_valid():

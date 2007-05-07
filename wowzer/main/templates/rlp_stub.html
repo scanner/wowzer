@@ -1,8 +1,17 @@
-{% if form.has_errors %}
-<h2 class="errors">Please correct the following error{{ form.error_dict|pluralize }}:</h2>
+<h2>Add Permission</h2>
+{% if add_form.has_errors %}
+<h3 class="errors">Please correct the following error{{ add_form.error_dict|pluralize }}:</h3>
 {% endif %}
 <form method="post" action=".">
-  {{ form.as_p }}
-  <input type="submit" value="Add Permission" />
-  <input type="submit" value="Remove Permissions" />
+  {{ add_form.as_p }}<br />
+  <input type="submit" name="submit" value="Add Permission" />
+</form>
+
+<h2>Remove Permission</h2>
+{% if rem_form.has_errors %}
+<h3 class="errors">Please correct the following error{{ add_form.error_dict|pluralize }}:</h3>
+{% endif %}
+<form method="post" action=".">
+  {{ rem_form.as_p }}<br />
+  <input type="submit" name="submit" value="Remove Permissions" />
 </form>

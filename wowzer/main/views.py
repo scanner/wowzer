@@ -27,6 +27,11 @@ from django.http import HttpResponseRedirect
 
 from django.contrib.auth.decorators import login_required
 
+# Wowzer imports
+#
+from wowzer.utils import msg_user
+from wowzer.main.fields import UserOrGroupField
+
 # Django provided contrib models.
 #
 from django.contrib.contenttypes.models import ContentType
@@ -47,28 +52,23 @@ def index(request):
 
 #############################################################################
 #
-class PermissionForm(forms.Form):
-    user_or_group = forms.ChoiceField(choices = (("user","User"),
-                                                 ("group","Group")),
-                                      label = "User or group", help_text = \
-                                      "To set whether you are adding a "
-                                      "permission for a user or a group.")
-    name = forms.CharField(max_length = 30, initial = "Username to permit",
-                           help_text = "Enter the name of the user or "
-                           "group you wish to add a permission for.")
+class AddPermissionForm(forms.Form):
+    user_or_group = UserOrGroupField(label = "User or Group",
+                                     help_text = "The user or group to grant "
+                                     "the permission priveleges to.")
     permission = forms.IntegerField(help_text = "Select the permission you "
                                     "wish to add.")
-    negative = forms.BooleanField(help_text = "Negative permission.",
-                                  initial = False)
-    current_perms = forms.MultipleChoiceField(label = "Current Permissions",
-                                              help_text = "Select the permissi"
-                                              "ons you wish to remove from "
-                                              "this object")
+    negative = forms.BooleanField(initial = False, required = False)
 
-    # XXX Hm.. I think we need to write a custom constructor that is
-    # XXX like "form_for_instance" except it uses a permission and the
-    # XXX permission form above to construct the custom form we need for
-    # XXX each permission.
+#############################################################################
+#
+class RemPermissionForm(forms.Form):
+    # We have separate user's and group's listing just
+    # to keep them separate in the UI. We think it makes the UI a bit
+    # more clear.
+    #
+    groups = forms.MultipleChoiceField(label = "Groups", required = False)
+    users = forms.MultipleChoiceField(label = "Users", required = False)
 
 #############################################################################
 #
@@ -91,7 +91,8 @@ def rlp_edit(request, obj, template = "main/rlp_generic_template.html",
     ct = ContentType.objects.get_for_model(obj)
     obj_perms = Permission.objects.select_related().filter(content_type = ct)
     rlps = RowLevelPermission.objects.filter(model_id = obj.id, model_ct = ct)
-    rlp_choices = []
+    rlp_choices_group = []
+    rlp_choices_users = []
     for rlp in rlps:
         if rlp.negative:
             perm_name = "NOT %s" % rlp.permission.name
@@ -99,38 +100,84 @@ def rlp_edit(request, obj, template = "main/rlp_generic_template.html",
             perm_name = rlp.permission.name
         if isinstance(rlp.owner, Group):
             string = "Group: %s - %s" % (rlp.owner.name, perm_name)
+            rlp_choices_group.append((rlp.id, string))
         else:
             string = "User: %s - %s" % (rlp.owner.username, perm_name)
-        rlp_choices.append((rlp.id, string))
+            rlp_choices_users.append((rlp.id, string))
 
     # The row level permissions that can be added to this object. This is all
     # of the permissions that the object has, minus the 'add_' permission.
     #
     add_codename = 'add_%s' % ct.model
     print "Add codename is: '%s'" % add_codename
-    PermissionForm.base_fields['permission'].widget = \
-               widgets.Select(choices = [(x.id, x.name) \
-                                         for x in obj_perms \
-                                         if x.codename != add_codename])
-    PermissionForm.base_fields['current_perms'].widget = \
-               widgets.CheckboxSelectMultiple(choices = rlp_choices)
+    AddPermissionForm.base_fields['permission'].widget = \
+                      widgets.Select(choices = [(x.id, x.name) \
+                                                for x in obj_perms \
+                                                if x.codename != add_codename])
+    RemPermissionForm.base_fields['groups'].choices = rlp_choices_group
+    RemPermissionForm.base_fields['groups'].widget = \
+               widgets.CheckboxSelectMultiple(choices = rlp_choices_group)
+    RemPermissionForm.base_fields['users'].choices = rlp_choices_users
+    RemPermissionForm.base_fields['users'].widget = \
+               widgets.CheckboxSelectMultiple(choices = rlp_choices_users)
 
     # If this is a post they are either removing a permission, or
     # adding a permission. We determine which by the  field
     # in the form submitted.
     #
     if request.method == "POST":
-        form = PermissionForm(request.POST)
-        if form.is_valid():
-            if request.POST["submit"] == "Add Permission":
-                print "Adding permission."
-            elif request.POST["submit"] == "Remove Permissions":
-                print "Remove permission."
-            return HttpResponseRedirect(".")
+        if request.POST["submit"] == "Add Permission":
+            add_form = AddPermissionForm(request.POST)
+            if add_form.is_valid():
+                u_or_g, name = add_form.clean_data['user_or_group'].split(',')
+                if u_or_g == "user":
+                    e = User.objects.get(username=name)
+                else:
+                    e = Group.objects.get(name=name)
+                p_id = add_form.clean_data['permission']
+                p = Permission.objects.get(pk = p_id)
+                RowLevelPermission.objects.create_row_level_permission(\
+                                  obj, e, p, \
+                                  negative = add_form.clean_data['negative'])
+                msg_user(request.user, "Added '%s' permission to '%s' for %s" \
+                                       " %s" % (p.name, obj, u_or_g, name))
+                return HttpResponseRedirect(".")
+        else:
+            add_form = AddPermissionForm()
+
+        # Loop through the list of rlp's in the 'users' and 'groups'
+        # multi-selects.
+        #
+        if request.POST["submit"] == "Remove Permissions":
+            rem_form = RemPermissionForm(request.POST)
+            if rem_form.is_valid():
+                for rlp_id in rem_form.clean_data['groups']:
+                    try:
+                        rlp = RowLevelPermission.objects.get(pk = rlp_id)
+                        rlp.delete()
+                        msg_user(request.user, "Removed '%s' permission " \
+                                 "from group %s" % (rlp.permission.name,
+                                                    rlp.owner.name))
+                    except RowLevelPermission.DoesNotExist:
+                        pass
+                for rlp_id in rem_form.clean_data['users']:
+                    try:
+                        rlp = RowLevelPermission.objects.get(pk = rlp_id)
+                        rlp.delete()
+                        msg_user(request.user, "Removed '%s' permission " \
+                                 "for '%s'" % (rlp.permission.name,
+                                               rlp.owner))
+                    except RowLevelPermission.DoesNotExist:
+                        pass
+                return HttpResponseRedirect(".")
+        else:
+            rem_form = RemPermissionForm()
     else:
-        form = PermissionForm()
+        add_form = AddPermissionForm()
+        rem_form = RemPermissionForm()
 
     t = get_template(template)
-    c = Context(request, { 'object' : obj,
-                           'form'   : form, })
+    c = Context(request, { 'object'   : obj,
+                           'add_form' : add_form,
+                           'rem_form' : rem_form })
     return HttpResponse(t.render(c))

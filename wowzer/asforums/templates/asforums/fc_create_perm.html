@@ -1,14 +1,20 @@
 {% extends "asforums/base.html" %}
 {% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="/asforums/forum_collections/">Forum Collections</a>&nbsp&raquo;&nbsp;<a href=".">Create Permissions</a>{% endblock %}
 {% block content %}
-<h1>Add Create Forum Collection Permission</h1>
+<h2>Add Create Forum Collection Permission</h2>
+{% if add_form.has_errors %}
+<h3 class="errors">Please correct the following error{{ add_form.error_dict|pluralize }}:</h3>
+{% endif %}
 <form method="post" action=".">
-  {{ add_form.as_p }}
+  {{ add_form.as_p }}<br />
   <input type="submit" name="submit" value="Add create permission" />
 </form>
-<h1>Remove Create Forum Collection Permission</h1>
+<h2>Remove Create Forum Collection Permission</h2>
+{% if rem_form.has_errors %}
+<h3 class="errors">Please correct the following error{{ add_form.error_dict|pluralize }}:</h3>
+{% endif %}
 <form method="post" action=".">
-  {{ rem_form.as_p }}
+  {{ rem_form.as_p }}<br />
   <input type="submit" name="submit" value="Remove create permission" />
 </form>
 {% endblock %}

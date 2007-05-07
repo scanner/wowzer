@@ -8,6 +8,7 @@
       {% block pagetitle %}Wowzer{% endblock %}
     </title>
     <link rel="stylesheet" href="{{ MEDIA_URL }}css/plain-style.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="{{ MEDIA_URL }}js/fat.js"></script>
   </head>
   <body>
   <div id="container">
@@ -76,7 +77,7 @@
         <div id="messages">
           <ul>
             {% for message in messages %}
-            <li>{{ message }}</li>
+            <li class="fade-17fe0a">{{ message }}</li>
             {% endfor %}
           </ul>
         </div>

@@ -13,6 +13,7 @@ from wowzer.main.widgets import UserOrGroupWidget
 #
 from django import newforms as forms
 from django.newforms import fields
+from django.newforms.util import ValidationError
 
 # Django contrib model imports
 #

@@ -113,6 +113,7 @@ blockquote {
 	border: 2px dashed red;
 	margin-top: 4px;
 	margin-bottom: 4px;
+	list-style-type: disc;
 }
 
 #content ul.errorlist li {
@@ -297,7 +298,7 @@ text-decoration: none;
 }
 
 #messages ul li {
-	border: 1px solid lime;
+	border: 1px solid #17fe0a;
 	margin: 2px;
 	padding: 1px;
 }

@@ -87,7 +87,7 @@ blockquote {
 .paginate-first, .paginate-last
 {
   padding: 2px 6px;
-  border: 1px solid #997
+  border: 1px solid #997;
   font-weight: bold;
 }
 .paginate-previous, .paginate-next
@@ -103,10 +103,22 @@ blockquote {
 .paginate-current
 {
   padding: 2px 4px;
-  border: 1px solid #997
+  border: 1px solid #997;
   font-weight: bold;
   background: #59452a;
   color: #FFFFCC;
+}
+
+#content ul.errorlist {
+	border: 2px dashed red;
+	margin-top: 4px;
+	margin-bottom: 4px;
+}
+
+#content ul.errorlist li {
+	border: 1px solid fuchsia;
+	margin: 2px;
+	padding: 1px;
 }
 
 /* @end */
@@ -272,3 +284,20 @@ text-decoration: none;
 
 #leftnav p, #rightnav p { margin: 0 0 1em 0; }
 #content h2 { margin: 0 0 .5em 0; }
+
+#content form label {
+	font-weight: bold;
+}
+
+#messages {
+	margin: 5px;
+	padding: 3px;
+	border-color: teal;
+	border-style: solid;
+}
+
+#messages ul li {
+	border: 1px solid lime;
+	margin: 2px;
+	padding: 1px;
+}

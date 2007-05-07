@@ -2,6 +2,17 @@
 {% extends "asforums/listing.html" %}
 {% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="/asforums/forum_collections/">Forum Collections</a>{% endblock %}
 {% block listing %}
+<div class="toolbar">
+  <ul>
+    {% if perms.asforums.add_forumcollection %}
+    <li><a href="./create/">{% icon "folder_add" "Create Forum Collection" %}</a>
+    {% endif %}
+    {% if user.is_staff or user.is_superuser %}
+    <li><a href="./perms/">{% icon "cog_edit" "Forum Collection Create Permissions" %}</a>
+    {% endif %}
+  </ul>
+</div>
+
 <table>
   <tr>
     <th>Forum Collection</th>

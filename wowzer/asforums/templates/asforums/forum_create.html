@@ -5,15 +5,7 @@
 <h2 class="errors">Please correct the following error{{ form.error_dict|pluralize }}:</h2>
 {% endif %}
 <form method="post" action=".">
-<p>
-  <label for="id_name">Name:</label> {{ form.name }}
-  {% if form.name.errors %}*** {{ form.name.errors|join:", " }}{% endif %}
-</p>
-<p>
-  <label for="id_name">Blurb:</label> {{ form.blurb }}
-  {% if form.blurb.errors %}*** {{ form.blurb.errors|join:", " }}{% endif %}
-</p>
-
-<input type="submit" />
+{{ form.as_p }}
+<input type="submit" value = "Create Forum" />
 </form>
 {% endblock %}

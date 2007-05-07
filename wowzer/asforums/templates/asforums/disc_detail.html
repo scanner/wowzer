@@ -109,5 +109,7 @@ There are no posts in this discussion.
 {% end_fancy_if %}
 {% endblock %}
 {% block postlisting %}
+{% if object_list %}
   {% include "asforums/disc_toolbar_frag.html" %}
+{% endif %}
 {% endblock %}

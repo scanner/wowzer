@@ -58,6 +58,7 @@ There are no discussions in this forum.
 </p>
 {% endblock %}
 {% block postlisting %}
+{% if object_list %}
 <div class="toolbar">
   <ul>
     {% if_has_perm "asforums.delete_forum" forum %}
@@ -72,4 +73,5 @@ There are no discussions in this forum.
     {% end_if_has_perm %}
   </ul>
 </div>
+{% endif %}
 {% endblock %}

@@ -1,6 +1,16 @@
 {% load wowzertags auth asforums_tags %}
 {% extends "asforums/listing.html" %}
 {% block listing %}
+<div class="toolbar">
+  <ul>
+    {% if perms.asforums.add_forumcollection %}
+    <li><a href="./forum_collections/create/">{% icon "folder_add" "Create Forum Collection" %}</a>
+    {% endif %}
+    {% if user.is_staff or user.is_superuser %}
+    <li><a href="./forum_collections/perms/">{% icon "cog_edit" "Forum Collection Create Permissions" %}</a>
+    {% endif %}
+  </ul>
+</div>
 {% if object_list %}
 <table>
   <tr>

@@ -99,17 +99,16 @@ def rlp_edit(request, obj, template = "main/rlp_generic_template.html",
         else:
             perm_name = rlp.permission.name
         if isinstance(rlp.owner, Group):
-            string = "Group: %s - %s" % (rlp.owner.name, perm_name)
+            string = "%s - %s" % (rlp.owner.name, perm_name)
             rlp_choices_group.append((rlp.id, string))
         else:
-            string = "User: %s - %s" % (rlp.owner.username, perm_name)
+            string = "%s - %s" % (rlp.owner.username, perm_name)
             rlp_choices_users.append((rlp.id, string))
 
     # The row level permissions that can be added to this object. This is all
     # of the permissions that the object has, minus the 'add_' permission.
     #
     add_codename = 'add_%s' % ct.model
-    print "Add codename is: '%s'" % add_codename
     AddPermissionForm.base_fields['permission'].widget = \
                       widgets.Select(choices = [(x.id, x.name) \
                                                 for x in obj_perms \

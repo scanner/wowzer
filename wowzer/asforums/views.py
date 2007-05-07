@@ -279,7 +279,7 @@ def fc_update(request, fc_id):
             entry = form.save()
             msg_user(request.user,
                      "Forum collection '%s' updated." % entry.name)
-            return HttpResponseRedirect(entry.get_absolute_url)
+            return HttpResponseRedirect(entry.get_absolute_url())
     else:
         form = FCForm()
 
@@ -326,7 +326,7 @@ def fc_create(request):
             entry.save()
             msg_user(request.user, "Forum collection '%s' created." % \
                      entry.name)
-            return HttpResponseRedirect(entry.get_absolute_url)
+            return HttpResponseRedirect(entry.get_absolute_url())
     else:
         form = FCForm()
 
@@ -368,8 +368,8 @@ def forum_create(request,fc_id):
             entry.collection = fc
             entry.save()
             msg_user(request.user, "You have created the forum '%s' in "
-                     "forum collection '%s'." % forum.name, fc.name)
-            return HttpResponseRedirect(entry.get_absolute_url)
+                     "forum collection '%s'." % entry.name, fc.name)
+            return HttpResponseRedirect(entry.get_absolute_url())
     else:
         form = ForumForm()
 
@@ -438,7 +438,7 @@ def forum_update(request, forum_id):
         if form.is_valid():
             entry = form.save()
             msg_user(request.user, "Forum was updated.")
-            return HttpResponseRedirect(entry.get_absolute_url)
+            return HttpResponseRedirect(entry.get_absolute_url())
     else:
         form = ForumForm()
     t = get_template("asforums/forum_update.html")
@@ -543,7 +543,7 @@ def disc_create(request, forum_id):
             entry.save()
             msg_user(request.user, "Your have created the discussion "
                      "'%s'." % entry.name)
-            return HttpResponseRedirect(entry.get_absolute_url)
+            return HttpResponseRedirect(entry.get_absolute_url())
     else:
         form = DiscForm()
 
@@ -649,7 +649,7 @@ def disc_update(request, disc_id):
         if form.is_valid():
             entry = form.save()
             msg_user(request.user, "Discussion %s updated." % entry.name)
-            return HttpResponseRedirect(entry.get_absolute_url)
+            return HttpResponseRedirect(entry.get_absolute_url())
     else:
         form = DiscForm()
 

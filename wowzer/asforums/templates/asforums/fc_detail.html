@@ -57,6 +57,7 @@ There are no forums in this forum collection.
 </div>
 {% endblock %}
 {% block postlisting %}
+{% if object_list %}
 <div class="toolbar">
   <ul>
     {% if_has_perm "asforums.delete_forumcollection" forum_collection %}
@@ -71,4 +72,5 @@ There are no forums in this forum collection.
     {% end_if_has_perm %}
   </ul>
 </div>
+{% endif %}
 {% endblock %}

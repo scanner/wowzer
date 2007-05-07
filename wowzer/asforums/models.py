@@ -200,7 +200,7 @@ class ForumCollection(models.Model):
     name = models.CharField(maxlength = 128, db_index = True, unique = True,
                             blank = False)
     blurb = models.CharField(maxlength = 128)
-    author = models.ForeignKey(User, db_index = True)
+    author = models.ForeignKey(User, db_index = True, editable = False)
     created = models.DateTimeField(auto_now_add = True, editable = False)
     tags = models.GenericRelation(TaggedItem)
 
@@ -373,10 +373,11 @@ class Forum(models.Model):
 
     name = models.CharField(maxlength = 128, db_index = True, blank = False)
     blurb = models.CharField(maxlength = 128)
-    author = models.ForeignKey(User, db_index = True)
+    author = models.ForeignKey(User, db_index = True, editable = False)
     created = models.DateTimeField(auto_now_add = True, editable = False,
                                       db_index = True)
-    collection = models.ForeignKey(ForumCollection, db_index = True)
+    collection = models.ForeignKey(ForumCollection, db_index = True,
+                                   editable = False)
     tags = models.GenericRelation(TaggedItem)
 
 #    last_post = models.ForeignKey("Post")
@@ -572,14 +573,14 @@ class Discussion(models.Model):
     """
 
     name = models.CharField(maxlength = 128, db_index = True, blank = False)
-    forum = models.ForeignKey(Forum)
-    author = models.ForeignKey(User, db_index = True)
+    forum = models.ForeignKey(Forum, editable = False)
+    author = models.ForeignKey(User, db_index = True, editable = False)
     created = models.DateTimeField(auto_now_add = True, editable = False,
                                       db_index = True)
     blurb = models.CharField(maxlength = 128)
     views = models.IntegerField(default = 0, editable = False)
     last_modified = models.DateTimeField(auto_now = True)
-    edited = models.BooleanField(default = False)
+    edited = models.BooleanField(default = False, editable = False)
 
     # Why do we have 'locked' and 'closed' for discussions when they already
     # have a 'read' and 'post' permission? Quite simply a lock or a close may
@@ -596,9 +597,9 @@ class Discussion(models.Model):
     # A 'locked' discussion can not be read or modified by anyone but
     # a moderator of the forum the discussion is in.
     #
-    locked = models.BooleanField(default = False)
+    locked = models.BooleanField(default = False, editable = False)
     closed = models.BooleanField(default = False)
-    sticky = models.BooleanField(default = False)
+    sticky = models.BooleanField(default = False, editable = False)
 
     tags = models.GenericRelation(TaggedItem)
 

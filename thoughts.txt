@@ -1,0 +1,166 @@
+=== 2007.05.08 ===
+
+=== permissions control form:
+
+Simple form, non-ajax version:
+
+Permissions:
+
+create:
+  user: john
+  group: doe
+
+update:        select:  .... <add update>
+  user: john
+  group: doe
+
+delete:        select: user/group, name: ...  <add delete>
+  user: buddy
+
+<remove delete>
+
+<cancel>
+
+Basically we loop through all of the permissions that a model can
+have.
+
+We have a multiple select widget that lists the users/groups that actually have
+that permission, and if it is negative or not.
+
+We have a submit button for each select widget that when submitted
+takes the given names and removes them from that list of permissions.
+
+We have a select widget for'user'/'group', a text field to enter the
+name in, a check box for 'negative', and a submit button to add that
+single entry to the list of permissions.
+
+I think this can be totally generic. Make the views and render part of
+the 'main' or 'utils' app, with some json views for partial data
+retrieval.
+
+In the ajax version it will replace the various post elements with
+in-line submission and in-line filling in from the server. Maybe even
+make it a dialog widget so they do not go to a new page. It would also
+be nice to use FAT when we add permissions?
+
+=== ability to order any of the fc, forum, discussion lists ===
+
+o need some generic ordering ability.
+o what's more this needs to be the same for the 'list' views and for
+  the detail views (ie: forum_detail lists all the discussions in that
+  forum, ie filters it for that forum, the discussion list lists all
+  the discussions that they can see. both need to accept the same
+  ordering arguments for what they list)
+
+so what can you order by?
+
+created, author, fc, forum, discussion, name, blurb, ... tags?
+
+Some of these obviously only apply to some things. LIke ordering by
+discussion only applies to posts.
+
+On discussions there is one ordering that is always applied: sticky
+discussions always sort first.
+
+=== ability to 'filter' and 'search' detail list and lists ===
+
+o for posts it would be nice to filter the posts that are just in
+  response to some given post.
+
+o what are standard things we can filter/search on?
+
+  author, created, changed, edited, content, blurb, name, tags, fc,
+  forum, discussion, in reply to, views?, subscribed, unseen posts
+
+NOTE: the last two 'subscribed' and 'unseen' posts may be a bit tricky
+because that is relying on information that is not directly part of
+the class being filtered.
+
+I am thinking that the simplest thing right now is that we have for
+each model a list of the fields that can be filtered on. We derive
+from the fields type what kind of input to expect (really this is just
+string, integer, or date.. although for string we have thigns like
+names and blurbs vs "content" that can be huge.
+
+=== your unread fc, forums, discussions, posts ===
+
+Now the big task facing us (after we polish the current interface up a
+bit) is a way for people to easily (and by default) see the posts that
+they have not read yet when looking at any view or rss feed.
+
+o So, when you go to the fc index you see the fc's that have forums that
+  have discussion that have posts that you have not read yet. Counter
+  for unread posts.
+
+o When you go to the forum index you see the discussions that have
+  posts that you have not read yet. Maybe even a counter for unread
+  posts.
+
+o When you go to a discussion, you are put on the page which has new
+  posts (this is one case where you do not get a filter of just the
+  posts you have not seen.)
+
+o It would be nice to mark the first post you have not seen in a
+  special way as well.
+
+o After you have seen those posts (ie that page has loaded) then the
+  next post you have not seen is the first post on the next
+  page... the act of loading this page ups what you have not seen.)
+
+o NOTE: This is the default view.
+
+o A big component of this is the ability to go to a page by specifying
+  the post number. I am thinking of simplifying this such that any
+  time you go to a page by specifying the post number it will always
+  assume created ordering (which should be the same order as the post
+  number) and that doing so wipes out any ordering you may have
+  specified.
+
+  ie: ordering is only possible if you specify no page number (ie:
+  first page) or a page number, but not a post number.
+
++++ implementation ideas
+
+We are going to need to store per discussion the last post any given
+user has seen. This of cours means that we may have n*m objects here,
+where 'n' is the number of discussions and 'm' is the number of
+readers. For the size of web sites I am thinking about this is still
+totally reasonable. Basically I really want to store something per
+discussion per user because I hate saying "you last viewed these
+forums at this date.. thus all posts before this date are
+'seen'.." they are not!
+
+Although this will capture the information I want I need to figure out
+how to efficiently represent this info up to, say "the list of forums
+that have discussions with posts you have not seen" in them.
+
+NOTE: Since it is only 'posts' that have this 'seen' quality since ti
+is relation to the other posts in a discussion, this will not need a
+generic relation, and it is specific to the forum app (other things
+like blogs, polls, calendar events may have it also but I think those
+will be their own implementation?)
+
+
+=== subscribed forums, discussions ===
+
+It is desireable to have a view that just lists the discussions and
+forums you are interested in. This way when you go to a forum listing
+you just see the fc's, forums, discussions, posts(?) that you have
+'subscribed to' by some action.
+
+I am also thinking a left had column item that lets you pick a
+view/filter: ie: all unseen, subscribed unseen, all.
+
+I am thinking a 'subscription' is going to be generic relation so that
+you can say "show me all the things I have subscribed to" (and that
+this will exceed the forums app, just like tags do.. of course we
+could say that the user tag 'subscribed' means you have subscribed to
+something. But I am not sure I like stretching tags that far.)
+
+with a generic relation we are going to want some easy way to say
+"find me all subscription objects that are part of the forums app" or
+"fc, forum, discussion"
+
+also not sure we want to explicitly add the subscription generic
+relation to our forum objects (although what does it hurt if we do
+that?)

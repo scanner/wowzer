@@ -25,10 +25,10 @@ locked:
   only moderators may make changes to the discussion
 
 o post to discussions
-  o permission to post - done
-  o template - 20%
-  o quoting - done
-  o markup
+  * permission to post
+  * template
+  * quoting
+  * markup
 
 o tag/usertag
   o add tags and users tags on posts, discussions, forums, fcs
@@ -44,20 +44,20 @@ o user account/profile page
   o subscribed discussions with unread posts in them (linking to the
     first unread post)
 
-o edit posts
-o create discussions
-o edit discussions
-o create forums
-o edit forums
-o create forum collections
-o edit forum collections
+* edit posts
+* create discussions
+* edit discussions
+* create forums
+* edit forums
+* create forum collections
+* edit forum collections
 o list posts with filters & attributes
 o search discussions, forums, forum collections for an expression in
   their title or blurb.
 o search discussions, forums, forum collections, posts for an author
   matching an expression.
-o make it so that bbcode & smilies in a post get translated properly
-o permissions on posts
+* make it so that bbcode & smilies in a post get translated properly
+* permissions on posts
   o delete (not really delete)
   o modify
 o poll
@@ -65,38 +65,38 @@ o poll
   o create
   o modify
   o view results
-o permissions on discussions
-  o read
-  o create
-  o modify
-  o delete
-  o view (listing)
-  o post (also allows you to make a poll)
+* permissions on discussions
+  * read
+  * create
+  * modify
+  * delete
+  * view (listing)
+  * post (also allows you to make a poll)
   o make sticky
 o permissions on forums
-  o read
-  o modify
-  o create
-  o delete
+  * read
+  * modify
+  * create
+  * delete
   o view (listing)
     The following sql statement seems to be the one we need to find
     forums for which you have 'view' permission:
-    
+
     select asforums_forum.id, asforums_forum.name from asforums_forum, auth_rowlevelpermission where auth_rowlevelpermission.model_ct_id=31 and auth_rowlevelpermission.model_id=asforums_forum.id and auth_rowlevelpermission.permission_id = 104 and auth_rowlevelpermission.negative='f' and ((auth_rowlevelpermission.owner_ct_id=1 and auth_rowlevelpermission.owner_id=2) or (auth_rowlevelpermission.owner_ct_id=3 and auth_rowlevelpermission.owner_id in (1,3)));
-    
+
     NOTE: '31' is the content type id for forums, determined via:
-	  ctype = ContentType.objects.get_for_model(f) (where 'f' is a
-	  forum instance)
+          ctype = ContentType.objects.get_for_model(f) (where 'f' is a
+          forum instance)
 
           '104' is the id from the auth permission table that
           corresponds to the 'view' permission for forums.
 
-	  '1' is the id of the user we are checking the permissions
-	  for.
+          '1' is the id of the user we are checking the permissions
+          for.
 
-	  '2' is the content type id for users.
+          '2' is the content type id for users.
 
-	  content type for groups is 3, The user is in groups 1 & 3.
+          content type for groups is 3, The user is in groups 1 & 3.
 
     This bascailly says if the user or a group he is in has the 'view
     forum' permission and it is not negative, then select that forum.
@@ -105,7 +105,7 @@ o permissions on forums
     but may start to tax the db.)
 
     something like this? Forum.objects.extra(tables=["auth_rowlevelpermission"], where=["auth_rowlevelpermission.model_ct_id=31", "auth_rowlevelpermission.model_id=asforums_forum.id", "auth_rowlevelpermission.permission_id = 104", "auth_rowlevelpermission.negative='f'","((auth_rowlevelpermission.owner_ct_id=1 and auth_rowlevelpermission.owner_id=2) or (auth_rowlevelpermission.owner_ct_id=3 and auth_rowlevelpermission.owner_id in (1,3)))"])
-	  
+
   o discuss
   o post
 o permissions on forum collections
@@ -156,49 +156,4 @@ o toons
     o items
 o gallery
   o need gallery filter (like wiki for easy linking of pictures)
-
-=== permissions control form:
-
-Simple form, non-ajax version:
-
-Permissions:
-
-create:
-  user: john
-  group: doe
-
-update:        select:  .... <add update>
-  user: john
-  group: doe
-
-delete:        select: user/group, name: ...  <add delete>
-  user: buddy
-
-<remove delete>
-
-<cancel>
-
-Basically we loop through all of the permissions that a model can
-have.
-
-We have a multiple select widget that lists the users/groups that actually have
-that permission, and if it is negative or not.
-
-We have a submit button for each select widget that when submitted
-takes the given names and removes them from that list of permissions.
-
-We have a select widget for'user'/'group', a text field to enter the
-name in, a check box for 'negative', and a submit button to add that
-single entry to the list of permissions.
-
-I think this can be totally generic. Make the views and render part of
-the 'main' or 'utils' app, with some json views for partial data
-retrieval.
-
-In the ajax version it will replace the various post elements with
-in-line submission and in-line filling in from the server. Maybe even
-make it a dialog widget so they do not go to a new page.
-
-
-
 

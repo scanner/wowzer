@@ -613,7 +613,7 @@ class Discussion(models.Model):
         row_level_permissions = True
         unique_together = (("name", "forum"),)
         order_with_respect_to = 'forum'
-        ordering = ['created']
+        ordering = ['sticky', 'created']
         permissions = (("post_discussion",
                         "Can post to the discussion"),)
 
@@ -655,6 +655,17 @@ class Discussion(models.Model):
             add_all_permissions(self, self.author)
 
         return res
+
+    #########################################################################
+    #
+    def last_post_seen(self, user):
+        """A helper function that will return the last post that was seen by
+        this user in this discussion.
+
+        If the user has not seen any posts in the discussion, then the first
+        post is returned. If the discussion has no posts then None is returned.
+        """
+        pass
 
 #############################################################################
 #
@@ -810,8 +821,8 @@ class Post(models.Model):
                                    related_name = "deleted_posts")
     deletion_reason = models.CharField(maxlength = 128, blank = True,
                                        editable = False)
-    content = models.TextField(maxlength = 4000, blank = True)
-    content_html = models.TextField(maxlength = 4000, blank = True)
+    content = models.TextField(maxlength = 16000, blank = True)
+    content_html = models.TextField(maxlength = 16000, blank = True)
     markup = models.CharField(maxlength=80, blank=True, editable = False)
     in_reply_to = models.ForeignKey('self', related_name = 'replies',
                                     null = True, editable = False)
@@ -858,6 +869,15 @@ class Post(models.Model):
 
     #########################################################################
     #
+    def seen_by(self, user):
+        """ A helper function to record the last post in a discussion that the
+        user has seen (so that they can easily tell which posts they
+        have not seen yet.
+        """
+        pass
+
+    #########################################################################
+    #
     def __str__(self):
         return "Post %d in discussion %s in forum %s" % \
             (self.post_number,
@@ -887,6 +907,33 @@ class Post(models.Model):
         cursor = connection.cursor()
         cursor.execute("update asforums_post set views = views + 1 where id=%d", [self.id])
 
+#############################################################################
+#
+class LastPostSeen(models.Model):
+    """
+    This is a model that captures the information about the last post
+    a specific user has seen in a specific discussion. We could have
+    just had the fields be 'user' and 'post' as post implies
+    discussion, but we wanted to better capture the spirit of this and
+    also constrain it so that any given user can only have one
+    'LastPostSeen' per discussion/user pair.
+
+    Since this is a user batch many-to-many relationship we could have
+    added this to the user profile, but that means we are now
+    dictating even moreabout what needs to be in the user profile.
+
+    NOTE: We need to make sure that the post is in the discussion
+    indicated. I thought about using the post number.. but might as
+    well just refer to the post itself directly.
+
+    """
+    user = models.ForeignKey(User, db_index = True)
+    post = models.ForeignKey(Post)
+    discussion = models.ForeignKey(Discussion, db_index = True)
+
+    class Meta:
+        order_with_respect_to = 'discussion'
+        unique_together = (("user", "discussion"),)
 
 # Connect the signal for a new post being created to our signal function
 # that kicks off and updates various things when a post is made.

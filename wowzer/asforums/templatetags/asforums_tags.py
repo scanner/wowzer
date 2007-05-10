@@ -22,7 +22,7 @@ def viewable_by_user(parser, token):
         tag_name, query_set_to_filter, method = token.split_contents()
     except ValueError:
         raise template.TemplateSyntaxError, "%r requires exactly two " \
-            "arguemnts" % token[0]
+            "arguments" % token[0]
     return ViewableByUserNode(query_set_to_filter, method)
 
 class ViewableByUserNode(template.Node):
@@ -36,6 +36,51 @@ class ViewableByUserNode(template.Node):
     def render(self, context):
         try:
             qs = resolve_variable(self.query_set, context)
+            qs = qs.viewable(request.user)
+            if hasattr(qs,self.method_name):
+                # If this is a method then invoke it as a function.
+                #
+                if isinstance(getattr(qs, self.method_name), MethodType):
+                    return getattr(qs, self.method_name)()
+                else:
+                    return getattr(qs, self.method_name)()
+        except:
+            # render() should never raise any exception. If something goes
+            # wrong we need to log it somewhere else, not chuck it up the
+            # call stack.
+            #
+            pass
+        return ""
+
+##############################################################################
+#
+@register.tag(name = 'method_arg')
+def method_arg(parser, token):
+    """
+    This tag allows us to call the given method with the given
+    argument.  ie: {% method_arg foo.bar user %} would result in:
+    foo.bar(user).  If the argument is surrounded by quotes (" or '),
+    then it is considered a string and not a variable to be resolved.
+    """
+    try:
+        tag_name, method, arg = token.split_contents()
+    except ValueError:
+        raise template.TemplateSyntaxError, "%r requires exactly two " \
+            "arguments the method and its argument." % token[0]
+    return MethodArgNode(method, arg)
+
+class MethodArgNode(template.Node):
+    """
+    """
+    def __init__(self, method, arg):
+        self.method = method
+        self.arg = arg
+
+    def render(self, context):
+        try:
+            method = resolve_variable(self.method, context)
+            if self.arg[0] == self.arg[-1] and self.arg[0] in ('"', "'"):
+
             qs = qs.viewable(request.user)
             if hasattr(qs,self.method_name):
                 # If this is a method then invoke it as a function.
@@ -74,7 +119,7 @@ def fancy_if(parser, token):
     {% fancy_if expr %}
 
     An expr may be:
-    
+
        ( expr )
        or expr ...   (a list of one or more expr's or'd together)
        and expr ...  (a list of one or more expr's or'd together)
@@ -105,7 +150,7 @@ def fancy_if(parser, token):
         raise template.TemplateSyntaxError, \
             "'fancy_if' statement requires at least one argument"
     expr = parse_fi_expressions(bits, parser)
-    
+
     nodelist_true = parser.parse(('else', 'end_' + tag))
     token = parser.next_token()
     if token.contents == 'else':
@@ -147,7 +192,7 @@ class FancyIfNode(template.Node):
             return self.nodelist_true.render(context)
         return self.nodelist_false.render(context)
 
-        
+
 ##############################################################################
 #
 def parse_fi_expressions(tokens, parser):
@@ -193,7 +238,7 @@ def parse_fi_expressions(tokens, parser):
     except IndexError:
         raise template.TemplateSyntaxError, "Mis-matched terms and " \
               "operators. Ran out of tokens whilst parsing arguments."
-    
+
 ##############################################################################
 #
 # Here we have a simple set of classes to define our parsed expression
@@ -207,7 +252,7 @@ class FiExpr(object):
     """
     def __repr__(self):
         raise NotImplementedError
-        
+
     def eval(self, context):
         raise NotImplementedError
 

@@ -266,6 +266,18 @@ class ForumCollection(models.Model):
 
         return
 
+    #########################################################################
+    #
+    def latest_post(self, user):
+        """
+        A helper function that returns the latest post in all forums in
+        the forum collection.
+        """
+        try:
+            return Post.objects.readable(user).filter(discussion__forum__collection = self).latest()
+        except Post.DoesNotExist:
+            return None
+
 #############################################################################
 #
 class ForumManager(models.Manager):
@@ -445,6 +457,18 @@ class Forum(models.Model):
             inherit_permissions(self, self.collection)
 
         return res
+
+    #########################################################################
+    #
+    def latest_post(self, user):
+        """
+        A helper function that returns the latest post in all forums in
+        the forum collection.
+        """
+        try:
+            return Post.objects.readable(user).filter(discussion__forum = self).latest()
+        except Post.DoesNotExist:
+            return None
 
 #############################################################################
 #
@@ -655,6 +679,18 @@ class Discussion(models.Model):
             add_all_permissions(self, self.author)
 
         return res
+
+    #########################################################################
+    #
+    def latest_post(self, user):
+        """
+        A helper function that returns the latest post in all forums in
+        the forum collection.
+        """
+        try:
+            return Post.objects.readable(user).filter(discussion__forum = self).latest()
+        except Post.DoesNotExist:
+            return None
 
     #########################################################################
     #

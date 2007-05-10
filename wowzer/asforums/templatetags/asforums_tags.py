@@ -4,6 +4,8 @@
 '''Template tag library provided by the asforums app to make some things
 easier and other things possible.
 '''
+import sys
+from types import MethodType
 
 from django import template
 from django.template import resolve_variable
@@ -58,42 +60,48 @@ class ViewableByUserNode(template.Node):
 def method_arg(parser, token):
     """
     This tag allows us to call the given method with the given
-    argument.  ie: {% method_arg foo.bar user %} would result in:
-    foo.bar(user).  If the argument is surrounded by quotes (" or '),
-    then it is considered a string and not a variable to be resolved.
+    argument and set the resultant value to a variable in our context.
+    ie: {% method_arg foo bar user as post %} would result in the
+    variable 'post' getting the result of evaluating foo.bar(user).
+    If the argument is surrounded by quotes, then it is considered a
+    string and not a variable to be resolved.
     """
     try:
-        tag_name, method, arg = token.split_contents()
+        tag_name, var, method_name, arg, ign, dst = token.split_contents()
     except ValueError:
-        raise template.TemplateSyntaxError, "%r requires exactly two " \
-            "arguments the method and its argument." % token[0]
-    return MethodArgNode(method, arg)
+        raise template.TemplateSyntaxError, "%r requires arguments in the " \
+              "format of <variable> <methodname> <argument> as <variable>."
+    if ign.lower() != "as":
+        raise template.TemplateSyntaxError, "%r requires arguments in the " \
+              "format of <variable> <methodname> <argument> as <variable>."
+    return MethodArgNode(var, method_name, arg, dst)
 
 class MethodArgNode(template.Node):
     """
     """
-    def __init__(self, method, arg):
-        self.method = method
+    def __init__(self, var, method_name, arg, dst):
+        self.var = var
+        self.method_name = method_name
         self.arg = arg
+        self.dest = dst
 
     def render(self, context):
         try:
-            method = resolve_variable(self.method, context)
-            if self.arg[0] == self.arg[-1] and self.arg[0] in ('"', "'"):
-
-            qs = qs.viewable(request.user)
-            if hasattr(qs,self.method_name):
-                # If this is a method then invoke it as a function.
-                #
-                if isinstance(getattr(qs, self.method_name), MethodType):
-                    return getattr(qs, self.method_name)()
+            obj = resolve_variable(self.var, context)
+            if hasattr(obj, self.method_name) and \
+               isinstance(getattr(obj, self.method_name), MethodType):
+                if self.arg[0] == self.arg[-1] and self.arg[0] in ('"', "'"):
+                    context[self.dest] = \
+                                getattr(obj, self.method_name)(self.arg[1:-1])
                 else:
-                    return getattr(qs, self.method_name)()
+                    context[self.dest] = getattr(obj, self.method_name)\
+                                         (resolve_variable(self.arg, context))
         except:
             # render() should never raise any exception. If something goes
             # wrong we need to log it somewhere else, not chuck it up the
             # call stack.
             #
+            raise
             pass
         return ""
 

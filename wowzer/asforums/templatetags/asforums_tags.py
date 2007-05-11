@@ -78,6 +78,10 @@ def method_arg(parser, token):
 
 class MethodArgNode(template.Node):
     """
+    The template node sub-class that does the work of looking up the
+    method you wish to invoke in your template, resolving the variable
+    to pass to it and setting the resultant value in the template's
+    context.
     """
     def __init__(self, var, method_name, arg, dst):
         self.var = var

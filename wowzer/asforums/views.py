@@ -67,7 +67,8 @@ def index(request):
     """Simplistic top level index. Shows all forum collections and their
     forums
     """
-    query_set = Forum.objects.viewable(request.user).order_by('collection','created')
+    query_set = Forum.objects.viewable(request.user).order_by('collection',
+                                                              'created')
     ec = {}
 
     return object_list(request, query_set,

@@ -922,6 +922,12 @@ class Post(models.Model):
 
     #########################################################################
     #
+    def get_discussion_url(self):
+        return "%s?post=%d#%d" % (self.discussion.get_absolute_url(),
+                                   self.post_number, self.post_number)
+
+    #########################################################################
+    #
     def get_absolute_url(self):
         return "/asforums/posts/%d/" % self.id
 

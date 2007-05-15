@@ -17,7 +17,7 @@
   Discussion is closed<br />
   {% endif %}
   {% if discussion.post_set.all %}
-  Last Post: <a href="./?post={{ discussion.post_set.latest.id }}#{{ discussion.post_set.latest.id }}">{{ discussion.post_set.latest.created|timesince }}</a> ago
+  Last Post: <a href="{{ discussion.post_set.latest.get_discussion_url }}">{{ discussion.post_set.latest.created|timesince }}</a> ago
 by <a href="{{ discussion.post_set.latest.author.get_absolute_url }}">{{ discussion.post_set.latest.author }}</a><br>
   {% endif %}
 </div>
@@ -56,15 +56,15 @@ by <a href="{{ discussion.post_set.latest.author.get_absolute_url }}">{{ discuss
             <li><a href="{{ post.get_absolute_url }}tag/">{% icon "tag_blue_add" "Add Tag to Post" %}</a></li>
 	    {% end_if_has_perm %}
             <li><a href="{{ post.get_absolute_url }}usertag/">{% icon "user_add" "Add Private User Tag to Post" %}</a></li>
-            <li><a href="./?post={{ post.id }}">{% icon "link" "Permanent link to this post" %}</a></li>
+            <li><a href="{{ post.get_discussion_url }}">{% icon "link" "Permanent link to this post" %}</a></li>
 	  </ul>
 	</div>
         {% end_fancy_if %}
         <div class="byline">
-	  <a name="{{ post.id }}">Post #{{ post.post_number }}</a><br>
+	  <a name="{{ post.post_number }}">Post #{{ post.post_number }}</a><br>
           Posted at: {{ post.created|tz_std_date_ago:user }}
           {% if post.in_reply_to %}
-          in reply to <a title="Go to {{ post.in_reply_to_author.username }}'s profile." href="{{ post.in_reply_to.author.get_absolute_url }}">{{ post.in_reply_to.author }}'s</a> <a href="./?post={{ post.in_reply_to.id }}#{{ post.in_reply_to.id }}">Post #{{ post.in_reply_to.post_number}}</a> (from {{ post.in_reply_to.created|timesince }} ago.) 
+          in reply to <a title="Go to {{ post.in_reply_to_author.username }}'s profile." href="{{ post.in_reply_to.author.get_absolute_url }}">{{ post.in_reply_to.author }}'s</a> <a href="{{ post.in_reply_to.get_discussion_url }}">Post #{{ post.in_reply_to.post_number}}</a> (from {{ post.in_reply_to.created|timesince }} ago.) 
           {% endif %}
         </div>
         {% fancy_if or not post.deleted "asforums.moderate_forum" discussion.forum %}

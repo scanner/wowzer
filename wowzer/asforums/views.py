@@ -7,6 +7,7 @@
 # System imports
 #
 import sys
+from urlparse import urlparse
 from datetime import datetime, timedelta
 
 # Django imports
@@ -51,7 +52,7 @@ from django.contrib.contenttypes.models import ContentType
 
 # The data models from our apps:
 #
-from wowzer.asforums.models import *
+from wowzer.asforums.models import ForumCollection, Forum, Discussion, Post
 
 paginate_by = 10
 
@@ -571,10 +572,6 @@ def disc_detail(request, disc_id):
     o search (find posts that contain the given expression in their content)
              (this one is a tbd. We need to use something like merquery)
     """
-
-    if request.META.has_key("HTTP_REFERER"):
-        print "Referrer url was: %s" % request.META["HTTP_REFERER"]
-
     try:
         disc = Discussion.objects.select_related().get(pk=disc_id)
         f = disc.forum
@@ -585,7 +582,7 @@ def disc_detail(request, disc_id):
     # in. The discussion must not be locked, unless they are a moderator.
     #
     if not (request.user.has_perm("asforums.moderate_forum", object = f) or \
-            (not d.locked and
+            (not disc.locked and
              request.user.has_perm("asforums.read_forum", object = f))):
         raise PermissionDenied
 
@@ -596,14 +593,31 @@ def disc_detail(request, disc_id):
     # If the referrer url was this same url then we should NOT bump up
     # the viewed count.. (otherwise the viewed count gets bumped every
     # time you go to the next page of posts in a multi-page listing)
-    disc.views += 1
-    disc.save()
+    if request.META.has_key("HTTP_REFERER") and \
+       urlparse(request.META['HTTP_REFERER'])[2] == disc.get_absolute_url():
+        pass
+    else:
+        disc.views += 1
+        disc.save()
 
     ec = { 'discussion' : disc }
 
     qs = Post.objects.readable(request.user).filter(discussion = disc).order_by('created')
+    # If the 'post' parameter was passed use this to determine what
+    # page to display since we know how many posts per page to display
+    # (and that the post number is a linearly increasing value with
+    # the number of posts in this discussion.)
+    #
+    page = None
+    if request.GET.has_key('post'):
+        try:
+            page = ((int(request.GET.get('post')) - 1) / paginate_by) + 1
+        except ValueError:
+            page = None
+
     return object_list(request, qs,
-                       paginate_by = 10,
+                       page = page,
+                       paginate_by = paginate_by,
                        template_name = "asforums/disc_detail.html",
                        extra_context = ec)
 
@@ -766,8 +780,7 @@ def post_create(request, disc_id):
 
             msg_user(request.user,
                      "Your post was made to discussion %s" % disc.name)
-            return HttpResponseRedirect(disc.get_absolute_url() +
-                                        "?post=%d#%d" % (entry.id, entry.id))
+            return HttpResponseRedirect(entry.get_discussion_url())
     else:
         if irt:
             # This is in reply to another post. Stick in the reference to
@@ -859,8 +872,7 @@ def post_update(request, post_id):
             entry.save()
 
             msg_user(request.user, "Post was updated.")
-            return HttpResponseRedirect(entry.discussion.get_absolute_url() +
-                                        "?post=%d#%d" % (entry.id, entry.id))
+            return HttpResponseRedirect(entry.get_discussion_url())
     else:
         form = PostForm()
 
@@ -904,8 +916,7 @@ def post_delete(request, post_id):
             post.save()
 
             request.user.message_set.create(message = "Post deleted")
-            return HttpResponseRedirect(post.discussion.get_absolute_url() + \
-                                        "?post=%d" % post.id)
+            return HttpResponseRedirect(post.get_discussion_url())
     else:
         form = PostDeleteForm()
 

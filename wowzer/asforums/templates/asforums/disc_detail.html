@@ -89,15 +89,16 @@ by <a href="{{ discussion.post_set.latest.author.get_absolute_url }}">{{ discuss
           {% endif %}
         </div>
         {% endif %}
-	{% if post.replies_set %}
+	{% ifnotequal post.replies.count 0 %}
 	<div class="postreplies">
-	  {% for reply in post.replies_set.all %}
+	  Replies: 
+	  {% for reply in post.replies.all|slice:":10" %}
 	    {% if not reply.deleted %}
-	      <a href="{{ reply.get_absolute_url }}">{{ reply.id }}</a>
+	      <a href="{{ reply.get_discussion_url }}">Post #{{ reply.post_number }}</a>,
 	    {% endif %}
 	  {% endfor %}
 	</div>
-	{% endif %}
+	{% endifnotequal %}
       </td>
     </tr>
   {% endfor %}

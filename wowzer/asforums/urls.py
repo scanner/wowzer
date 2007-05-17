@@ -40,6 +40,7 @@ urlpatterns = patterns(
     (r'^discs/(?P<disc_id>\d+)/create_post/$', 'post_create'),
 
     (r'^posts/$', 'obj_list_redir'),
+    (r'^posts/feed/$', 'post_feed'),
     (r'^posts/(?P<post_id>\d+)/$','post_detail'),
     (r'^posts/(?P<post_id>\d+)/perms/$','post_detail'),
     (r'^posts/(?P<post_id>\d+)/update/$','post_update'),

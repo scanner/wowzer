@@ -27,3 +27,4 @@ def msg_user(user, message):
     if user.is_authenticated():
         user.message_set.create(message = message)
     return
+

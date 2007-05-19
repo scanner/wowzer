@@ -42,6 +42,7 @@ from django.contrib.auth.decorators import user_passes_test
 # Wowzer utility functions
 #
 from wowzer.utils import msg_user
+from wowzer.decorators import logged_in_or_basicauth
 from wowzer.main.views import rlp_edit
 from wowzer.main.fields import UserOrGroupField
 
@@ -803,16 +804,8 @@ def post_create(request, disc_id):
 
 ############################################################################
 #
+@logged_in_or_basicauth(realm = "wowzer")
 def post_feed(request):
-    # If the user is not authenticated then send back a 401 asking them
-    # to authenticate.
-    #
-    if not request.user.is_authenticated():
-        response = HttpResponse()
-        response.status_code = 401
-        response['WWW-Authenticate'] = 'Basic realm="%s:%s' % ( 
-            request.META["SERVER_NAME"], request.META["SERVER_PORT"]) 
-        return response
     qs = Post.objects.readable(request.user)
     return object_list(request, qs, paginate_by = 10,
                        template_name = 'asforums/post_list.html')

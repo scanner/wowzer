@@ -201,7 +201,8 @@ class ForumCollection(models.Model):
                             blank = False)
     blurb = models.CharField(maxlength = 128)
     author = models.ForeignKey(User, db_index = True, editable = False)
-    created = models.DateTimeField(auto_now_add = True, editable = False)
+    created = models.DateTimeField(auto_now_add = True, editable = False,
+                                   db_index = True)
     tags = models.GenericRelation(TaggedItem)
 
     objects = ForumCollectionManager()
@@ -387,7 +388,7 @@ class Forum(models.Model):
     blurb = models.CharField(maxlength = 128)
     author = models.ForeignKey(User, db_index = True, editable = False)
     created = models.DateTimeField(auto_now_add = True, editable = False,
-                                      db_index = True)
+                                   db_index = True)
     collection = models.ForeignKey(ForumCollection, db_index = True,
                                    editable = False)
     tags = models.GenericRelation(TaggedItem)
@@ -600,7 +601,7 @@ class Discussion(models.Model):
     forum = models.ForeignKey(Forum, editable = False)
     author = models.ForeignKey(User, db_index = True, editable = False)
     created = models.DateTimeField(auto_now_add = True, editable = False,
-                                      db_index = True)
+                                   db_index = True)
     blurb = models.CharField(maxlength = 128)
     views = models.IntegerField(default = 0, editable = False)
     last_modified = models.DateTimeField(auto_now = True)

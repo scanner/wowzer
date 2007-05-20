@@ -46,6 +46,10 @@ from wowzer.decorators import logged_in_or_basicauth
 from wowzer.main.views import rlp_edit
 from wowzer.main.fields import UserOrGroupField
 
+# RSS Feeds
+#
+from wowzer.asforums.feeds import LatestPosts, LatestPostsByForumDiscussion
+
 # Django contrib models
 #
 from django.contrib.auth.models import User, Group, Permission
@@ -805,10 +809,28 @@ def post_create(request, disc_id):
 ############################################################################
 #
 @logged_in_or_basicauth(realm = "wowzer")
-def post_feed(request):
-    qs = Post.objects.readable(request.user)
-    return object_list(request, qs, paginate_by = 10,
-                       template_name = 'asforums/post_list.html')
+def post_feed_latest(request):
+    """
+    A RSS feed of the 30 latests posts.
+    """
+    feedgen = LatestPosts("latest_posts", request.path,
+                          request.user).get_feed()
+    response = HttpResponse(mimetype=feedgen.mime_type)
+    feedgen.write(response, 'utf-8')
+    return response
+
+############################################################################
+#
+@logged_in_or_basicauth(realm = "wowzer")
+def post_feed_latest_by_discussion(request):
+    """
+    A RSS feed of the 30 latests posts.
+    """
+    feedgen = LatestPostsByForumDiscussion("latest_posts", request.path,
+                                           request.user).get_feed()
+    response = HttpResponse(mimetype=feedgen.mime_type)
+    feedgen.write(response, 'utf-8')
+    return response
 
 ############################################################################
 #

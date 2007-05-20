@@ -1,0 +1,9 @@
+{% if obj.deleted %}
+Deleted by {{ obj.deleted_by }} for {{ obj.deletion_reason }}
+{% else %}
+{% if obj.content_html %}
+{{ obj.content_html }}
+{% else %}
+{{ obj.content }}
+{% endif %}
+{% endif %}

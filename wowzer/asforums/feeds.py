@@ -75,7 +75,5 @@ class LatestPostsByForumDiscussion(Feed):
         Return the query set of the 30 latest posts readable by this
         user, sorted by so that the most recent posts appear first.
         """
-        return Post.objects.readable(self.user).\
-               extra(tables = ['asforums_discussion']).order_by(\
-            '-asforums_discussion.created',
-            '-created')[:30]
+        return Post.objects.readable(self.user).order_by('-discussion',
+                                                         '-created')[:30]

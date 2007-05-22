@@ -70,7 +70,7 @@ class DeleteForm(forms.Form):
 ############################################################################
 #
 @login_required
-@breadcrumb
+@breadcrumb(name="Forum Index")
 def index(request):
     """Simplistic top level index. Shows all forum collections and their
     forums
@@ -87,7 +87,7 @@ def index(request):
 ############################################################################
 #
 @login_required
-@breadcrumb
+@breadcrumb(name = "Forum collection list")
 def fc_list(request):
     """A list of forum collections that the user can view.
     XXX For now until we get the form filled and our such we are going to
@@ -118,6 +118,7 @@ def fc_detail(request, fc_id):
     if not request.user.has_perm("asforums.read_forumcollection", object = fc):
         raise PermissionDenied
 
+    Breadcrumb.rename_last(request, "Forum Collection %s" % fc.name)
     ec = { 'forum_collection' : fc }
     query_set = fc.forum_set.viewable(request.user).order_by('created')
     return object_list(request, query_set,
@@ -149,11 +150,11 @@ class DelForumCollectionCreatePermForm(forms.Form):
                                       "collection permission. Check the ones "\
                                       "that you wish to remove the permission"\
                                       " from.")
-    
+
 ############################################################################
 #
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
-@breadcrumb
+@breadcrumb(name="Forum Collection Create Permission")
 def fc_create_perm(request):
     """
     The permission to create a forum collection is a class or model
@@ -188,7 +189,7 @@ def fc_create_perm(request):
                                                                   user_choices
     DelForumCollectionCreatePermForm.base_fields['users'].widget = \
                     widgets.CheckboxSelectMultiple(choices = user_choices)
-    
+
     # This is a post they have submitted one of the two forms. Based on the
     # 'submit' button they pushed we determine which form was submitted.
     #
@@ -240,11 +241,11 @@ def fc_create_perm(request):
     else:
         add_form = AddForumCollectionCreatePermForm()
         rem_form = DelForumCollectionCreatePermForm()
-        
+
     t = get_template("asforums/fc_create_perm.html")
     c = Context(request, {'add_form' : add_form, 'rem_form' : rem_form })
     return HttpResponse(t.render(c))
-    
+
 ############################################################################
 #
 @login_required
@@ -264,6 +265,7 @@ def fc_perms(request, fc_id):
         not request.user.has_perm("asforums.change_forumcollection",
                                   object = fc)):
         raise PermissionDenied
+    Breadcrumb.rename_last(request, "Forum Collection %s permissions" % fc.name)
     return rlp_edit(request, fc, template = "asforums/fc_perms.html")
 
 ############################################################################
@@ -286,6 +288,7 @@ def fc_update(request, fc_id):
                                  object = fc):
         raise PermissionDenied
 
+    Breadcrumb.rename_last(request, "Update Forum Collection %s" % fc.name)
     FCForm = forms.models.form_forinstance(fc)
     if request.method == "POST":
         form = FCForm(request.POST)
@@ -321,6 +324,7 @@ def fc_delete(request):
                                  object = fc):
         raise PermissionDenied
 
+    Breadcrumb.rename_last(request, "Delete Forum Collection %s" % fc.name)
     return delete_object(request, ForumCollection,
                          "/asforums/forum_collections/",
                          object_id = fc_id,
@@ -329,7 +333,7 @@ def fc_delete(request):
 ############################################################################
 #
 @permission_required('asforums.create_forumcollection')
-@breadcrumb
+@breadcrumb(name="Create a Forum Collection")
 def fc_create(request):
     """Creation of a new forum collection.
     """
@@ -363,7 +367,7 @@ def obj_list_redir(request):
 ############################################################################
 #
 @login_required
-@breadcrumb
+@breadcrumb("Create a Forum")
 def forum_create(request,fc_id):
     """Creation of a new forum.
     XXX For now until we get the form filled and our such we are going to
@@ -419,7 +423,8 @@ def forum_detail(request, forum_id):
             (r.user.has_perm("asforums.read_forumcollection", object = fc) and \
              r.user.has_perm("asforums.read_forum", object = forum))):
         raise PermissionDenied
-    
+    Breadcrumb.rename_last(request, "Forum %s" % forum.name)
+
     ec = { 'forum' : forum }
 
     # All discussions in a forum that you can read are viewable.
@@ -450,7 +455,8 @@ def forum_update(request, forum_id):
                                   object = fc) or \
             request.user.has_perm("asforums.update_forum", object = f)):
         raise PerissionDenied
-    
+
+    Breadcrumb.rename_last(request, "Update Forum %s" % forum.name)
     ForumForm = forms.models.form_for_instance(f)
 
     if request.method == "POST":
@@ -482,6 +488,7 @@ def forum_perms(request, forum_id):
         (request.method == "POST" and \
          not request.user.has_perm("asforums.change_forum", object = f)):
         raise PermissionDenied
+    Breadcrumb.rename_last(request, "Forum %s permissions" % f.name)
     return rlp_edit(request, f, template = "asforums/forum_perms.html")
 
 ############################################################################
@@ -512,7 +519,8 @@ def forum_delete(request, forum_id):
                                   object = fc) or \
             request.user.has_perm("asforums.delete_forum", object = forum)):
         raise PermissionDenied
-    
+
+    Breadcrumb.rename_last(request, "Delete Forum %s" % forum.name)
     # After delete redirect to the forum collection this forum was in
     #
     return delete_object(request, Forum,
@@ -522,7 +530,7 @@ def forum_delete(request, forum_id):
 ############################################################################
 #
 @login_required
-@breadcrumb
+@breadcrumb(name = "Discussion list")
 def disc_list(request):
     """This will produce a list of discussions that match some arbitrary
     criteria specified as parameters.
@@ -556,7 +564,9 @@ def disc_create(request, forum_id):
     if not (request.user.has_perm("asforums.moderate_forum", object = f) or \
             request.user.has_perm("asforums.discuss_forum", object = f)):
         raise PermissionDenied
-    
+
+    Breadcrumb.rename_last(request, "Create Discussion in %s" % f.name)
+
     DiscForm = forms.models.form_for_model(Discussion)
     if request.method == "POST":
         form = DiscForm(request.POST)
@@ -609,6 +619,7 @@ def disc_detail(request, disc_id):
              request.user.has_perm("asforums.read_forum", object = f))):
         raise PermissionDenied
 
+    Breadcrumb.rename_last(request, "Discussion %s" % disc.name)
     # Getting a discussion detail bumps its view count.
     #
     #    disc.increment_viewed() # We tried custom sql. It did not work.
@@ -663,6 +674,7 @@ def disc_perms(request, disc_id):
        (request.method == "POST" and \
         not request.user.has_perm("asforums.change_discussion", object = d)):
         raise PermissionDenied
+    Breadcrumb.rename_last(request, "Discussion %s permissions" % d.name)
     return rlp_edit(request, d, template = "asforums/disc_perms.html")
 
 ############################################################################
@@ -682,7 +694,8 @@ def disc_update(request, disc_id):
             (not d.locked and
              request.user.has_perm("asforums.update_discussion", object = d))):
         raise PermissionDenied
-    
+
+    Breadcrumb.rename_last(request, "Update Discussion %s" % d.name)
     DiscForm = forms.models.form_for_instance(d)
     if request.method == "POST":
         form = DiscForm(request.POST)
@@ -732,6 +745,7 @@ def disc_delete(request, disc_id):
              request.user.has_perm("asforums.delete_discussion", object = disc))):
         raise PermissionDenied
 
+    Breadcrumb.rename_last(request, "Delete Discussion %s" % disc.name)
     if request.method == "POST":
         form = DeleteForm(request.POST)
         if form.is_valid():
@@ -770,6 +784,8 @@ def post_create(request, disc_id):
              request.user.has_perm("asforums.post_discussion", object = disc)) or \
             request.user.has_perm("asforums.moderate_forum", object = forum)):
         raise PermissionDenied
+
+    Breadcrumb.rename_last(request, "Post in discussion %s" % disc.name)
 
     # If this post is in reply to another post, the other post's id
     # will passed in via a parameter under "in_reply_to". We make sure
@@ -871,7 +887,10 @@ def post_detail(request, post_id):
              request.user.has_perm("asforums.read_discussion",
                                    object = post.discussion))):
         raise PermissionDenied
-    
+
+    Breadcrumb.rename_last(request, "Post #%d in %s" % (post.post_number,
+                                                        post.discussion.name)
+
     return object_detail(request, Post.objects.readable(request.user),
                          object_id = post_id)
 
@@ -892,6 +911,8 @@ def post_perms(request, post_id):
         (request.method == "POST" and \
          not request.user.has_perm("asforums.change_post", object = p)):
         raise PermissionDenied
+    Breadcrumb.rename_last(request, "Post #%d in %s permissions" % \
+                           (post.post_number, post.discussion.name)
     return rlp_edit(request, p, template = "asforums/post_perms.html")
 
 ############################################################################
@@ -913,7 +934,9 @@ def post_update(request, post_id):
              (post.author == request.user or \
               request.user.has_perm("asforums.update_post", object = post)))):
         raise PermissionDenied
-    
+
+    Breadcrumb.rename_last(request, "Update post #%d in %s" % \
+                           (post.post_number, post.discussion.name)
     PostForm = forms.models.form_for_instance(post)
     PostForm.base_fields['content'].widget = \
                 widgets.Textarea(attrs = {'cols' : '80', 'rows' : '12'})
@@ -963,7 +986,10 @@ def post_delete(request, post_id):
               post.discussion.author == request.user or \
               request.user.has_perm("asforums.delete_post", object = post)))):
         raise PermissionDenied
-    
+
+    Breadcrumb.rename_last(request, "Delete post #%d in %s" % \
+                           (post.post_number, post.discussion.name)
+
     if request.method == "POST":
         form = PostDeleteForm(request.POST)
         if form.is_valid():

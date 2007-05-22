@@ -5,6 +5,7 @@ urlpatterns = patterns(
     'wowzer.asforums.views',
 
     (r'^$', 'index'),
+    (r'^feed/$', 'index_feed'),
 
     (r'^forum_collections/$', 'fc_list'),
     (r'^forum_collections/perms/$', 'fc_create_perm'),

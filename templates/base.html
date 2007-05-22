@@ -72,7 +72,11 @@
       {% endcomment %}
       <div id="content">
         <div id="hierarchy">{% block hierarchy %}&raquo;&nbsp;<a href="/">Top</a>{% endblock %}</div>
-        <div id="breadcrumbs">&raquo;&nbsp;bone&nbsp;&raquo;&nbsp;btwo&nbsp;&raquo;&nbsp;bthree&nbsp;&raquo;&nbsp;bfour</div>
+        <div id="breadcrumbs">{% breadcrumbs crumbs %}
+	  {% for crumb in crumbs %}
+	    &nbsp;&raquo;&nbsp;<a id="crumb{{ crumb.id }}" href="{{ crumb.url }}">{{ crumb.short_name }}</a>
+	  {% endfor %}
+	</div>
         {% if messages %}
         <div id="messages">
           <ul>

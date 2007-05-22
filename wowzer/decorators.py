@@ -9,6 +9,25 @@ import base64
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login
 
+############################################################################
+#
+def wrapped(wrapfunc):
+    """
+    This is a decorator utility function. Decorators frequently need to
+    provide an inner wrapped function which is returned as the result of the
+    decoration of a function. This makes writing our own decorators a bit
+    simpler in that this will do the wrapping for us so we do not need to
+    define a function inside our decorator functions.
+
+    How do you use this? Decorate your decorator functions with this function.
+    """
+    def outerwrapper(func):
+        def innerwrapper(*args, **kwargs):
+            wrapfunc(func, args, kwargs)
+            return func(*args, **kwargs)
+        return innerwrapper
+    return outerwrapper
+
 #############################################################################
 #
 def view_or_basicauth(view, request, test_func, realm = "", *args, **kwargs):

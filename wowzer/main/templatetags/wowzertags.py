@@ -7,6 +7,7 @@
 # System imports.
 #
 import pytz
+import types
 
 # Django imports
 #
@@ -17,7 +18,7 @@ from django.core.exceptions import ObjectDoesNotExist
 # Models
 #
 from django.contrib.auth.models import User
-from wowzer.main.models import UserProfile
+from wowzer.main.models import UserProfile, Breadcrumb
 
 register = template.Library()
 
@@ -242,3 +243,40 @@ def tz_std_date_ago(value, user):
     """
     from django.utils.timesince import timesince
     return "%s (%s ago)" % (tz_std_date(value, user), timesince(value))
+
+#############################################################################
+#
+@register.tag("breadcrumbs")
+def do_breadcrumbs(parser, token):
+    """
+    A tag that will stick the list of breadcrumbs to render on a page
+    in the context of that page.
+    """
+    try:
+        tag_name, var_name = token.split_contents()
+    except ValueError:
+        raise template.TemplateSyntaxError, "%r tag requires a single " \
+              "argument" % token.contents[0]
+    return Breadcrumbs(var_name)
+
+#############################################################################
+#
+class Breadcrumbs(template.Node):
+    """
+    The node class for our new tag that lets you define a variable in the
+    template that contains a list of the last <n> breadcrumbs for this session
+    """
+    ########################################################################
+    #
+    def __init__(self, var_name):
+        self.var_name = var_name
+
+    def render(self, context):
+        """
+        Use the request.user object in the context to get the
+        breadcrumbs for this user. Insert the past <n> breadcrumbs
+        as the specified variable name in our context.
+
+        """
+        context[self.var_name] = Breadcrumb.objects.filter(owner = context['request'].user)[:10:-1]
+        return ''

@@ -44,6 +44,7 @@ from django.contrib.auth.decorators import user_passes_test
 from wowzer.utils import msg_user
 from wowzer.decorators import logged_in_or_basicauth
 from wowzer.main.views import rlp_edit
+from wowzer.main.decorators import breadcrumb
 from wowzer.main.fields import UserOrGroupField
 
 # RSS Feeds
@@ -69,6 +70,7 @@ class DeleteForm(forms.Form):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def index(request):
     """Simplistic top level index. Shows all forum collections and their
     forums
@@ -85,6 +87,7 @@ def index(request):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def fc_list(request):
     """A list of forum collections that the user can view.
     XXX For now until we get the form filled and our such we are going to
@@ -100,6 +103,7 @@ def fc_list(request):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def fc_detail(request, fc_id):
     """A list of forum collections that the user can view.
     XXX For now until we get the form filled and our such we are going to
@@ -149,6 +153,7 @@ class DelForumCollectionCreatePermForm(forms.Form):
 ############################################################################
 #
 @user_passes_test(lambda u: u.is_staff or u.is_superuser)
+@breadcrumb
 def fc_create_perm(request):
     """
     The permission to create a forum collection is a class or model
@@ -243,6 +248,7 @@ def fc_create_perm(request):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def fc_perms(request, fc_id):
     """
     Display / edit the row level permissions for a specific forum collection.
@@ -263,6 +269,7 @@ def fc_perms(request, fc_id):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def fc_update(request, fc_id):
     """A list of forum collections that the user can view.
     XXX For now until we get the form filled and our such we are going to
@@ -298,6 +305,7 @@ def fc_update(request, fc_id):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def fc_delete(request):
     """A list of forum collections that the user can view.
     XXX For now until we get the form filled and our such we are going to
@@ -321,6 +329,7 @@ def fc_delete(request):
 ############################################################################
 #
 @permission_required('asforums.create_forumcollection')
+@breadcrumb
 def fc_create(request):
     """Creation of a new forum collection.
     """
@@ -344,6 +353,7 @@ def fc_create(request):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def obj_list_redir(request):
     """For index url's for which we have no specific view we send the user
     back to the top level view of this app."""
@@ -353,6 +363,7 @@ def obj_list_redir(request):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def forum_create(request,fc_id):
     """Creation of a new forum.
     XXX For now until we get the form filled and our such we are going to
@@ -387,6 +398,7 @@ def forum_create(request,fc_id):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def forum_detail(request, forum_id):
     """A forum detail shows just the forum and its details. Not much here.
     """
@@ -421,6 +433,7 @@ def forum_detail(request, forum_id):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def forum_update(request, forum_id):
     """Modify an existing forum object.
     """
@@ -455,6 +468,7 @@ def forum_update(request, forum_id):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def forum_perms(request, forum_id):
     """
     Display / edit the row level permissions for a specific forum collection.
@@ -473,6 +487,7 @@ def forum_perms(request, forum_id):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def forum_delete(request, forum_id):
     """Ask for confirmation if this is a GET, and if it is a POST we the
     proper bits set, delete the forum.
@@ -507,6 +522,7 @@ def forum_delete(request, forum_id):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def disc_list(request):
     """This will produce a list of discussions that match some arbitrary
     criteria specified as parameters.
@@ -524,6 +540,7 @@ def disc_list(request):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def disc_create(request, forum_id):
     """Creation of a new discussion.
     XXX When you create a discussion instead of dynamically referring to the
@@ -561,6 +578,7 @@ def disc_create(request, forum_id):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def disc_detail(request, disc_id):
     """A discussion detail shows the discussion details and a list of
     all posts that match the filter/sort criteria.
@@ -629,6 +647,7 @@ def disc_detail(request, disc_id):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def disc_perms(request, disc_id):
     """
     Display / edit the row level permissions for a specific discussion.
@@ -649,6 +668,7 @@ def disc_perms(request, disc_id):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def disc_update(request, disc_id):
     """Modify an existing discussion object.
     """
@@ -681,6 +701,7 @@ def disc_update(request, disc_id):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def disc_delete(request, disc_id):
     """Ask for confirmation if this is a GET, and if it is a POST we the
     proper bits set, delete the discussion.
@@ -730,6 +751,7 @@ def disc_delete(request, disc_id):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def post_create(request, disc_id):
     try:
         disc = Discussion.objects.select_related().get(pk = disc_id)
@@ -835,6 +857,7 @@ def post_feed_latest_by_discussion(request):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def post_detail(request, post_id):
     try:
         post = Post.objects.select_related().get(pk = post_id)
@@ -855,6 +878,7 @@ def post_detail(request, post_id):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def post_perms(request, post_id):
     """
     Display / edit the row level permissions for a post.
@@ -873,6 +897,7 @@ def post_perms(request, post_id):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def post_update(request, post_id):
     try:
         post = Post.objects.select_related().get(pk = post_id)
@@ -920,6 +945,7 @@ class PostDeleteForm(forms.Form):
     reason = forms.CharField(max_length = 128)
 
 @login_required
+@breadcrumb
 def post_delete(request, post_id):
     try:
         post = Post.objects.select_related().get(pk = post_id)

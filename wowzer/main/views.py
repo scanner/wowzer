@@ -31,6 +31,7 @@ from django.contrib.auth.decorators import login_required
 #
 from wowzer.utils import msg_user
 from wowzer.main.fields import UserOrGroupField
+from wowzer.main.decorators import breadcrumb
 
 # Django provided contrib models.
 #
@@ -45,6 +46,7 @@ from wowzer.items.models import *
 
 #############################################################################
 #
+@breadcrumb
 def index(request):
     t = get_template('index.html')
     c = Context(request, {})
@@ -73,6 +75,7 @@ class RemPermissionForm(forms.Form):
 #############################################################################
 #
 @login_required
+@breadcrumb
 def rlp_edit(request, obj, template = "main/rlp_generic_template.html",
              extra_context = {} ):
     """

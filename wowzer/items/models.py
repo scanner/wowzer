@@ -7,6 +7,7 @@
 # Django imports
 #
 from django.db import models
+from django.contrib.contenttypes import generic
 
 # Wowzer imports
 #
@@ -24,7 +25,7 @@ class Category(models.Model):
 
     name = models.CharField(maxlength = 128)
     description = models.CharField(maxlength = 1024)
-    
+
     #########################################################################
     #
     def __str__(self):
@@ -82,20 +83,20 @@ class WDBItem(models.Model):
     Stat9Val = models.IntegerField()
     Stat10 = models.IntegerField()
     Stat10Val = models.IntegerField()
-    Damage1Min = models.FloatField(max_digits = 12, decimal_places = 2)
-    Damage1Max = models.FloatField(max_digits = 12, decimal_places = 2)
+    Damage1Min = models.DecimalField(max_digits = 12, decimal_places = 2)
+    Damage1Max = models.DecimalField(max_digits = 12, decimal_places = 2)
     Damage1Type = models.IntegerField()
-    Damage2Min = models.FloatField(max_digits = 12, decimal_places = 2)
-    Damage2Max = models.FloatField(max_digits = 12, decimal_places = 2)
+    Damage2Min = models.DecimalField(max_digits = 12, decimal_places = 2)
+    Damage2Max = models.DecimalField(max_digits = 12, decimal_places = 2)
     Damage2Type = models.IntegerField()
-    Damage3Min = models.FloatField(max_digits = 12, decimal_places = 2)
-    Damage3Max = models.FloatField(max_digits = 12, decimal_places = 2)
+    Damage3Min = models.DecimalField(max_digits = 12, decimal_places = 2)
+    Damage3Max = models.DecimalField(max_digits = 12, decimal_places = 2)
     Damage3Type = models.IntegerField()
-    Damage4Min = models.FloatField(max_digits = 12, decimal_places = 2)
-    Damage4Max = models.FloatField(max_digits = 12, decimal_places = 2)
+    Damage4Min = models.DecimalField(max_digits = 12, decimal_places = 2)
+    Damage4Max = models.DecimalField(max_digits = 12, decimal_places = 2)
     Damage4Type = models.IntegerField()
-    Damage5Min = models.FloatField(max_digits = 12, decimal_places = 2)
-    Damage5Max = models.FloatField(max_digits = 12, decimal_places = 2)
+    Damage5Min = models.DecimalField(max_digits = 12, decimal_places = 2)
+    Damage5Max = models.DecimalField(max_digits = 12, decimal_places = 2)
     Damage5Type = models.IntegerField()
     PhysicalResist = models.IntegerField()
     HolyResist = models.IntegerField()
@@ -106,7 +107,7 @@ class WDBItem(models.Model):
     ArcaneResist = models.IntegerField()
     WeaponDelay = models.IntegerField()
     AmmoType = models.IntegerField()
-    RangeMod = models.FloatField(max_digits = 12, decimal_places = 2)
+    RangeMod = models.DecimalField(max_digits = 12, decimal_places = 2)
     Spell1ID = models.IntegerField()
     Spell1Trigger = models.IntegerField()
     Spell1Charges = models.IntegerField()
@@ -229,7 +230,7 @@ class Item(models.Model):
     #
     def get_absolute_url(self):
         return "/items/detail/%d/" % self.id
-    
+
 #############################################################################
 #
 class ItemInstance(models.Model):

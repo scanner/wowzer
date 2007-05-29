@@ -199,7 +199,7 @@ def fc_create_perm(request):
         if request.POST["submit"] == "Add create permission":
             add_form = AddForumCollectionCreatePermForm(request.POST)
             if add_form.is_valid():
-                u_or_g, name = add_form.clean_data['user_or_group'].split(',')
+                u_or_g, name = add_form.cleaned_data['user_or_group'].split(',')
                 if u_or_g == "user":
                     u = User.objects.get(username=name)
                     u.user_permissions.add(create_perm)
@@ -219,7 +219,7 @@ def fc_create_perm(request):
         if request.POST["submit"] == "Remove create permission":
             rem_form = DelForumCollectionCreatePermForm(request.POST)
             if rem_form.is_valid():
-                for g_id in rem_form.clean_data['groups']:
+                for g_id in rem_form.cleaned_data['groups']:
                     try:
                         g = Group.objects.get(pk = g_id)
                         g.permissions.remove(create_perm)
@@ -227,7 +227,7 @@ def fc_create_perm(request):
                                  "from group %s." % (create_perm, g.name))
                     except Group.DoesNotExist:
                         pass
-                for u_id in rem_form.clean_data['users']:
+                for u_id in rem_form.cleaned_data['users']:
                     try:
                         u = User.objects.get(pk = u_id)
                         u.user_permissions.remove(create_perm)
@@ -995,7 +995,7 @@ def post_delete(request, post_id):
         if form.is_valid():
             post.deleted = True
             post.deleted_by = request.user
-            post.deletion_reason =  form.clean_data['reason']
+            post.deletion_reason =  form.cleaned_data['reason']
             post.save()
 
             request.user.message_set.create(message = "Post deleted")

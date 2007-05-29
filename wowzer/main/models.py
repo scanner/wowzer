@@ -17,6 +17,7 @@ from django.db import models
 #
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes import generic
 
 ############################################################################
 #
@@ -26,12 +27,12 @@ class TaggedItem(models.Model):
     tag = models.SlugField(db_index = True, unique = True)
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
-    
-    content_object = models.GenericForeignKey()
-    
+
+    content_object = generic.GenericForeignKey()
+
     class Meta:
         ordering = ["tag"]
-    
+
     def __str__(self):
         return self.tag
 
@@ -49,16 +50,16 @@ class UserTaggedItem(models.Model):
     creator = models.ForeignKey(User, db_index = True)
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
-    
-    content_object = models.GenericForeignKey()
-    
+
+    content_object = generic.GenericForeignKey()
+
     class Meta:
         ordering = ["tag"]
         unique_together = (("tag", "creator"),)
-    
+
     def __str__(self):
         return self.tag
-    
+
 ############################################################################
 #
 class Style(models.Model):
@@ -71,7 +72,7 @@ class Style(models.Model):
     slug = models.SlugField(maxlength = 20, unique = True, db_index = True,
                             prepopulate_from = ("name", "creator",
                                                 "created_at"))
-                            
+
     creator = models.ForeignKey(User, db_index = True)
     created_at = models.DateTimeField(auto_now_add = True, editable = False)
     stylesheet = models.CharField(maxlength = 128, blank = False)
@@ -109,7 +110,7 @@ class UserProfile(models.Model):
     MARKUP_CHOICES =  (('text.bbcode', 'BBCode'),
                        ('text.Ztextile', 'ZTextile'),
                        ('text.plain', 'Plain'))
-                   
+
     user = models.ForeignKey(User, unique = True, editable = False,
                              null = False)
     homepage = models.URLField(blank = True)
@@ -119,7 +120,7 @@ class UserProfile(models.Model):
     signature = models.TextField(maxlength = 1024, blank = True)
     signature_html = models.TextField(maxlength = 1024, blank = True,
                                       editable = False)
-    
+
     # If blank defaults to the timezone of django site.
     #
     timezone = models.CharField(maxlength = 128, choices = TZ_CHOICES,
@@ -208,7 +209,7 @@ class Breadcrumb(models.Model):
         #
         if request.user.is_anonymous:
             return
-        
+
         # First get the last url breadcrumb we made. If its url is the same as
         # the url in the request we were passed then we do not need to make
         # a new breadcrumb (the user went nowhere.. )

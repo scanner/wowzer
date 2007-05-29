@@ -24,7 +24,7 @@ else:
         config.read(["../etc/test-config.ini"])
     else:
         raise "Unable to load a test configuration"
-    
+
 # We should do some checks to make sure the config file we read
 # has the necessary sections and items in those sections.
 #
@@ -96,7 +96,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.debug",
     "django.core.context_processors.i18n",
     "django.core.context_processors.request",
-    "wowzer.utils.media_context",
+    'django.core.context_processors.media',
     )
 
 MIDDLEWARE_CLASSES = (

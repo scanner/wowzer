@@ -11,13 +11,6 @@ from django.conf import settings
 
 #############################################################################
 #
-def media_context(request):
-    """Insert in to the template context the values of settings.media_url
-    """
-    return { 'MEDIA_URL' : settings.MEDIA_URL }
-
-#############################################################################
-#
 def msg_user(user, message):
     """A helper function to send a 'message' to a user (using the message
     object framework for users from the django.contrib.auth

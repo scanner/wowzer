@@ -20,12 +20,14 @@ from wowzer.main.models import TaggedItem
 #############################################################################
 #
 class Topic(models.Model):
+    title = models.CharField(maxlength=255, db_index=True, unique = True,
+                             blank = True)
+    slug = models.SlugField(maxlength=255, db_index = True, unique = True,
+                            blank = False)
     author = models.ForeignKey(User, db_index = True, editable = False)
-    title = models.CharField(maxlength=255, db_index=True)
-    path= models.CharField(maxlength=255, db_index=True, core=True)
+    path = models.CharField(maxlength=255, db_index=True)
     created = models.DateTimeField(auto_now_add = True, editable = False,
                                    db_index = True)
-    slug = models.SlugField(db_index = True, unique = True, blank = False)
     content = models.ForeignKey("Content")
     views = models.IntegerField(default = 0, editable = False)
     revision = models.IntegerField(default = 0, editable = False)
@@ -43,6 +45,15 @@ class Topic(models.Model):
 
 #############################################################################
 #
+class Renames(models.Model):
+    old = models.SlugField(maxlength=255, db_index = True, blank = False,
+                           editable = False)
+    changed = models.DateTimeField(auto_now_add = True, editable = False,
+                                   db_index = True)
+    topic = models.ForeignKey(Topic)
+
+#############################################################################
+#
 class Content(models.Model):
     edited_by = models.ForeignKey(User, db_index = True, editable = False)
     created = models.DateTimeField(auto_now_add = True, editable = False,
@@ -51,7 +62,8 @@ class Content(models.Model):
     content_html = models.TextField(maxlength = 16000, blank = True)
     markup = models.CharField(maxlength=80, blank=True, editable = False)
     revision = models.IntegerField(default = 0, editable = False)
-    changelog = models.CharField(maxlength=255, default="", null=True, blank=True)
+    changelog = models.CharField(maxlength=255, default="", null=True,
+                                 blank=True)
 
     class Meta:
         get_latest_by = 'created'

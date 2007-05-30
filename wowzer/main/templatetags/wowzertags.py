@@ -61,17 +61,17 @@ def paginator(context, adjacent_pages=2):
 @register.tag('columnize')
 def columnize(parser, token):
     '''Put stuff into columns. Can also define class tags for rows and cells
-    
+
     Usage: {% columnize num_cols [row_class[,row_class2...]|''
-           [cell_class[,cell_class2]]] %} 
-        
+           [cell_class[,cell_class2]]] %}
+
     num_cols:   the number of columns to format.
     row_class:  can use a comma (no spaces, please) separated list that
                 cycles (utilizing the cycle code) can also put in '' for
                 nothing, if you want no row_class, but want a cell_class.
     cell_class: same format as row_class, but the cells only loop within a
                 row. Every row resets the cell counter.
-        
+
     Typical usage:
 
     <table border="0" cellspacing="5" cellpadding="5">
@@ -84,7 +84,7 @@ def columnize(parser, token):
     '''
     nodelist = parser.parse(('endcolumnize',))
     parser.delete_first_token()
-    
+
     #Get the number of columns, default 1
     columns = 1
     row_class = ''
@@ -136,14 +136,14 @@ class ColumnizeNode(template.Node):
         self.row_class = row_class
         self.cell_class_len = len(cell_class)
         self.cell_class = cell_class
-    
+
     def render(self, context):
         output = ''
         self.counter += 1
         if (self.counter > self.columns):
             self.counter = 1
             self.cellcounter = -1
-            
+
         if (self.counter == 1):
             output = '<tr'
             if self.row_class:
@@ -151,14 +151,14 @@ class ColumnizeNode(template.Node):
                 output += ' class="%s">' % self.row_class[self.rowcounter % self.row_class_len]
             else:
                 output += '>'
-        
+
         output += '<td'
         if self.cell_class:
             self.cellcounter += 1
             output += ' class="%s">' % self.cell_class[self.cellcounter % self.cell_class_len]
         else:
             output += '>'
-        
+
         output += self.nodelist.render(context) + '</td>'
 
         if (self.counter == self.columns):
@@ -182,7 +182,7 @@ def icon(icon_name, icon_title=""):
 
     # I wish it had the context of the original request
     #
-    
+
     return { 'MEDIA_URL' : settings.MEDIA_URL,
              'icon_dir'  : 'img/silk-icons/',
              'icon_name' : icon_name,
@@ -278,5 +278,8 @@ class Breadcrumbs(template.Node):
         as the specified variable name in our context.
 
         """
-        context[self.var_name] = Breadcrumb.objects.filter(owner = context['request'].user)[:10:-1]
-        return ''
+        if context['request'].user.is_authenticated():
+            context[self.var_name] = Breadcrumb.objects.filter(owner = context['request'].user)[:10:-1]
+        else:
+            context[self.var_name] = []
+        return ""

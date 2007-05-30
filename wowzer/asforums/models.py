@@ -15,7 +15,6 @@ import pytz
 from django.db import models
 from django.db.models import signals, Q
 from django.dispatch import dispatcher
-from django.template.defaultfilters import slugify as django_slugify
 
 
 # django model imports
@@ -78,17 +77,6 @@ def add_all_permissions(obj, owner):
     for perm,ign in obj._meta.permissions:
         RowLevelPermission.objects.create_row_level_permission(obj, owner, perm)
     return
-
-#############################################################################
-#
-def slugify(value, length):
-    """Take the given string and slugify it, making sure it does not exceed
-    the specified length.
-    """
-    if len(value) > length:
-        return django_slugify(value[:length/2] + value[-length/2:])
-    else:
-        return django_slugify(value)
 
 #############################################################################
 #

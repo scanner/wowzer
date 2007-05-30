@@ -20,18 +20,17 @@ from wowzer.main.models import TaggedItem
 #############################################################################
 #
 class Topic(models.Model):
-    title = models.CharField(maxlength=255, db_index=True, unique = True,
-                             blank = True)
-    slug = models.SlugField(maxlength=255, db_index = True, unique = True,
+    title = models.CharField(maxlength = 255, db_index = True, blank = True)
+    slug = models.SlugField(maxlength = 255, db_index = True, unique = True,
                             blank = False)
     author = models.ForeignKey(User, db_index = True, editable = False)
     path = models.CharField(maxlength=255, db_index=True)
     created = models.DateTimeField(auto_now_add = True, editable = False,
                                    db_index = True)
+    parent = models.ForeignKey("self")
     content = models.ForeignKey("Content")
     views = models.IntegerField(default = 0, editable = False)
     revision = models.IntegerField(default = 0, editable = False)
-    #notify = models.BooleanField(default = True)
     locked = models.BooleanField(default = False, editable = False)
     tags = generic.GenericRelation(TaggedItem)
 
@@ -42,6 +41,16 @@ class Topic(models.Model):
         permissions = (('read_topic', 'Can read topic'),
                        ('rename_topic', 'Can rename topic'),
                        ('moderate_topic', 'Can moderate topics'))
+
+    #########################################################################
+    #
+    def __str__(self):
+        return "<Topic: %s>" % self.slug
+
+    #########################################################################
+    #
+    def get_absolute_url(self):
+        return "/aswiki/topic/%d/" % self.id
 
 #############################################################################
 #

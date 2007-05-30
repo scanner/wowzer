@@ -59,6 +59,7 @@ from django.contrib.contenttypes.models import ContentType
 # The data models from our apps:
 #
 from wowzer.asforums.models import ForumCollection, Forum, Discussion, Post
+from wowzer.main.models import Breadcrumb
 
 paginate_by = 10
 
@@ -889,7 +890,7 @@ def post_detail(request, post_id):
         raise PermissionDenied
 
     Breadcrumb.rename_last(request, "Post #%d in %s" % (post.post_number,
-                                                        post.discussion.name)
+                                                        post.discussion.name))
 
     return object_detail(request, Post.objects.readable(request.user),
                          object_id = post_id)
@@ -912,7 +913,7 @@ def post_perms(request, post_id):
          not request.user.has_perm("asforums.change_post", object = p)):
         raise PermissionDenied
     Breadcrumb.rename_last(request, "Post #%d in %s permissions" % \
-                           (post.post_number, post.discussion.name)
+                           (post.post_number, post.discussion.name))
     return rlp_edit(request, p, template = "asforums/post_perms.html")
 
 ############################################################################
@@ -936,7 +937,7 @@ def post_update(request, post_id):
         raise PermissionDenied
 
     Breadcrumb.rename_last(request, "Update post #%d in %s" % \
-                           (post.post_number, post.discussion.name)
+                           (post.post_number, post.discussion.name))
     PostForm = forms.models.form_for_instance(post)
     PostForm.base_fields['content'].widget = \
                 widgets.Textarea(attrs = {'cols' : '80', 'rows' : '12'})
@@ -988,7 +989,7 @@ def post_delete(request, post_id):
         raise PermissionDenied
 
     Breadcrumb.rename_last(request, "Delete post #%d in %s" % \
-                           (post.post_number, post.discussion.name)
+                           (post.post_number, post.discussion.name))
 
     if request.method == "POST":
         form = PostDeleteForm(request.POST)

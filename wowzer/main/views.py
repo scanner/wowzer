@@ -46,7 +46,7 @@ from wowzer.items.models import *
 
 #############################################################################
 #
-@breadcrumb
+@breadcrumb(name = "Top")
 def index(request):
     t = get_template('index.html')
     c = Context(request, {})

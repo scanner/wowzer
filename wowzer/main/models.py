@@ -207,7 +207,7 @@ class Breadcrumb(models.Model):
 
         # If the requester is not logged in we do not create a breadcrumb.
         #
-        if request.user.is_anonymous:
+        if request.user.is_anonymous():
             return
 
         # First get the last url breadcrumb we made. If its url is the same as
@@ -268,6 +268,9 @@ class Breadcrumb(models.Model):
         # the url in the request we were passed then we set the short name
         # of the breadcrumb to the one we were passed.
         #
+        if not request.user.is_authenticated():
+            # Anonymous users do not get breadcrumb support right now.
+            return
         try:
             last_bc = cls.objects.filter(owner = request.user).\
                       order_by('-created')[0]

@@ -33,11 +33,12 @@ from django.contrib.auth.decorators import user_passes_test
 # Wowzer utility functions
 #
 from wowzer.utils import msg_user
+from wowzer.main.decorators import breadcrumb
 
 # Data models.
 #
 from django.contrib.auth.models import User, Group
-from wowzer.main.models import UserProfile
+from wowzer.main.models import UserProfile, Breadcrumb
 
 ############################################################################
 #
@@ -69,7 +70,7 @@ class SignupForm(forms.Form):
                                 label="Repeat your password")
     email = forms.EmailField()
     email2 = forms.EmailField(label="Repeat your email")
-    
+
     def clean_email(self):
         if self.data['email'] != self.data['email2']:
             raise forms.ValidationError('Emails are not the same')
@@ -79,7 +80,7 @@ class SignupForm(forms.Form):
         if self.data['password'] != self.data['password2']:
             raise forms.ValidationError('Passwords are not the same')
         return self.data['password']
-    
+
     def clean(self,*args, **kwargs):
         self.clean_email()
         self.clean_password()
@@ -119,10 +120,11 @@ def sendout_email(user, password):
     message = message_template.render(message_context)
     send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
     return
-    
+
 ############################################################################
 #
 @login_required
+@breadcrumb(name="User List")
 def index(request):
     """The top level view of 'users'. This is a list view of all of the user
     objects.
@@ -135,7 +137,7 @@ def index(request):
         qs = User.objects.order_by('username')
     else:
         qs = User.objects.filter(active = True).order_by('username')
-        
+
     return object_list(request, qs, paginate_by = 20,
                        template_name = "users/index.html")
 
@@ -185,10 +187,13 @@ def user_create(request):
 ############################################################################
 #
 @login_required
+@breadcrumb
 def user_detail(request, username):
     """Simple display of a user object.
     """
     u = get_object_or_404(User, username = username)
+
+    Breadcrumb.rename_last(request, "User %s's profile" % username)
 
     # The user detail page also shows their profile information. To make
     # things a little easier if they do not have a profile then we create

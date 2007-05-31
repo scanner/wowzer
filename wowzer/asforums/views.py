@@ -854,7 +854,10 @@ def post_tag(request, tag):
     Display a list of all of the posts that have the given tag, organized
     by discussion from most recent to oldest.
     """
-
+    tag_instance = get_tag(tag)
+    if tag_instance is None:
+        raise Http404, 'No tag found matching "%s"' % tag
+    qs = TaggedItem.objects.get_by_model(Post, tag)
 
     Breadcrumb.rename_last(request, "Posts with tag %s" % tag)
 

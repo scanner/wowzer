@@ -728,7 +728,13 @@ class PostManager(models.Manager):
         # Superuser can see everything.
         #
         if user.is_authenticated() and user.is_superuser:
-            return self.all()
+            # if we were passed in a query set, then filter that one,
+            # not the base query set.
+            #
+            if query_set is not None:
+                return query_set
+            else:
+                return self.all()
 
         f_view = RowLevelPermission.objects.get_model_list(\
             user, Forum, 'view_forum')
@@ -750,7 +756,9 @@ class PostManager(models.Manager):
             return self.none()
 
         q1 = Q(discussion__forum__collection__in = fc_list)
-        q2 = Q(discussion__forum__in = f_view) & Q(discussion__forum__in = f_read) & Q(discussion__locked = False)
+        q2 = Q(discussion__forum__in = f_view) & \
+             Q(discussion__forum__in = f_read) & \
+             Q(discussion__locked = False)
         q3 = Q(discussion__forum__in = f_moderate)
         q4 = q2 | q3
 
@@ -759,7 +767,7 @@ class PostManager(models.Manager):
         #
         if query_set is not None:
             return query_set.filter(q1).filter(q4)
-        
+
         return self.filter(q1).filter(q4)
 
 #############################################################################

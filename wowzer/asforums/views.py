@@ -56,6 +56,11 @@ from wowzer.asforums.feeds import LatestPosts, LatestPostsByForumDiscussion
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 
+# 3rd party models & utils
+#
+from tagging.models import TaggedItem
+from tagging.utils import get_tag
+
 # The data models from our apps:
 #
 from wowzer.asforums.models import ForumCollection, Forum, Discussion, Post
@@ -858,14 +863,16 @@ def post_tag(request, tag):
     if tag_instance is None:
         raise Http404, 'No tag found matching "%s"' % tag
 
-    Breadcrumb.rename_last(request, "Posts with tag %s" % tag)
-    qs = TaggedItem.objects.get_by_model(Post, tag)
+    Breadcrumb.rename_last(request, 'Posts with tag "%s"' % tag)
+    tqs = TaggedItem.objects.get_by_model(Post, tag)
+    print "Number of posts with given tag: %d" % tqs.count()
+    qs = Post.objects.readable(request.user,
+                               query_set = tqs).order_by('-discussion_id',
+                                                         '-post_number')
+    print "Number of posts with given tag, after readable filter: %d" % qs.count()
+    return object_list(request, qs, paginate_by = 10,
+                       template_name = "asforums/post_list.html")
 
-    return object_list(request, Post.objects.readable(request.user,
-                                                      query_set = qs),
-                       paginate_by = 10, temlate_name = "post_list.html")
-
-                       
 ############################################################################
 #
 @logged_in_or_basicauth(realm = "wowzer")

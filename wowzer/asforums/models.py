@@ -704,7 +704,7 @@ class PostManager(models.Manager):
     read them.
     """
 
-    def readable(self, user):
+    def readable(self, user, query_set = None):
         """
         Returns a query set of posts that are readable by the given
         user. A post is readable if read and view or moderate on the
@@ -714,6 +714,11 @@ class PostManager(models.Manager):
         If a discussion is 'locked' then the posts in that discussion
         are not readable, unless the user has moderate permission on the
         forum that the discussion is in.
+
+        NOTE: If you need to filter an existing query set for
+        'readable' for some reason, then if you pass in 'query_set' it
+        will use that for the query set to filter instead of the base
+        query set.
 
         NOTE: Yes, it is possible for someone to have set it up so
         that someone has read permission on a forum but not view on
@@ -748,6 +753,13 @@ class PostManager(models.Manager):
         q2 = Q(discussion__forum__in = f_view) & Q(discussion__forum__in = f_read) & Q(discussion__locked = False)
         q3 = Q(discussion__forum__in = f_moderate)
         q4 = q2 | q3
+
+        # if we were passed in a query set, then filter that one, not the
+        # base query set.
+        #
+        if query_set is not None:
+            return query_set.filter(q1).filter(q4)
+        
         return self.filter(q1).filter(q4)
 
 #############################################################################

@@ -857,10 +857,15 @@ def post_tag(request, tag):
     tag_instance = get_tag(tag)
     if tag_instance is None:
         raise Http404, 'No tag found matching "%s"' % tag
-    qs = TaggedItem.objects.get_by_model(Post, tag)
 
     Breadcrumb.rename_last(request, "Posts with tag %s" % tag)
+    qs = TaggedItem.objects.get_by_model(Post, tag)
 
+    return object_list(request, Post.objects.readable(request.user,
+                                                      query_set = qs),
+                       paginate_by = 10, temlate_name = "post_list.html")
+
+                       
 ############################################################################
 #
 @logged_in_or_basicauth(realm = "wowzer")

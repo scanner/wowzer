@@ -1,0 +1,25 @@
+{% load auth wowzertags asforums_tags %}
+{% comment %}
+This is a html template fragment that has the toolbar for posts with appropriate
+permission controls.
+{% endcomment %}
+{% fancy_if or not post.deleted "asforums.moderate_forum" discussion.forum %}
+  <div class="toolbar">
+    <ul>
+      {% fancy_if or ( and not discussion.locked not discussion.closed "asforums.post_discussion" discussion ) "asforums.moderate_forum" discussion.forum %}
+        <li><a href="./create_post/?in_reply_to={{ post.id }}">{% icon "comment_add" "Reply to post" %}</a></li>
+      {% end_fancy_if %}
+      {% fancy_if or "asforums.moderate_forum" discussion.forum ( and not discussion.closed ( or eq post.author user eq discussion.author user ) ) %}
+        {% fancy_if or "asforums.moderate_forum" discussion.forum eq post.author user %}
+          <li><a href="{{ post.get_absolute_url }}update/">{% icon "comment_edit" "Edit Post" %}</a></li>
+        {% end_fancy_if %}
+        <li><a href="{{ post.get_absolute_url }}delete/">{% icon "comment_delete" "Delete Post" %}</a></li>
+      {% end_fancy_if %}
+      {% if_has_perm "main.add_taggeditem" %}
+        <li><a href="{{ post.get_absolute_url }}tag/">{% icon "tag_blue_add" "Add Tag to Post" %}</a></li>
+      {% end_if_has_perm %}
+      <li><a href="{{ post.get_absolute_url }}usertag/">{% icon "user_add" "Add Private User Tag to Post" %}</a></li>
+      <li><a href="{{ post.get_discussion_url }}">{% icon "link" "Permanent link to this post" %}</a></li>
+    </ul>
+  </div>
+{% end_fancy_if %}

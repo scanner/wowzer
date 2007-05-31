@@ -12,65 +12,13 @@
     <tr class="{% cycle odd,even %}">
       <td><span class="author"><a href="{{ post.author.get_absolute_url }}">{{ post.author }}</a></span></td>
       <td>
-        {% fancy_if or not post.deleted "asforums.moderate_forum" post.discussion.forum %}
-        <div class="toolbar">
-	  <ul>
-            {% fancy_if or ( and not post.discussion.locked not post.discussion.closed "asforums.post_discussion" discussion ) "asforums.moderate_forum" post.discussion.forum %}            
-	      <li><a href="./create_post/?in_reply_to={{ post.id }}">{% icon "comment_add" "Reply to post" %}</a></li>
-            {% end_fancy_if %}
-	    {% fancy_if or "asforums.moderate_forum" post.discussion.forum ( and not post.discussion.closed ( or eq post.author user eq post.discussion.author user ) ) %}
-	      {% fancy_if or "asforums.moderate_forum" post.discussion.forum eq post.author user %}
-	        <li><a href="{{ post.get_absolute_url }}update/">{% icon "comment_edit" "Edit Post" %}</a></li>
-	      {% end_fancy_if %}
-	      <li><a href="{{ post.get_absolute_url }}delete/">{% icon "comment_delete" "Delete Post" %}</a></li>
-	    {% end_fancy_if %}
-	    {% if_has_perm "main.add_taggeditem" %}
-            <li><a href="{{ post.get_absolute_url }}tag/">{% icon "tag_blue_add" "Add Tag to Post" %}</a></li>
-	    {% end_if_has_perm %}
-            <li><a href="{{ post.get_absolute_url }}usertag/">{% icon "user_add" "Add Private User Tag to Post" %}</a></li>
-            <li><a href="{{ post.get_discussion_url }}">{% icon "link" "Permanent link to this post" %}</a></li>
-	  </ul>
-	</div>
-        {% end_fancy_if %}
+        {% include "asforums/post_toolbar.html" %}
         <div class="byline">
-	  <a name="{{ post.post_number }}">Post #{{ post.post_number }}</a><br>
-          Posted at: {{ post.created|tz_std_date_ago:user }}
-          {% if post.in_reply_to %}
-          in reply to <a title="Go to {{ post.in_reply_to_author.username }}'s profile." href="{{ post.in_reply_to.author.get_absolute_url }}">{{ post.in_reply_to.author }}'s</a> <a href="{{ post.in_reply_to.get_discussion_url }}">Post #{{ post.in_reply_to.post_number}}</a> (from {{ post.in_reply_to.created|timesince }} ago.) 
-          {% endif %}
+          <a href="{{ post.discussion.forum.collection.get_absolute_url }}">{{ post.discussion.forum.collection.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ post.discussion.forum.get_absolute_url }}">{{ post.discussion.forum.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ post.discussion.get_absolute_url }}">{{ post.discussion.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ post.get_discussion_url }}">Post #{{ post.post_number }}</a><br>
         </div>
-        {% fancy_if or not post.deleted "asforums.moderate_forum" post.discussion.forum %}
-        <div class="postmessage">
-          {% if post.content_html %}
-            {{ post.content_html }}
-          {% else %}
-            {{ post.content }}
-          {% endif %}
-        </div>
-        {% end_fancy_if %}
-	{% if post.edited %}
-	<div class="byline">
-	Post edited at {{ post.changed|tz_std_date_ago:user }}
-	</div>
-	{% endif %}
-        {% if post.deleted %}
-        <div class="alert">
-          Post was deleted by <a href="{{ post.deleted_by.get_absolute_url }}">{{ post.deleted_by.username }}</a><br />
-          {% if post.deletion_reason %}
-          Reason: {{ post.deletion_reason }}
-          {% endif %}
-        </div>
-        {% endif %}
-	{% ifnotequal post.replies.count 0 %}
-	<div class="postreplies">
-	  Replies: 
-	  {% for reply in post.replies.all|slice:":10" %}
-	    {% if not reply.deleted %}
-	      <a href="{{ reply.get_discussion_url }}">Post #{{ reply.post_number }}</a>,
-	    {% endif %}
-	  {% endfor %}
-	</div>
-	{% endifnotequal %}
+        {% include "asforums/post_header.html" %}
+        {% include "asforums/post_body.html" %}
+        {% include "asforums/post_footer.html" %}
       </td>
     </tr>
   {% endfor %}

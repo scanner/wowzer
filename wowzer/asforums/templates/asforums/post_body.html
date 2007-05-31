@@ -1,0 +1,15 @@
+{% load auth wowzertags asforums_tags %}
+{% comment %}
+This is a html template fragment that defines the body of a post.
+{% endcomment %}
+<div class="postmessage">
+  {% fancy_if or not post.deleted "asforums.moderate_forum" discussion.forum %}
+    {% if post.content_html %}
+      {{ post.content_html }}
+    {% else %}
+      {{ post.content }}
+    {% endif %}
+  {% else %}
+    <strong>Deleted</strong>
+  {% end_fancy_if %}
+</div>

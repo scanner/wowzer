@@ -1,0 +1,36 @@
+{% load wowzertags tagging_tags  %}
+{% comment %}
+This is a html template fragment that defines the footer of a post.
+{% endcomment %}
+{% if post.edited %}
+  <div class="byline">
+    Post edited at {{ post.changed|tz_std_date_ago:user }}
+  </div>
+{% endif %}
+{% if post.deleted %}
+  <div class="alert">
+    Post was deleted by <a href="{{ post.deleted_by.get_absolute_url }}">{{ post.deleted_by.username }}</a><br />
+    {% if post.deletion_reason %}
+      Reason: {{ post.deletion_reason }}
+    {% endif %}
+  </div>
+{% endif %}
+{% ifnotequal post.replies.count 0 %}
+  <div class="postreplies">
+    Replies:
+    {% for reply in post.replies.all|slice:":10" %}
+      {% if not reply.deleted %}
+        <a href="{{ reply.get_discussion_url }}">Post #{{ reply.post_number }}</a>,
+      {% endif %}
+    {% endfor %}
+  </div>
+{% endifnotequal %}
+{% tags_for_object post as tag_list %}
+{% if tag_list %}
+  <div class="tags">
+    Tags:
+    {% for tag in tag_list %}
+      <a href="{{ post.get_absolute_url }}../tag/{{ tag }}/">{{ tag }}</a>
+    {% endfor %}
+  </div>
+{% endif %}

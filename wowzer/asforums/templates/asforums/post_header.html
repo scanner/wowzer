@@ -1,0 +1,10 @@
+{% load wowzertags %}
+{% comment %}
+This is a html template fragment that has the hearder text for posts.
+{% endcomment %}
+<div class="byline">
+  Posted at: {{ post.created|tz_std_date_ago:user }}
+  {% if post.in_reply_to %}
+    in reply to <a title="Go to {{ post.in_reply_to_author.username }}'s profile." href="{{ post.in_reply_to.author.get_absolute_url }}">{{ post.in_reply_to.author }}'s</a> <a href="{{ post.in_reply_to.get_discussion_url }}">Post #{{ post.in_reply_to.post_number}}</a> (from {{ post.in_reply_to.created|timesince }} ago.)
+  {% endif %}
+</div>

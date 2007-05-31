@@ -23,7 +23,6 @@ urlpatterns = patterns(
     (r'^forums/(?P<forum_id>\d+)/perms/$', 'forum_perms'),
     (r'^forums/(?P<forum_id>\d+)/update/$', 'forum_update'),
     (r'^forums/(?P<forum_id>\d+)/tag/$', 'forum_tag'),
-    (r'^forums/(?P<forum_id>\d+)/user_tag/$', 'forum_usertag'),
     (r'^forums/(?P<forum_id>\d+)/delete/$', 'forum_delete'),
     (r'^forums/(?P<forum_id>\d+)/create_discussion/$', 'disc_create'),
 
@@ -32,7 +31,6 @@ urlpatterns = patterns(
     (r'^discs/(?P<disc_id>\d+)/perms/$', 'disc_perms'),
     (r'^discs/(?P<disc_id>\d+)/update/$', 'disc_update'),
     (r'^discs/(?P<disc_id>\d+)/tag/$', 'disc_tag'),
-    (r'^discs/(?P<disc_id>\d+)/user_tag/$', 'disc_usertag'),
     (r'^discs/(?P<disc_id>\d+)/lock/$', 'disc_lock'),
     (r'^discs/(?P<disc_id>\d+)/unlock/$', 'disc_unlock'),
     (r'^discs/(?P<disc_id>\d+)/close/$', 'disc_close'),
@@ -41,12 +39,11 @@ urlpatterns = patterns(
     (r'^discs/(?P<disc_id>\d+)/create_post/$', 'post_create'),
 
     (r'^posts/$', 'obj_list_redir'),
+    (r'^posts/tag/(?P<tag>[^/]+(?u))/$','post_tag'),
     (r'^posts/feed/latest/$', 'post_feed_latest'),
     (r'^posts/feed/discussion/$', 'post_feed_latest_by_discussion'),
     (r'^posts/(?P<post_id>\d+)/$','post_detail'),
     (r'^posts/(?P<post_id>\d+)/perms/$','post_detail'),
     (r'^posts/(?P<post_id>\d+)/update/$','post_update'),
-    (r'^posts/(?P<post_id>\d+)/tag/$','post_tag'),
-    (r'^posts/(?P<post_id>\d+)/user_tag/$','post_usertag'),
     (r'^posts/(?P<post_id>\d+)/delete/$','post_delete'),
     )

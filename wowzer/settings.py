@@ -125,6 +125,7 @@ INSTALLED_APPS = (
     'wowzer.asforums',
     'wowzer.main',
     'wowzer.users',
+    'tagging',
 #    'wowzer.madhouse',
 #    'wowzer.gatherbox',
 #    'wowzer.realm',

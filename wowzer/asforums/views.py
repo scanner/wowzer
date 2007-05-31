@@ -847,6 +847,19 @@ def post_create(request, disc_id):
 
 ############################################################################
 #
+@login_required
+@breadcrumb
+def post_tag(request, tag):
+    """
+    Display a list of all of the posts that have the given tag, organized
+    by discussion from most recent to oldest.
+    """
+
+
+    Breadcrumb.rename_last(request, "Posts with tag %s" % tag)
+
+############################################################################
+#
 @logged_in_or_basicauth(realm = "wowzer")
 def post_feed_latest(request):
     """

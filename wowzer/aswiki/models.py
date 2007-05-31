@@ -13,9 +13,9 @@ from django.contrib.auth.models import User
 from django.contrib.auth.models import RowLevelPermission
 from django.contrib.contenttypes import generic
 
-# Wowzer model imports
+# 3rd party imports
 #
-from wowzer.main.models import TaggedItem
+from tagging.fields import TagField
 
 #############################################################################
 #
@@ -32,7 +32,7 @@ class Topic(models.Model):
     views = models.IntegerField(default = 0, editable = False)
     revision = models.IntegerField(default = 0, editable = False)
     locked = models.BooleanField(default = False, editable = False)
-    tags = generic.GenericRelation(TaggedItem)
+    tags = TagField()
 
     class Meta:
         get_latest_by = 'created'

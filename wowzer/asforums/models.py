@@ -21,11 +21,10 @@ from django.dispatch import dispatcher
 #
 from django.contrib.auth.models import User
 from django.contrib.auth.models import RowLevelPermission
-from django.contrib.contenttypes import generic
 
-# Wowzer model imports
+# 3rd party imports
 #
-from wowzer.main.models import TaggedItem
+from tagging.fields import TagField
 
 # Signal imports
 #
@@ -192,7 +191,7 @@ class ForumCollection(models.Model):
     author = models.ForeignKey(User, db_index = True, editable = False)
     created = models.DateTimeField(auto_now_add = True, editable = False,
                                    db_index = True)
-    tags = generic.GenericRelation(TaggedItem)
+    tags = TagField()
 
     objects = ForumCollectionManager()
 
@@ -380,7 +379,7 @@ class Forum(models.Model):
                                    db_index = True)
     collection = models.ForeignKey(ForumCollection, db_index = True,
                                    editable = False)
-    tags = generic.GenericRelation(TaggedItem)
+    tags = TagField()
 
 #    last_post = models.ForeignKey("Post")
 #    last_post_at = models.DateTimeField(null = True, db_index = True)
@@ -615,7 +614,7 @@ class Discussion(models.Model):
     closed = models.BooleanField(default = False)
     sticky = models.BooleanField(default = False, editable = False)
 
-    tags = generic.GenericRelation(TaggedItem)
+    tags = TagField()
 
     objects = DiscussionManager()
 
@@ -852,7 +851,7 @@ class Post(models.Model):
     markup = models.CharField(maxlength=80, blank=True, editable = False)
     in_reply_to = models.ForeignKey('self', related_name = 'replies',
                                     null = True, editable = False)
-    tags = generic.GenericRelation(TaggedItem, editable = False)
+    tags = TagField()
     views = models.IntegerField(default = 0, editable = False)
     smilies = models.BooleanField(default = True)
     signature = models.BooleanField(default = True)

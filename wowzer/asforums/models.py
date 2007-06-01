@@ -473,6 +473,15 @@ class Forum(models.Model):
         except Post.DoesNotExist:
             return None
 
+    #########################################################################
+    #
+    def active_discussions(self, days = 1):
+        """
+        Returns a queryset that has the active discussions
+        (discussions that have had a post made in the last n days.
+        """
+        pass
+
 #############################################################################
 #
 class DiscussionManager(models.Manager):
@@ -714,7 +723,13 @@ class Discussion(models.Model):
         If the user has not seen any posts in the discussion, then the first
         post is returned. If the discussion has no posts then None is returned.
         """
-        pass
+        try:
+            return LastPostSeen.objects.get(user = user, discussion = self).post
+        except LastPostSeen.DoesNotExist:
+            try:
+                return Post.objects.get(discussion = self, post_number = 1)
+            except Post.DoesNotExist:
+                return None
 
 #############################################################################
 #

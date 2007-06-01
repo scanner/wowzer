@@ -15,39 +15,39 @@
     <div id="top">
       <div class="toolbar">
         <ul>
-	<li>{% icon "magnifier" "Search" %}</li>
+        <li>{% icon "magnifier" "Search" %}</li>
           {% if user.is_authenticated %}
             <li>Hello <a title="Home" href="{{ user.get_absolute_url }}">{{ user.username }}!&nbsp;{% icon "house_go" "Home" %}</a></li>
-	    <li><a href="/accounts/logout/">{% icon "door_out" "Logout" %}</a></li>
-	  {% else %}
-	    <li><a href="/accounts/login/?next={{ request.path }}">Login {% icon "door_in" "Login" %}</a></li>
-	    
-	    <li><a href="/accounts/register/">Register</a></li>
-	  {% endif %}
-	  
+            <li><a href="/accounts/logout/">{% icon "door_out" "Logout" %}</a></li>
+          {% else %}
+            <li><a href="/accounts/login/?next={{ request.path }}">Login {% icon "door_in" "Login" %}</a></li>
+
+            <li><a href="/accounts/register/">Register</a></li>
+          {% endif %}
+
         </ul>
       </div>
       <div id="title">
         <span class="title"><h1>{% block title %}{% endblock %}</h1></span><br>
-	<span class="byline">{% block subtitle %}{% endblock %}</span>
+        <span class="byline">{% block subtitle %}{% endblock %}</span>
       </div>
       <div id="navlist">
-        <ul> 
+        <ul>
           <li><a href="/" class="selected">Top</a></li>
           {% if user.is_authenticated %}
           <li><a href="{{ user.get_absolute_url }}">Home</a></li>
-	  {% if user.is_staff or user.is_superuser %}
+          {% if user.is_staff or user.is_superuser %}
           <li><a href="/admin/" title="Admin">Admin</a></li>
-	  {% endif %}
+          {% endif %}
           {% endif %}
           <li><a href="/users/">Users and Groups</a></li>
           <li><a href="/asforums/" title="Items">Forums</a></li>
           <li><a href="/raidtracker/raid/" title="Raids">Raids</a></li>
           <li><a href="/toons/" title="Toons">Toons</a></li>
           <li><a href="/items/" title="Items">Items</a></li>
-	  {% comment %}
+          {% comment %}
             <li><a href="/madhouse/" title="Madhouse">Madhouse</a></li>
-	  {% endcomment %}
+          {% endcomment %}
         </ul>
       </div>
     </div>
@@ -55,28 +55,28 @@
       <div id="leftcol">
         {% block sidebar %}
         <h3>Categories</h3>
-	<ul>
-	  <li>Hot</li>
-	  <li>Warm</li>
-	  <li>Cold</li>
-	</ul>
-	{% endblock %}
+        <ul>
+          <li>Hot</li>
+          <li>Warm</li>
+          <li>Cold</li>
+        </ul>
+        {% endblock %}
       </div>
       {% comment %} No right column for now.
       <div id="rightcol">
         {% block rightcontent %}
-	<h3>Right column</h3>
-	<p>for those of us with extra stuff to add to the confusion it will go over hree.</p>
-	{% endblock %}
+        <h3>Right column</h3>
+        <p>for those of us with extra stuff to add to the confusion it will go over hree.</p>
+        {% endblock %}
       </div>
       {% endcomment %}
       <div id="content">
         <div id="hierarchy">{% block hierarchy %}&raquo;&nbsp;<a href="/">Top</a>{% endblock %}</div>
-        <div id="breadcrumbs">{% breadcrumbs crumbs %}
-	  {% for crumb in crumbs %}
-	    &nbsp;&raquo;&nbsp;<a id="crumb{{ crumb.id }}" href="{{ crumb.url }}">{{ crumb.short_name }}</a>
-	  {% endfor %}
-	</div>
+        <div id="breadcrumbs">{% spaceless %}{% breadcrumbs crumbs %}
+          {% for crumb in crumbs %}
+            &nbsp;&raquo;&nbsp;<a id="crumb{{ crumb.id }}" href="{{ crumb.url }}">{{ crumb.short_name }}</a>
+          {% endfor %}
+        </div>{% endspaceless %}
         {% if messages %}
         <div id="messages">
           <ul>
@@ -87,8 +87,8 @@
         </div>
         {% endif %}
         {% block content %}
-	  <h1>{% block content_header %}{% endblock %}</h1>
- 	  {% block main_content %}{% endblock %}
+          <h1>{% block content_header %}{% endblock %}</h1>
+          {% block main_content %}{% endblock %}
         {% endblock %}
       </div>
     </div>

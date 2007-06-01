@@ -66,7 +66,7 @@ from tagging.utils import get_tag
 from wowzer.asforums.models import ForumCollection, Forum, Discussion, Post
 from wowzer.main.models import Breadcrumb
 
-paginate_by = 10
+paginate_by = 20
 
 ############################################################################
 #
@@ -86,7 +86,7 @@ def index(request):
     ec = {}
 
     return object_list(request, query_set,
-                       paginate_by = 10,
+                       paginate_by = 20,
                        template_name = 'asforums/index.html',
                        extra_context = ec)
 
@@ -103,7 +103,7 @@ def fc_list(request):
     """
     query_set = ForumCollection.objects.viewable(request.user).order_by('created')
     return object_list(request, query_set,
-                       paginate_by = 10,
+                       paginate_by = 20,
                        template_name = "asforums/fc_list.html")
 
 ############################################################################
@@ -123,7 +123,7 @@ def fc_tag(request, tag):
     tqs = TaggedItem.objects.get_by_model(ForumCollection, tag)
     qs = ForumCollection.objects.viewable(request.user,
                                           query_set = tqs).order_by('-created')
-    return object_list(request, qs, paginate_by = 15,
+    return object_list(request, qs, paginate_by = 20,
                        template_name = "asforums/fc_list.html")
 
 
@@ -149,7 +149,7 @@ def fc_detail(request, fc_id):
     ec = { 'forum_collection' : fc }
     query_set = fc.forum_set.viewable(request.user).order_by('created')
     return object_list(request, query_set,
-                       paginate_by = 10,
+                       paginate_by = 20,
                        template_name = "asforums/fc_detail.html",
                        extra_context = ec)
 
@@ -409,7 +409,7 @@ def forum_tag(request, tag):
     qs = Forum.objects.viewable(request.user,
                                 query_set = tqs).order_by('-collection',
                                                           '-created')
-    return object_list(request, qs, paginate_by = 15,
+    return object_list(request, qs, paginate_by = 20,
                        template_name = "asforums/forum_list.html")
 
 ############################################################################
@@ -479,7 +479,7 @@ def forum_detail(request, forum_id):
     #
     qs = forum.discussion_set.all().order_by('sticky','created')
     return object_list(request, forum.discussion_set.all(),
-                       paginate_by = 10,
+                       paginate_by = 20,
                        template_name = "asforums/forum_detail.html",
                        extra_context = ec)
 
@@ -593,7 +593,7 @@ def disc_list(request):
                                                                    'forum',
                                                                    'created')
     return object_list(request, query_set,
-                       paginate_by = 10,
+                       paginate_by = 20,
                        template_name = "asforums/disc_list.html")
 
 ############################################################################

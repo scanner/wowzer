@@ -9,7 +9,7 @@
   Author: {{ forum.author }}<br>
   Number of discussions: {{ forum.discussion_set.count }}<br>
   Number of Active Discussions: Unimplemented<br>
-  Last Post: Unimplemented<br>
+  Latest Post: Unimplemented<br>
 </div>
 {% tags_for_object forum as tag_list %}
 {% if tag_list %}
@@ -44,14 +44,21 @@
     <th>Discussion</th>
     <th>Posts</th>
     <th>Views</th>
-    <th>Last Post</th>
+    <th>Last Post Seen</th>
   </tr>
   {% for disc in object_list %}
     <tr class="{% cycle odd,even %}">
       <td><a href="{{ disc.get_absolute_url }}">{{ disc.name }}</a></td>
       <td class="count">{{ disc.post_set.count }}</td>
       <td class="count">{{ disc.views }}</td>
-      <td><a href="{{ disc.get_absolute_url }}?post={{ disc.post_set.latest.id }}">{{ disc.post_set.latest.created|timesince }}</a> ago by <a href="{{ disc.post_set.latest.author.get_absolute_url }}">{{ disc.post_set.latest.author }}</a></td>
+      <td>
+        {% method_arg disc last_post_seen user as post %}
+        {% if post %}
+          <a href="{{ post.get_discussion_url }}">{% icon "note_go" "Go to post" %} {{ post.created|timesince }}</a> ago by <a href="{{ post.author.get_absolute_url }}">{{ post.author }} {% icon "user_go" "Go to author's profile" %}</a>
+        {% else %}
+          No posts
+        {% endif %}
+      </td>
     </tr>
     <tr class="{% cycle odd,even %}">
       <td colspan="4"><span class="blurb">{{ disc.blurb }}</span></td>

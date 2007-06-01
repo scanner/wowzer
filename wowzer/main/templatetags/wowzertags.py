@@ -279,7 +279,7 @@ class Breadcrumbs(template.Node):
 
         """
         if context['request'].user.is_authenticated():
-            context[self.var_name] = Breadcrumb.objects.filter(owner = context['request'].user)[:10:-1]
+            context[self.var_name] = Breadcrumb.objects.filter(owner = context['request'].user)[:6:-1]
         else:
             context[self.var_name] = []
         return ""

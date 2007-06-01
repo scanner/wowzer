@@ -373,6 +373,27 @@ def obj_list_redir(request):
 ############################################################################
 #
 @login_required
+@breadcrumb
+def forum_tag(request, tag):
+    """
+    Display a list of all the forums that have the given tag, ordered
+    by forum collection, from most recent to oldest.
+    """
+    tag_instance = get_tag(tag)
+    if tag_instance is None:
+        raise Http404, 'No tag found matching "%s"' % tag
+
+    Breadcrumb.rename_last(request, 'Forums w/tag "%s"' % tag)
+    tqs = TaggedItem.objects.get_by_model(Forum, tag)
+    qs = Forum.objects.viewable(request.user,
+                                query_set = tqs).order_by('-collection',
+                                                          '-created')
+    return object_list(request, qs, paginate_by = 15,
+                       template_name = "asforums/forum_list.html")
+
+############################################################################
+#
+@login_required
 @breadcrumb("Create a Forum")
 def forum_create(request,fc_id):
     """Creation of a new forum.
@@ -462,19 +483,21 @@ def forum_update(request, forum_id):
             request.user.has_perm("asforums.update_forum", object = f)):
         raise PerissionDenied
 
-    Breadcrumb.rename_last(request, "Update Forum %s" % forum.name)
+    Breadcrumb.rename_last(request, "Update Forum '%s'" % f.name)
     ForumForm = forms.models.form_for_instance(f)
 
     if request.method == "POST":
         form = ForumForm(request.POST)
         if form.is_valid():
             entry = form.save()
-            msg_user(request.user, "Forum was updated.")
+            msg_user(request.user, "Forum '%s' was updated.",entry.name)
             return HttpResponseRedirect(entry.get_absolute_url())
     else:
         form = ForumForm()
     t = get_template("asforums/forum_update.html")
-    c = Context(request, {'forumcollection' : fc, 'form' : form })
+    c = Context(request, {'forumcollection' : fc,
+                          'forum'           : f,
+                          'form' : form })
     return HttpResponse(t.render(c))
 
 ############################################################################
@@ -738,7 +761,7 @@ def disc_tag(request, tag):
                                      query_set = tqs).order_by('sticky',
                                                                '-forum',
                                                                '-created')
-    return object_list(request, qs, paginate_by = 10,
+    return object_list(request, qs, paginate_by = 20,
                        template_name = "asforums/disc_list.html")
 
 ############################################################################

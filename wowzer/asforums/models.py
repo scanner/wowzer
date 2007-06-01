@@ -273,7 +273,7 @@ class ForumManager(models.Manager):
     """A custom Forum Manager that has a method that can filter a forum list
     for forums that are viewable by a specific user.
     """
-    def viewable(self, user):
+    def viewable(self, user, query_set = None):
         """Returns a list of forums filtered by the given user having 'view'
         or 'moderate' permission on any given forum instance and they
         must also have 'view' or 'moderate' permission on the forum
@@ -284,6 +284,11 @@ class ForumManager(models.Manager):
         # Super user can see everything.
         #
         if user.is_authenticated() and user.is_superuser:
+            # if we were passed in a query set, then filter that one,
+            # not the base query set.
+            #
+            if query_set is not None:
+                return query_set
             return self.all()
 
         # We need to see if they have any 'moderate' or 'view' permissions
@@ -304,6 +309,8 @@ class ForumManager(models.Manager):
 
         if len(f_list) == 0 or len(fc_list) == 0:
             return self.none()
+        if query_set is not None:
+            return query_set.filter(id__in = f_list).filter(collection__in = fc_list)
         return self.filter(id__in = f_list).filter(collection__in = fc_list)
 
 #############################################################################

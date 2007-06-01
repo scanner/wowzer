@@ -1,27 +1,29 @@
+{% extends "asforums/listing.html" %}
+{% block hierarchy %}&nbsp&raquo;&nbsp;<a href="/">Top</a>&nbsp&raquo;&nbsp;<a href="/asforums/">Forums Top</a>&nbsp&raquo;&nbsp;<a href="{{ request.get_full_path }}">Forum List</a>{% endblock %}
 {% block listing %}
+<div class="forums">
 {% if object_list %}
-
-<table>
+<table class="listing">
   <tr>
-    <th>Size</th>
-    <th>Duration</th>
-    <th>Start</th>
-    <th>End</th>
-    <th>Submitter</th>
-    <th>Details</th>
+    <th>Forum</th>
+    <th>Discussions</th>
+    <th>Active Discussions</th>
+    <th>Last Post</th>
   </tr>
-  {% for object in object_list %}
-  <tr class="{% cycle odd,even %}">
-    <td>{{ object.maximal_size }}</td>
-    <td>{{ object.duration }}</td>
-    <td>{{ object.start_time }}</td>
-    <td>{{ object.end_time }}</td>
-    <td><a href="{{ object.submitter.get_absolute_url }}">{{ object.submitter.name }}</a></td>
-    <td><a href="{{ object.get_absolute_url }}">Details</a></td>
-  </tr>
+  {% for forum in object_list %}
+    <tr class="{% cycle odd,even %}">
+      <td><a href="{{ forum.get_absolute_url }}">{{ forum.name }}</a></td>
+      <td>{{ forum.discussion_set.count }}</td>
+      <td>Unimplemented</td>
+      <td>Unimplemented</td>
+    </tr>
+    <tr class="{% cycle odd,even %}">
+      <td colspan="4"><span class="blurb">{{ forum.blurb }}</span></td>
+    </tr>
   {% endfor %}
-  </table>
+</table>
 {% else %}
-There are no raids.
+There are no forums matching this criteria.
 {% endif %}
+</div>
 {% endblock %}

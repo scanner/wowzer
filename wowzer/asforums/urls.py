@@ -8,21 +8,20 @@ urlpatterns = patterns(
     (r'^feed/$', 'index_feed'),
 
     (r'^forum_collections/$', 'fc_list'),
+    (r'^forum_collections/tag/(?P<tag>[^/]+(?u))/$', 'fc_tag'),
     (r'^forum_collections/perms/$', 'fc_create_perm'),
     (r'^forum_collections/create/$', 'fc_create'),
     (r'^forum_collections/(?P<fc_id>\d+)/$', 'fc_detail'),
     (r'^forum_collections/(?P<fc_id>\d+)/perms/$', 'fc_perms'),
     (r'^forum_collections/(?P<fc_id>\d+)/update/$', 'fc_update'),
-    (r'^forum_collections/(?P<fc_id>\d+)/tag/$', 'fc_tag'),
-    (r'^forum_collections/(?P<fc_id>\d+)/user_tag/$', 'fc_usertag'),
     (r'^forum_collections/(?P<fc_id>\d+)/delete/$', 'fc_delete'),
     (r'^forum_collections/(?P<fc_id>\d+)/create_forum/$', 'forum_create'),
 
     (r'^forums/$', 'obj_list_redir'),
+    (r'^forums/tag/(?P<tag>[^/]+(?u))/$', 'forum_tag'),
     (r'^forums/(?P<forum_id>\d+)/$', 'forum_detail'),
     (r'^forums/(?P<forum_id>\d+)/perms/$', 'forum_perms'),
     (r'^forums/(?P<forum_id>\d+)/update/$', 'forum_update'),
-    (r'^forums/(?P<forum_id>\d+)/tag/$', 'forum_tag'),
     (r'^forums/(?P<forum_id>\d+)/delete/$', 'forum_delete'),
     (r'^forums/(?P<forum_id>\d+)/create_discussion/$', 'disc_create'),
 

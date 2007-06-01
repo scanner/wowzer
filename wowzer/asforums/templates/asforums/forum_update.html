@@ -1,0 +1,11 @@
+{% extends "asforums/base.html" %}
+{% block content %}
+<h1>Update {{ forum.name }}</h1>
+{% if form.has_errors %}
+<h2 class="errors">Please correct the following error{{ form.error_dict|pluralize }}:</h2>
+{% endif %}
+<form method="post" action=".">
+{{ form.as_p }}
+<input type="submit" value = "Update Forum" />
+</form>
+{% endblock %}

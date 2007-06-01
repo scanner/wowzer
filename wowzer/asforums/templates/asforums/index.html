@@ -42,7 +42,7 @@
       </td>
       <td>{{ forum.discussion_set.count }}</td>
       {% method_arg forum latest_post user as post %}
-      <td><a href="{{ post.get_absolute_url }}">Post {{ post.post_number }}</a> by <a href="{{ post.author.get_absolute_url }}">{{ post.author }}</a></td>
+      <td><a href="{{ post.get_discussion_url }}">Post #{{ post.post_number }}</a> by <a href="{{ post.author.get_absolute_url }}">{{ post.author }}</a></td>
       {% else %}
       <td></td>
       <td>{{ forum.name }}</td>

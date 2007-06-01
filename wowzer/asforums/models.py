@@ -84,7 +84,7 @@ class ForumCollectionManager(models.Manager):
     a forum collection list for forums collections that are viewable
     by a specific user.
     """
-    def viewable(self, user):
+    def viewable(self, user, query_set = None):
         """Returns a query set of forum collections filtered by the given user
         having 'view' or 'moderate' permission on any given forum
         collection instance.
@@ -93,6 +93,11 @@ class ForumCollectionManager(models.Manager):
         # Super user can see everything.
         #
         if user.is_authenticated() and user.is_superuser:
+            # if we were passed in a query set, then filter that one,
+            # not the base query set.
+            #
+            if query_set is not None:
+                return query_set
             return self.all()
 
         # We need to see if they have any 'moderate' or 'view' permissions
@@ -109,6 +114,8 @@ class ForumCollectionManager(models.Manager):
 
         if len(fc_list) == 0:
             return self.none()
+        if query_set is not None:
+            return query_set.filter(id__in = fc_list)
         return self.filter(id__in = fc_list)
 
 #############################################################################

@@ -110,6 +110,27 @@ def fc_list(request):
 #
 @login_required
 @breadcrumb
+def fc_tag(request, tag):
+    """
+    Display a list of all the forum collections that have the given tag, ordered
+    from most recent to oldest.
+    """
+    tag_instance = get_tag(tag)
+    if tag_instance is None:
+        raise Http404, 'No tag found matching "%s"' % tag
+
+    Breadcrumb.rename_last(request, 'Forum Collections w/tag "%s"' % tag)
+    tqs = TaggedItem.objects.get_by_model(ForumCollection, tag)
+    qs = ForumCollection.objects.viewable(request.user,
+                                          query_set = tqs).order_by('-created')
+    return object_list(request, qs, paginate_by = 15,
+                       template_name = "asforums/fc_list.html")
+
+
+############################################################################
+#
+@login_required
+@breadcrumb
 def fc_detail(request, fc_id):
     """A list of forum collections that the user can view.
     XXX For now until we get the form filled and our such we are going to
@@ -295,7 +316,7 @@ def fc_update(request, fc_id):
         raise PermissionDenied
 
     Breadcrumb.rename_last(request, "Update Forum Collection %s" % fc.name)
-    FCForm = forms.models.form_forinstance(fc)
+    FCForm = forms.models.form_for_instance(fc)
     if request.method == "POST":
         form = FCForm(request.POST)
         if form.is_valid():

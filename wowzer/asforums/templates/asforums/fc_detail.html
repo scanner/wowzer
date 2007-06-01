@@ -1,5 +1,5 @@
 {% extends "asforums/listing.html" %}
-{% load auth wowzertags asforums_tags %}
+{% load auth wowzertags asforums_tags tagging_tags %}
 {% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="/asforums/forum_collections/">Forum Collections</a>&nbsp&raquo;&nbsp;<a href=".">{{ forum_collection.name }}</a>{% endblock %}
 {% block prelisting %}
 <h1>{{ forum_collection.name }}</h1>
@@ -11,8 +11,15 @@
   Number of Active Discussions: Unimplemented<br>
   Last Post: Unimplemented<br>
 </div>
+{% tags_for_object forum_collection as tag_list %}
+{% if tag_list %}
 <div class="tags">
+  Tags:
+  {% for tag in tag_list %}
+  <a href="../tag/{{ tag }}/">{{ tag }}</a>
+  {% endfor %}
 </div>
+{% endif %}
 <div class="toolbar">
   <ul>
     {% if_has_perm "asforums.delete_forumcollection" forum_collection %}

@@ -8,13 +8,13 @@ from django.contrib.webdesign.lorem_ipsum import paragraphs, sentence
 from wowzer.asforums.models import *
 from wowzer.text.bbcode import to_html
 
-num_discussions = 5
-posts_per_discussion = 15
+num_discussions = 40
+posts_per_discussion = 25
 users = []
 groups = []
 
 def create_fcs(users):
-    for index in range(2):
+    for index in range(4):
         name = "%s's Forum Collection" % users[index].username
         fc, created = ForumCollection.objects.get_or_create(
             name = name,
@@ -38,7 +38,7 @@ def create_fcs(users):
         # Make sure each FC has 4 forums.
         #
         create_forums(users, fc, index)
-            
+
 def create_forums(users, fc, fc_i):
     for index in range(3):
         name = "Forum %d-%d" % (index, fc_i)

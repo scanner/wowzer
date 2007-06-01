@@ -546,6 +546,7 @@ def disc_list(request):
     """
 
     query_set = Discussion.objects.viewable(request.user).order_by('sticky',
+                                                                   'forum',
                                                                    'created')
     return object_list(request, query_set,
                        paginate_by = 10,
@@ -692,7 +693,7 @@ def disc_update(request, disc_id):
     """
     try:
         d = Discussion.objects.select_related().get(pk = disc_id)
-        f = disc.forum
+        f = d.forum
     except Discussion.DoesNotExist:
         raise Http404
 
@@ -713,9 +714,32 @@ def disc_update(request, disc_id):
         form = DiscForm()
 
     t = get_template("asforums/disc_update.html")
-    c = Context(request, { 'forum' : f,
-                           'form'  : form })
+    c = Context(request, { 'forum'      : f,
+                           'discussion' : d,
+                           'form'       : form })
     return HttpResponse(t.render(c))
+
+############################################################################
+#
+@login_required
+@breadcrumb
+def disc_tag(request, tag):
+    """
+    Display a list of all the discussions that have the given tag, ordered
+    by forum, from most recent to oldest.
+    """
+    tag_instance = get_tag(tag)
+    if tag_instance is None:
+        raise Http404, 'No tag found matching "%s"' % tag
+
+    Breadcrumb.rename_last(request, 'Discussions w/tag "%s"' % tag)
+    tqs = TaggedItem.objects.get_by_model(Discussion, tag)
+    qs = Discussion.objects.viewable(request.user,
+                                     query_set = tqs).order_by('sticky',
+                                                               '-forum',
+                                                               '-created')
+    return object_list(request, qs, paginate_by = 10,
+                       template_name = "asforums/disc_list.html")
 
 ############################################################################
 #
@@ -863,13 +887,11 @@ def post_tag(request, tag):
     if tag_instance is None:
         raise Http404, 'No tag found matching "%s"' % tag
 
-    Breadcrumb.rename_last(request, 'Posts with tag "%s"' % tag)
+    Breadcrumb.rename_last(request, 'Posts w/tag "%s"' % tag)
     tqs = TaggedItem.objects.get_by_model(Post, tag)
-    print "Number of posts with given tag: %d" % tqs.count()
     qs = Post.objects.readable(request.user,
                                query_set = tqs).order_by('-discussion_id',
                                                          '-post_number')
-    print "Number of posts with given tag, after readable filter: %d" % qs.count()
     return object_list(request, qs, paginate_by = 10,
                        template_name = "asforums/post_list.html")
 

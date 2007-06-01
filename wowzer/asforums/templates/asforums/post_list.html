@@ -1,5 +1,6 @@
 {% load auth wowzertags asforums_tags %}
 {% extends "asforums/listing.html" %}
+{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="{{ request.path }}">Post Listing</a>{% endblock %}
 {% block listing %}
 {% if object_list %}
 <div class="posts">

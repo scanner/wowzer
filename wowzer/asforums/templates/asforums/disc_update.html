@@ -1,0 +1,11 @@
+{% extends "asforums/base.html" %}
+{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="/asforums/forum_collections/">Forum Collections</a>&nbsp&raquo;&nbsp;<a href="{{ forum.collection.get_absolute_url }}">{{ forum.collection.name }}</a>&nbsp&raquo;&nbsp;<a href="..">{{ forum.name }}</a>&nbsp&raquo;&nbsp;<a href=".">Update Discussion</a>{% endblock %}{% block content %}
+<h1>Update {{ discussion.name }}</h1>
+{% if form.has_errors %}
+<h2 class="errors">Please correct the following error{{ form.error_dict|pluralize }}:</h2>
+{% endif %}
+<form method="post" action=".">
+{{ form.as_p }}
+<input type="submit" value = "Update Discussion" />
+</form>
+{% endblock %}

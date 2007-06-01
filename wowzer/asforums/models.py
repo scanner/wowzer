@@ -467,7 +467,7 @@ class DiscussionManager(models.Manager):
     that you have view permissions on (and those forums must be in
     forum collections that you must have view permissions on.)
     """
-    def viewable(self, user):
+    def viewable(self, user, query_set = None):
         """Returns a list of discussions filtered by the given user having
         'read' or 'moderate' permission on the forum instance that the
         discussion is in. They must also have 'view' or 'moderate'
@@ -477,6 +477,11 @@ class DiscussionManager(models.Manager):
         # Super user can see everything.
         #
         if user.is_authenticated() and user.is_superuser:
+            # if we were passed in a query set, then filter that one,
+            # not the base query set.
+            #
+            if query_set is not None:
+                return query_set
             return self.all()
 
         # To see a discussion they must have: read and view or
@@ -511,6 +516,11 @@ class DiscussionManager(models.Manager):
         q1 = Q(forum__collection__in = fc_list)
         q2 = Q(forum__in = f_view) & Q(forum__in = f_read)
 
+        # if we were passed in a query set, then filter that one, not the
+        # base query set.
+        #
+        if query_set is not None:
+            return query_set.filter(q1).filter(q2)
         return self.filter(q1).filter(q2)
 
 #############################################################################

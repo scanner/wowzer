@@ -18,12 +18,12 @@
       <td><img src="{{ MEDIA_URL }}img/silk-icons/medal_gold_3.png"></td>
       <td><a href="{{ disc.forum.get_absolute_url }}">{{ disc.forum.name }}</a></td>
       <td><a href="{{ disc.get_absolute_url }}"><img src="{{ MEDIA_URL }}img/silk-icons/page_go.png"></a><a href="{{ disc.get_absolute_url }}">{{ disc.name }}</a></td>
-      <td class="centered"><a href="{{ disc.creator.get_absolute_url }}">{{ disc.creator.username }}</a></td>
+      <td class="centered"><a href="{{ disc.author.get_absolute_url }}">{{ disc.author.username }}</a></td>
       <td class="centered">{{ disc.post_set.count }}</td>
       <td class="centered">{{ disc.views }}</td>
       <td class="centered"><span class="smallerfont">{{ disc.post_set.latest.created|date:"D, M j, Y H:i" }},<br>
       {{ disc.post_set.latest.created|timesince }} ago.</span><br>
-      <a href="{{ disc.get_absolute_url }}?post={{ disc.post_set.latest.id }}"><img src="{{ MEDIA_URL }}img/silk-icons/page_white_go.png"></a><a href="{{ disc.post_set.latest.creator.get_absolute_url }}">{{ disc.post_set.latest.creator }}</a></td>
+      <a href="{{ disc.get_absolute_url }}?post={{ disc.post_set.latest.id }}"><img src="{{ MEDIA_URL }}img/silk-icons/page_white_go.png"></a><a href="{{ disc.post_set.latest.author.get_absolute_url }}">{{ disc.post_set.latest.author }}</a></td>
     </tr>
   {% endfor %}
 </table>

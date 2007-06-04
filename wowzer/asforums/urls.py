@@ -28,7 +28,7 @@ urlpatterns = patterns(
     (r'^discs/$', 'disc_list'),
     (r'^discs/tag/(?P<tag>[^/]+(?u))/$', 'disc_tag'),
     (r'^discs/feed/latest/$', 'disc_feed_latest'),
-    (r'^discs/feed/unread/$', 'disc_feed_unread'),
+    (r'^discs/feed/subscribed/$', 'disc_feed_subscribed'),
     (r'^discs/(?P<disc_id>\d+)/$', 'disc_detail'),
     (r'^discs/(?P<disc_id>\d+)/perms/$', 'disc_perms'),
     (r'^discs/(?P<disc_id>\d+)/update/$', 'disc_update'),

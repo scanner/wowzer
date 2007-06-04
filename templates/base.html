@@ -54,14 +54,16 @@
     <div id="body">
       <div id="leftcol">
         {% block sidebar %}
-	  {% block tagcloud %}
-	    <h3>Wowzer Tag Cloud</h3>
-	    <p>
-	      Not implemented
-	    </p>
-	  {% endblock %}
-	  {% block appsidebar %}
-	  {% endblock %}
+          {% block appsidebar %}
+          {% endblock %}
+          {% block tagcloud %}
+            <div class="tagcloud">
+            <h3>Wowzer Tag Cloud</h3>
+            <p>
+              Not implemented
+            </p>
+            </div>
+          {% endblock %}
         {% endblock %}
       </div>
       {% comment %} No right column for now.

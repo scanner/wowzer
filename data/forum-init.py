@@ -8,7 +8,7 @@ from django.contrib.webdesign.lorem_ipsum import paragraphs, sentence
 from wowzer.asforums.models import *
 from wowzer.text.bbcode import to_html
 
-num_discussions = 40
+num_discussions = 22
 posts_per_discussion = 25
 users = []
 groups = []
@@ -101,6 +101,8 @@ for index in range(4):
 scanner, created = User.objects.get_or_create(username = 'scanner',
                                              defaults = { 'is_staff' : True,
                                                           'is_active' : True })
+if created:
+    scanner.set_password('testtest')
 scanner.groups.add(everyone)
 scanner.groups.add(moderators)
 scanner.save()

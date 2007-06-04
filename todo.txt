@@ -9,14 +9,6 @@ The reason for this was I needed to really track and decide what is
 going to be on any given _web page_ and _form_ as well as what the
 backend view and backend model need to accomplish.
 
-from phpBB:
-
-You cannot post new topics in this forum
-You cannot reply to topics in this forum
-You cannot edit your posts in this forum
-You cannot delete your posts in this forum
-You cannot vote in polls in this forum
-
 closed:
   only the owner or moderator of the discussion can make changes to the
        discussion
@@ -31,12 +23,11 @@ o post to discussions
   * markup
 
 o tag/usertag
-  o add tags and users tags on posts, discussions, forums, fcs
-  o display tags and user tags on posts, discussions, forums, fcs
-  o remove tags and user tags on posts, discussions, forums, fcs
+  * add tags on posts, discussions, forums, fcs
+  * display tags and user tags on posts, discussions, forums, fcs
+  * remove tags and user tags on posts, discussions, forums, fcs
   o add tag page (displays all objects that are tagged with that tag)
   o tag cloud - highlights successively more common tags?
-  o should you be able to add comments to a tag?
 
 o user account/profile page
   o displays list of toons
@@ -72,13 +63,13 @@ o poll
   * delete
   * view (listing)
   * post (also allows you to make a poll)
-  o make sticky
+  o make sticky (moderate)
 o permissions on forums
   * read
   * modify
   * create
   * delete
-  o view (listing)
+  * view (listing)
     The following sql statement seems to be the one we need to find
     forums for which you have 'view' permission:
 
@@ -106,15 +97,25 @@ o permissions on forums
 
     something like this? Forum.objects.extra(tables=["auth_rowlevelpermission"], where=["auth_rowlevelpermission.model_ct_id=31", "auth_rowlevelpermission.model_id=asforums_forum.id", "auth_rowlevelpermission.permission_id = 104", "auth_rowlevelpermission.negative='f'","((auth_rowlevelpermission.owner_ct_id=1 and auth_rowlevelpermission.owner_id=2) or (auth_rowlevelpermission.owner_ct_id=3 and auth_rowlevelpermission.owner_id in (1,3)))"])
 
-  o discuss
-  o post
-o permissions on forum collections
-  o read
-  o modify
-  o create
-  o view
-  o post
-  o discuss
+  * discuss
+  * post
+* permissions on forum collections
+  * read
+  * modify
+  * create
+  * view
+  * post
+  * discuss
+
+o last seen
+  o all discussion views need to show the user the last seen (by them)
+    post
+  o all views that have lists of discussions need to take an option
+    "only show if this discussion has new posts since the last time I
+    have been here."
+  o have a toggle that sets whether discussions are filtered this way?
+  o need to write a custom paginator that lets us update the 'last
+    seen' flag for any listing of posts
 
 o calendaring/scheduling
   o events

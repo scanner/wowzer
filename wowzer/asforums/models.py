@@ -633,7 +633,8 @@ class Discussion(models.Model):
     #
     last_post_number = models.IntegerField(default = 0, db_index = True,
                                            editable = False)
-    last_post_date = models.DateTimeField(db_index = True, editable = False)
+    last_post_date = models.DateTimeField(db_index = True, editable = False,
+                                          null = True)
     # Why do we have 'locked' and 'closed' for discussions when they already
     # have a 'read' and 'post' permission? Quite simply a lock or a close may
     # be a temporary item and we do not want to destructively modify the
@@ -958,7 +959,7 @@ class Post(models.Model):
         self.discussion.last_post_number = self.post_number
         self.discussion.last_post_date = self.created
         self.discussion.save()
-        
+
         return res
 
     #########################################################################

@@ -628,6 +628,13 @@ class Discussion(models.Model):
     last_modified = models.DateTimeField(auto_now = True)
     edited = models.BooleanField(default = False, editable = False)
 
+    # Users can subscribe to specific discussions. This lets us
+    # present views of just the discussions that they have subscribed
+    # to instead of all of the discussions out there.
+    #
+    subscribers = models.ManyToManyField(User, editable = False,
+                                       related_name = "subscribed_discussions")
+
     # We have last_post_number to make searches quicker when finding
     # discussions that have posts more recent then some post number or date
     #
@@ -1035,6 +1042,13 @@ class LastPostSeen(models.Model):
     class Meta:
         order_with_respect_to = 'discussion'
         unique_together = (("user", "discussion"),)
+
+    #########################################################################
+    #
+    def __str__(self):
+        return "Last Post Seen by %s in %s is %d" % (self.user,
+                                                     self.discussion.name,
+                                                     self.post.post_number)
 
 # Connect the signal for a new post being created to our signal function
 # that kicks off and updates various things when a post is made.

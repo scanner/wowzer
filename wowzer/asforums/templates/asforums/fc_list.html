@@ -1,5 +1,14 @@
 {% load wowzertags asforums_tags %}
 {% extends "asforums/listing.html" %}
+{% block modelcloud %}
+<h3>Forum Collection Tags</h3>
+{% tags_for_model asforums.ForumCollection as fc_tags %}
+<p>
+{% for tag in fc_tags %}
+  <a href="./tag/{{ tag }}/">{{ tag }}</a>
+{% endfor %}
+</p>
+{% endblock %}
 {% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="/asforums/forum_collections/">Forum Collections</a>{% endblock %}
 {% block listing %}
 <div class="toolbar">

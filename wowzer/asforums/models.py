@@ -628,6 +628,12 @@ class Discussion(models.Model):
     last_modified = models.DateTimeField(auto_now = True)
     edited = models.BooleanField(default = False, editable = False)
 
+    # We have last_post_number to make searches quicker when finding
+    # discussions that have posts more recent then some post number or date
+    #
+    last_post_number = models.IntegerField(default = 0, db_index = True,
+                                           editable = False)
+    last_post_date = models.DateTimeField(db_index = True, editable = False)
     # Why do we have 'locked' and 'closed' for discussions when they already
     # have a 'read' and 'post' permission? Quite simply a lock or a close may
     # be a temporary item and we do not want to destructively modify the
@@ -949,6 +955,10 @@ class Post(models.Model):
             inherit_permissions(self, self.discussion)
             add_all_permissions(self, self.author)
 
+        self.discussion.last_post_number = self.post_number
+        self.discussion.last_post_date = self.created
+        self.discussion.save()
+        
         return res
 
     #########################################################################

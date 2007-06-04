@@ -117,6 +117,26 @@ o last seen
   o need to write a custom paginator that lets us update the 'last
     seen' flag for any listing of posts
 
+o discussion subscriptions
+  o let a user subscribe to a discussion
+  o let a user de-subscribe to a discussion
+  o on all lists of discussions provide a filtering mechanism that
+    lets a user just see the subscribed discussions (should be easy to
+    turn this filter on, should give them an easy way to by default
+    only see subscribed discussions. There are several ways to do
+    this, all  bit tricky. I think the simplest may be to present a
+    url that let's them see subscribed discussions only, and have a
+    separate link for 'all discussions'. The only different is
+    probably a parameter "?subscribed" or something. (Need to make
+    sure this is passed thorugh the paging mechanism.))
+  o already mentioned on user profile page - on their profile page
+    show a list of the subscribed discussions, and if those
+    discussions have posts more recent then their last seen (and how
+    many, and how long ago) also on this page is the ability to
+    unsubscribe from a discussion, and a button to mark a discussion
+    as fully seen.
+
+
 o calendaring/scheduling
   o events
     o create

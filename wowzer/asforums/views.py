@@ -688,13 +688,19 @@ def disc_detail(request, disc_id):
     ec = { 'discussion' : disc }
 
     qs = Post.objects.readable(request.user).filter(discussion = disc).order_by('created')
-    # If the 'post' parameter was passed use this to determine what
+    # If the request has a 'post' parameter AND it does NOT have a 'page'
+    # parameter, use the use the 'post' parameter to determine what
     # page to display since we know how many posts per page to display
     # (and that the post number is a linearly increasing value with
     # the number of posts in this discussion.)
     #
+    # NOTE: This will only work if the query is only ordered by
+    # 'created' or 'post_number' (since they sort equivalently). Right
+    # now there is no other way to sort the list of posts in a
+    # discussion detail.
+    #
     page = None
-    if request.GET.has_key('post'):
+    if 'post' in request.GET and 'page' not in request.GET:
         try:
             page = ((int(request.GET.get('post')) - 1) / paginate_by) + 1
         except ValueError:

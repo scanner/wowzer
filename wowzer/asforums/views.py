@@ -991,6 +991,11 @@ def post_detail(request, post_id):
 
     Breadcrumb.rename_last(request, "Post #%d in %s" % (post.post_number,
                                                         post.discussion.name))
+    t = get_template("asforums/post_detail.html")
+    c = Context(request, {
+        'post': post,
+        })
+    return HttpResponse(t.render(c))
 
     return object_detail(request, Post.objects.readable(request.user),
                          object_id = post_id)

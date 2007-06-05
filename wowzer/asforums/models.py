@@ -13,7 +13,7 @@ import pytz
 # Django imports
 #
 from django.db import models
-from django.db.models import signals, Q
+from django.db.models import signals, Q, permalink
 from django.dispatch import dispatcher
 
 
@@ -994,8 +994,9 @@ class Post(models.Model):
 
     #########################################################################
     #
+    @permalink
     def get_absolute_url(self):
-        return "/asforums/posts/%d/" % self.id
+        return ("views.post_detail", str(self.id))
 
     #########################################################################
     #

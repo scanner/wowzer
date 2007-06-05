@@ -1,0 +1,13 @@
+{% load auth wowzertags asforums_tags %}
+{% extends "asforums/base.html" %}
+{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="{{ post.discussion.forum.collection.get_absolute_url }}">{{ post.discussion.forum.collection.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ post.discussion.forum.get_absolute_url }}">{{ post.discussion.forum.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ post.discussion.get_absolute_url }}">{{ post.discussion.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ post.get_discussion_url }}">Post #{{ post.post_number }} in Discussion</a>&nbsp&raquo;&nbsp;<a href=".">Post {{ post.id }}</a>{% endblock %}
+{% block content %}
+Author: <span class="author"><a href="{{ post.author.get_absolute_url }}">{{ post.author }}</a></span>
+{% include "asforums/post_toolbar.html" %}
+<div class="byline">
+&nbsp&raquo;&nbsp;<a href="{{ post.discussion.forum.collection.get_absolute_url }}">{{ post.discussion.forum.collection.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ post.discussion.forum.get_absolute_url }}">{{ post.discussion.forum.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ post.discussion.get_absolute_url }}">{{ post.discussion.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ post.get_discussion_url }}">Post #{{ post.post_number }}</a><br>
+</div>
+{% include "asforums/post_header.html" %}
+{% include "asforums/post_body.html" %}
+{% include "asforums/post_footer.html" %}
+{% endblock %}

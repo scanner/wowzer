@@ -12,6 +12,10 @@ num_discussions = 22
 posts_per_discussion = 25
 users = []
 groups = []
+everyone, created = Group.objects.get_or_create(name = "system:everyone")
+authenticated, created = Group.objects.get_or_create(name = "system:authenticated")
+moderators, created = Group.objects.get_or_create(name = "moderators")
+
 
 def create_fcs(users):
     for index in range(4):
@@ -72,9 +76,6 @@ def create_posts(users, d):
                                 content_html = html_text,
                                 markup = "text.bbcode" )
 
-everyone, created = Group.objects.get_or_create(name = "system:everyone")
-moderators, created = Group.objects.get_or_create(name = "moderators")
-
 for index in range(2):
     name = 'group%d' % index
     g, created = Group.objects.get_or_create(name = name)
@@ -85,9 +86,10 @@ for index in range(4):
     u, created = User.objects.get_or_create(username = name)
     if created:
         u.set_password(name)
-        # Every user is in the 'everyone' group.
+        # Every user is in the 'everyone' and 'authenticated' groups.
         #
         u.groups.add(everyone)
+        u.groups.add(authenticated)
 
         # Stick alternating useres in different groups.
         #
@@ -105,6 +107,7 @@ if created:
     scanner.set_password('testtest')
 scanner.groups.add(everyone)
 scanner.groups.add(moderators)
+scanner.groups.add(authenticated)
 scanner.save()
 
 # Create a bunch of forum collections that have a bunch of forums in them.

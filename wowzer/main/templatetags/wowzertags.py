@@ -36,9 +36,34 @@ def paginator(context, adjacent_pages=2):
                   range(context["page"] - adjacent_pages, context["page"] + \
                         adjacent_pages + 1) \
                   if n > 0 and n <= context["pages"]]
+
+    # If the page/context we are rendering was a GET with query
+    # parameters, then pass that in to our template so that we can
+    # preserve our query parameters as we page around. This is
+    # important for having sorting and filtering parameters apply to
+    # every page of a listing.
+    #
+    # We need to make a copy of the GET dictionary because we need to
+    # remove the 'page' parameter if it is defined in there. This is
+    # because the the 'page' parameter is treated specially in our
+    # template in that we specify different values for different urls
+    # we render (previous/next/curent, etc.)
+    #
+    if 'request' in context and \
+       context["request"].method == "GET" and \
+       len(context["request"].GET) > 0:
+        if 'page' in context["request"].GET:
+            copy = context["request"].GET.copy()
+            del copy["page"]
+            query = copy.urlencode()
+        else:
+            query = context["request"].GET.urlencode()
+    else:
+        query = None
+
     return {
         "hits": context["hits"],
-##         "order_by" : context["order_by"],
+        "query" : query,
         "results_per_page": context["results_per_page"],
         "page": context["page"],
         "pages": context["pages"],

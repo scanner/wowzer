@@ -1,14 +1,14 @@
 {% spaceless %}
-<span class="paginate-pages" onclick="Paginator.jumpToPage({{ pages }}{% spaceless %}{% if order_by %}, '{{ order_by }}'{% endif %}{% endspaceless %})" title="Page Jump">{{ pages }} Pages</span>
-{% if show_first %}<span class="paginate-first"><a href="?page=1{% spaceless %}{%if order_by %}&order_by={{ order_by }}{% endif %}{% endspaceless %}" title="First Page">&laquo;</a></span>{% endif %}
-{% if has_previous %}<span class="paginate-previous"><a href="?page={{ previous }}{% spaceless %}{% if order_by %}&order_by={{ order_by }}{% endif %}{% endspaceless %}" title="Previous Page">&lt;</a></span>{% endif %}
+<span class="paginate-pages" onclick="Paginator.jumpToPage({{ pages }}{% spaceless %}{% if query %}, '{{ query }}'{% endif %}{% endspaceless %})" title="Page Jump">{{ pages }} Pages</span>
+{% if show_first %}<span class="paginate-first"><a href="?page=1{% spaceless %}{%if query %}&{{ query }}{% endif %}{% endspaceless %}" title="First Page">&laquo;</a></span>{% endif %}
+{% if has_previous %}<span class="paginate-previous"><a href="?page={{ previous }}{% spaceless %}{% if query %}&{{ query }}{% endif %}{% endspaceless %}" title="Previous Page">&lt;</a></span>{% endif %}
 {% for num in page_numbers %}
   {% ifequal num page %}
     <span class="paginate-current" title="Current Page">{{ num }}</span>
   {% else %}
-    <span class="paginate-link"><a href="?page={{ num }}{% spaceless %}{% if order_by %}&order_by={{ order_by }}{% endif %}{% endspaceless %}" title="Page {{ num }}">{{ num }}</a></span>
+    <span class="paginate-link"><a href="?page={{ num }}{% spaceless %}{% if query %}&{{ query }}{% endif %}{% endspaceless %}" title="Page {{ num }}">{{ num }}</a></span>
   {% endifequal %}
 {% endfor %}
-{% if has_next %}<span class="paginate-next"><a href="?page={{ next }}{% spaceless %}{% if order_by %}&order_by={{ order_by }}{% endif %}{% endspaceless %}" title="Next Page">&gt;</a></span>{% endif %}
-{% if show_last %}<span class="paginate-last"><a href="?page={{ pages }}{% spaceless %}{% if order_by %}&order_by={{ order_by }}{% endif %}{% endspaceless %}" title="Last Page">&raquo;</a></span>{% endif %}
+{% if has_next %}<span class="paginate-next"><a href="?page={{ next }}{% spaceless %}{% if query %}&{{ query }}{% endif %}{% endspaceless %}" title="Next Page">&gt;</a></span>{% endif %}
+{% if show_last %}<span class="paginate-last"><a href="?page={{ pages }}{% spaceless %}{% if query %}&{{ query }}{% endif %}{% endspaceless %}" title="Last Page">&raquo;</a></span>{% endif %}
 {% endspaceless %}

@@ -16,9 +16,10 @@ import os.path
 # Regular expression constants and other constants used to match
 # certain structures.
 #
+_comment = re.compile(r'--.*$', re.MULTILINE)
 _varname = re.compile(r'[A-Za-z]\w*')
 _integer = re.compile(r'(-|\+)?\d+')
-_digit = re.compile(r'(-|\+)?\d')
+_digit = re.compile(r'-|\+|\d')
 _float = re.compile(r'(-|\+)?(\d+)?\.(\d+)?')
 _ws = re.compile(r'\s*')
 _quoted_string = re.compile(r'"((?:\\"|[^"])*)"(?!")')
@@ -51,7 +52,7 @@ class SVP(object):
         
         try:
 
-            
+            pass
         except StopIteration:
             return
 
@@ -214,7 +215,63 @@ class SavedVarParser(object):
         #self.cur_pos = 0
         self.input_stream = input_stream
         self.line_no = 1
+        self.result = {}
         return
+
+    #######################################################################
+    #
+    def __getitem__(self, key):
+        return self.result[key]
+
+    #######################################################################
+    #
+    def get(self, key, default = None):
+        return self.result.get(key, default)
+
+    #######################################################################
+    #
+    def __setitem__(self, key, value):
+        self.result[key] = value
+        
+    #######################################################################
+    #
+    def __delitem__(self, key):
+        del self.result[key]
+
+    #######################################################################
+    #
+    def __iter__(self):
+        return self.result.__iter__()
+
+    #######################################################################
+    #
+    def iteritems(self):
+        return self.result.iteritems()
+
+    #######################################################################
+    #
+    def iterkeys(self):
+        return self.result.iterkeys()
+
+    #######################################################################
+    #
+    def itervalues(self):
+        return self.result.itervalues()
+
+    #######################################################################
+    #
+    def has_key(self, key):
+        return self.result.has_key(key)
+
+    #######################################################################
+    #
+    def __contains__(self, item):
+        return self.result.__contains__(item)
+
+    #######################################################################
+    #
+    def keys(self):
+        return self.result.keys()
 
     #######################################################################
     #
@@ -225,29 +282,40 @@ class SavedVarParser(object):
         that was assigned to that variable in the lua input.
         """
 
-        result = {}
-
+        self.result = {}
+        
         # Basically loop until we have no more input to swallow and parse.
         #
         try:
-           while len(self.input) > 0:
-                self.input = self.input.lstrip()
+            while len(self.input) > 0:
+                self.lstrip()
                 varname = self._p_re(_varname)
                 print "Got varname: %s" % varname
-                self.input = self.input.lstrip()
+                self.lstrip()
                 self._p_simple_string("=")
-                self.input = self.input.lstrip()
-
+                self.lstrip()
+                
                 # After the '=' we can have a '{' for a dictionary declaration
                 # or a string, or an integer, or a float.
                 #
-                result[varname] = self._p_expression()
+                self.result[varname] = self._p_expression()
         except:
             print "Exception at line %d" % self.line_no
             raise
-
-        return result
-
+            
+        return self.result
+        
+    #######################################################################
+    #
+    def lstrip(self):
+        """
+        Strip the beginning of the input of any white space or comments.
+        """
+        self.input = self.input.lstrip()
+        self._p_re(_comment, silent = True, swallow = True)
+        self.input = self.input.lstrip()
+        return
+    
     #######################################################################
     #
     def _p_expression(self):
@@ -272,6 +340,7 @@ class SavedVarParser(object):
         elif self.input[0].lower() in ('t', 'f'):
             data = self._p_boolean()
         else:
+#            print "SyntaxError, unparseable expression: '%s'" % self.input[:10]
             raise SyntaxError
 
 ##         for func in (self._p_dictionary, self._p_string, self._p_float,
@@ -339,27 +408,66 @@ class SavedVarParser(object):
 
         dictionary : LBRACE keyvalues RBRACE
                    | LBRACE RBRACE
+                   | LBRACE (LBRACE keyvalues RBRACE,)* RBRACE
         """
 #        print "Entered _p_dictionary: line #: %d '%s'" % (self.line_no, self.input[:10])
         self._p_simple_string('{')
-        self.input = self.input.lstrip()
+        self.lstrip()
 
-        # If we do not have a '[' next then we do not have key values
-        # we need to parse
+        # the next character should be a '[' which indicates a key value
+        # pair, or '{' which indicates that we have an implied key
+        # if it is not any of these, we should find a '}' indicating an
+        # empty dictionary.
         #
-        if self.input[0] != '[':
+        if self.input[0] not in ('[', '{'):
             self._p_simple_string('}')
-#            print "Leaving _p_dictionary"
+#            print "Leaving _p_dictionary (empty dictionary)"
             return {}
 
-        # Otherwise we MUST have a bracket and at least one set of keyvalues.
+        # See if we have an implied key/value pair.
         #
-        result = self._p_keyvalues()
+        if self.input.startswith('{'):
+            result = self._p_impliedkeyvalues()
+        else:
+            # Otherwise we MUST have a bracket and at least one set of
+            # keyvalues. 
+            #
+            result = self._p_keyvalues()
         self._p_simple_string('}')
-        self.input = self.input.lstrip()
+        self.lstrip()
 #        print "Leaving _p_dictionary"
         return result
-    
+
+    ###########################################################################
+    #
+    def _p_impliedkeyvalues(self):
+#        print "Entered _p_impliedkeyvalues: line #: %d '%s'" % (self.line_no, self.input[:10])
+        result = {}
+
+        index = 0
+        while True:
+            index += 1  # implied key/values start with a key of 1.
+            result[index] = self._p_expression()
+            self.lstrip()
+            # If the next character is NOT a comma then we have parsed
+            # all the key/values that we can. Return our result
+            #
+            if self._p_simple_string(',', silent = True) is None:
+#                print "   Next character is NOT a comma"
+                break
+#            print "    FOUND COMMA"
+            # Otherwise we have a comma. After the white space the
+            # next character MUST be a '[' or a '}'.
+            #
+            self.lstrip()
+#            print "Input starts with: %s" % self.input[:20]
+            if self.input.startswith('}'):
+                break
+            if not self.input.startswith('{'):
+                raise NoMatch
+#        print "Leaving _p_impliedkeyvalues"
+        return result
+
     ###########################################################################
     #
     def _p_keyvalues(self):
@@ -383,7 +491,7 @@ class SavedVarParser(object):
             # Otherwise we have a comma. After the white space the
             # next character MUST be a '[' or a '}'.
             #
-            self.input = self.input.lstrip()
+            self.lstrip()
             if self.input.startswith('}'):
                 break
             if not self.input.startswith('['):
@@ -397,7 +505,7 @@ class SavedVarParser(object):
         '''keyvalue : LBRACK scalar RBRACK ASSIGN value'''
 #        print "Entered _p_keyvalue: line #: %d '%s'" % (self.line_no, self.input[:10])
         self._p_simple_string('[')
-#        self.input = self.input.lstrip()
+#        self.lstrip()
 
         # The key can be either a string or an integer. If it begins with a '"'
         # then it must be a string. (in a real language this could also be a
@@ -407,17 +515,17 @@ class SavedVarParser(object):
             key = self._p_string()
         else:
             key = self._p_integer()
-##         self.input = self.input.lstrip()
+##         self.lstrip()
 ##         self._p_simple_string(']')
-##         self.input = self.input.lstrip()
+##         self.lstrip()
 ##         self._p_simple_string('=')
-##         self.input = self.input.lstrip()
+##         self.lstrip()
         # XXX Hack. We are parsing regular lua saved variables. We know that
         # XXX the next 4 characters are ALWAYS '] = '
         #
         self.input = self.input[4:]
         value = self._p_expression()
-        self.input = self.input.lstrip()
+        self.lstrip()
 #        print "Leaving _p_keyvalue (key: %s)" % str(key)
         return (key, value)
     
@@ -475,8 +583,7 @@ class SavedVarParser(object):
             if silent:
                 return None
             else:
-                raise NoMatch(value = "No match for simple string '%s'" % \
-                              string)
+                raise NoMatch(value = "No match for simple string. Expected: '%s', found: '%s'" % (string, self.input[:20]))
         self.input = self.input[len(string):]
         return string
 

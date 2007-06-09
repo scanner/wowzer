@@ -82,7 +82,7 @@ class UserProfile(models.Model):
     #
     timezone = models.CharField(maxlength = 128, choices = TZ_CHOICES,
                                 default = 'US/Eastern')
-    avatar = models.ImageField(upload_to = "img/accounts/%d/avatars",
+    avatar = models.ImageField(upload_to = "img/avatars/%Y/%m",
                                height_field = True, width_field = True,
                                blank = True, null = True)
 

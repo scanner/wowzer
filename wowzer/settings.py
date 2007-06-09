@@ -124,6 +124,7 @@ INSTALLED_APPS = (
     'wowzer.toons',
     'wowzer.items',
     'wowzer.raidtracker',
+    'wowzer.gem',
     'wowzer.asforums',
     'wowzer.main',
     'wowzer.users',

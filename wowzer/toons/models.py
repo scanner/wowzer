@@ -105,14 +105,17 @@ class Race(models.Model):
 
 #############################################################################
 #
-class Class(models.Model):
+class PlayerClass(models.Model):
     """Players can be one of several classes. Like factions and races the same
     classes exist on all realms.
     """
 
     name = models.CharField(maxlength = 128)
     description = models.CharField(maxlength = 1024)
-
+    icon = models.ImageField(height_field = True, width_field = True,
+                             null = True,
+                             upload_to = "img/toon_icons/%Y/%m")
+    
     class Admin:
         pass
 
@@ -167,6 +170,35 @@ class Guild(models.Model):
 
 #############################################################################
 #
+class GuildRank(models.Model):
+    guild = models.ForeignKey(Guild)
+    name = models.CharField(maxlength = 255)
+    level = models.IntegerField(default = 0)
+    officer = models.BooleanField(default = False)
+    
+    
+#############################################################################
+#
+class RaidGroup(models.Model):
+    name = models.CharField(maxlength = 128)
+    realm = models.ForeignKey(Realm)
+
+    class Meta:
+        row_level_permissions = True
+        permissions = (("Can examine raid group", "read_raidgroup"),)
+        
+    #########################################################################
+    #
+    def __str__(self):
+        return "RaidGroup '%s' on '%s'" % (self.name, self.realm.name)
+
+    #########################################################################
+    #
+    def get_absolute_url(self):
+        return "/toons/raidgroup/%d/" % self.id
+    
+#############################################################################
+#
 class Toon(models.Model):
     """
     """
@@ -175,16 +207,19 @@ class Toon(models.Model):
     realm = models.ForeignKey(Realm)
     faction = models.ForeignKey(Faction, null = True)
     race = models.ForeignKey(Race, null = True)
-    cls = models.ForeignKey(Class, null = True)
+    player_class = models.ForeignKey(PlayerClass, null = True)
     guild = models.ForeignKey(Guild, null = True, blank = True)
     guild_rank = models.CharField(maxlength = 256, null = True, blank = True)
     user = models.ForeignKey(User, null = True, blank = True)
+    raid_group = models.ManyToManyField(RaidGroup, null = True, blank = True)
+    level = models.PositiveSmallIntegerField(default = 0)
 
     class Meta:
         ordering = ['realm','name']
+        row_level_permissions = True
 
     class Admin:
-        list_filter = ['faction', 'realm', 'race', 'guild', 'cls']
+        list_filter = ['faction', 'realm', 'race', 'guild', 'player_class']
         search_fields = ['name']
     
     #########################################################################

@@ -112,7 +112,7 @@ o last seen
     post
   o all views that have lists of discussions need to take an option
     "only show if this discussion has new posts since the last time I
-    have been here."
+    have been here." this is a filter
   o have a toggle that sets whether discussions are filtered this way?
   o need to write a custom paginator that lets us update the 'last
     seen' flag for any listing of posts

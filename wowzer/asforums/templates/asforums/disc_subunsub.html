@@ -1,0 +1,11 @@
+{% extends "asforums/base.html" %}
+{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="/asforums/forum_collections/">Forum Collections</a>&nbsp&raquo;&nbsp;<a href="{{ discussion.forum.collection.get_absolute_url }}">{{ discussion.forum.collection.name }}</a>&nbsp&raquo;&nbsp;<a href="{{ discussion.forum.get_absolute_url }}">{{ discussion.forum.name }}</a>&nbsp&raquo;&nbsp;<a href="..">{{ discussion.name }}</a>&nbsp&raquo;&nbsp;<a href=".">{{ action|capfirst }}</a>{% endblock %}{% block content %}
+<h1>{{ action|capfirst }}{% ifequal action "subscribe" %} to {% else %} from {% endifequal %}{{ discussion.name }}</h1>
+{% if next %}
+<form method="post" action=".?next={{ next|urlencode }}">
+{% else %}
+<form method="post" action=".">
+{% endif %}
+<input type="submit" value = "{{ action|capfirst}}" />
+</form>
+{% endblock %}

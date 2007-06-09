@@ -685,8 +685,6 @@ def disc_detail(request, disc_id):
         disc.views += 1
         disc.save()
 
-    ec = { 'discussion' : disc }
-
     qs = Post.objects.readable(request.user).filter(discussion = disc).order_by('created')
     # If the request has a 'post' parameter AND it does NOT have a 'page'
     # parameter, use the use the 'post' parameter to determine what
@@ -705,6 +703,16 @@ def disc_detail(request, disc_id):
             page = ((int(request.GET.get('post')) - 1) / paginate_by) + 1
         except ValueError:
             page = None
+
+    # Pass in a variable that tells the template if the user is subscribed
+    # or not
+    if disc.subscribers.count(pk = request.user.id) = 0:
+        subscribed = True
+    else:
+        subscribed = False
+
+    ec = { 'discussion' : disc, 'subscribed' : subscribed }
+
 
     return object_list(request, qs,
                        page = page,
@@ -734,6 +742,75 @@ def disc_perms(request, disc_id):
     Breadcrumb.rename_last(request, "Discussion %s permissions" % d.name)
     return rlp_edit(request, d, template = "asforums/disc_perms.html")
 
+############################################################################
+#
+@login_required
+@breadcrumb
+def disc_subunsub (request, disc_id):
+    """
+    Toggles the subscription status for this discussion for this
+    user. ie: if they are not subscribed, subscribes them to this discussion.
+
+    If this is a GET we display a form asking confirmation. If it is a
+    POST and the confirmation button was pushed then make the change.
+
+    This view accept a 'next' parameter which is the page to display after the
+    unsubscribe request has been processed. This lets other pages link to this
+    request, and have the action return to them after it has been processed.
+    """
+
+    # You must have read permission on a discussion to subscribe to it.  If you
+    # are already subscribed to it, then you can always unsubscribe from it
+    # even if you do not have read permissions.
+    #
+    d = get_object_or_404(Discussion, pk = disc_id)
+
+    # Check to see if they are subscribed. If so then this is an unsubscribe
+    # request then we can continue. Otherwise, they get permission denied.
+    #
+    if d.subscribers.count(pk = request.user.id) = 0:
+        if not request.user.has_perm("asforums.read_discussion", object = d):
+            raise PermissionDenied
+        Breadcrumb.rename_last(request, "Subscribe to '%s'" % d.name)
+        action = "subscribe"
+    else:
+        Breadcrumb.rename_last(request, "Unsubscribe from '%s'" % d.name)
+        action = "unsubscribe"
+
+    # Pull out the 'next' page to go to after completion of the POST if it was
+    # set.
+    #
+    next = None
+    if 'next' in request.GET:
+        next = request.GET["next"]
+        
+    # If this is a POST request then if they are not subscribed and have read
+    # permission let them subscribe. If they are subscribed then let them
+    # unsubscribe.
+    #
+    if request.method == "POST":
+        # First check to see if they are subscribed. If so then this
+        # is an unsubscribe request and we can just process it.
+        #
+        if action == "unsubscribe":
+            d.subscribers.remove(request.user)
+            msg_user(request.user, "Unsubscribed from '%s'" % d.name)
+        else:
+            d.subscribers.add(request.user)
+            msg_user(request.user, "Subscribed to '%s'" % d.name)
+        if next:
+            return HttpResponseRedirect(next)
+        return HttpResponseRedirect(d.get_absolute_url())
+
+    # Otherwise they want the form asking them to confirm subscribe/unsubscribe
+    # from this discussion.
+    #
+    t = get_template("asforums/disc_subunsub.html")
+    c = Context(request, { 'discussion' : d,
+                           'next'       : next,
+                           'action'     : action })
+    read HttpResponse(t.render(c))
+    
 ############################################################################
 #
 @login_required

@@ -6,9 +6,12 @@ variable in to the template context so that we can have our templates not hard
 # code their references to where the media is and instead use the value set in
 # the settings.py file.
 """
+import pytz
 
 from django.conf import settings
 from django.template.defaultfilters import slugify as django_slugify
+
+TZ_CHOICES = tuple([(x,x) for x in pytz.common_timezones])
 
 #############################################################################
 #

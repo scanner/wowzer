@@ -7,11 +7,15 @@
 
 # System imports
 #
-import pytz
 
 # Django imports
 #
 from django.db import models
+from django.conf import settings
+
+# Wowzer imports
+#
+from wowzer.utils import TZ_CHOICES
 
 # django model imports
 #
@@ -54,8 +58,6 @@ class Style(models.Model):
 ############################################################################
 #
 class UserProfile(models.Model):
-    TZ_CHOICES = tuple([(x,x) for x in pytz.common_timezones])
-
     # The supported kinds of markup a usr can choose from.  NOTE:
     # Basically we apply the markup when they POST an object that has a
     # field that is markupable (ie: any field named 'content'.
@@ -81,7 +83,7 @@ class UserProfile(models.Model):
     # If blank defaults to the timezone of django site.
     #
     timezone = models.CharField(maxlength = 128, choices = TZ_CHOICES,
-                                default = 'US/Eastern')
+                                default = settings.TIME_ZONE)
     avatar = models.ImageField(upload_to = "img/avatars/%Y/%m",
                                height_field = True, width_field = True,
                                blank = True, null = True)

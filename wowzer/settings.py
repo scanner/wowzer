@@ -106,7 +106,13 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'wowzer.text.middleware.Markup.Markup',
     'django.middleware.doc.XViewMiddleware',
-)
+
+    # We want transaction middleware to come last. Everything that happens
+    # after it will be inside of a transaction. We especially do not want
+    # 'session' comign after it.
+    #
+    'django.middleware.transaction.TransactionMiddleware',
+    )
 
 ROOT_URLCONF = 'wowzer.urls'
 

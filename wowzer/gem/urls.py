@@ -5,7 +5,7 @@ urlpatterns = patterns(
     'wowzer.asforums.gem',
 
     (r'^$', 'index'),
-
+    (r'^submit/$', 'submit_gemdata'),
     (r'^events/$', 'event_list'),
     (r'^events/feed/$', 'event_feed'),
     (r'^events/tag/(?P<tag>[^/]+(?u))/$', 'event_tag'),

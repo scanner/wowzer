@@ -113,7 +113,8 @@ class GemDataJob(models.Model):
     #########################################################################
     #
     def __str__(self):
-        return "GemDataJob for '%s'" % self.data_file
+        return "GemDataJob %d, submitted by %s at %s, completed: %s" % \
+               (self.id, self.submitter, self.created, self.completed)
     
     #########################################################################
     #

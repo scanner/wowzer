@@ -8,8 +8,9 @@ by GemDataJob objects.
 
 # System imports
 #
-from datetime import datetime
+import sys
 import pytz
+from datetime import datetime
 
 # Django imports
 #
@@ -22,7 +23,7 @@ from wowzer.savedvarparser import SavedVarParser
 # Wowzer models
 #
 from wowzer.gem.models import Event, ClassLimit, EventMember, GemDataJob
-from wowzer.toons.models import Toon, PlayerClass
+from wowzer.toons.models import Toon, PlayerClass, Realm, Guild, GuildRank
 
 # We keep some variables that are global to this module for caching
 # purposes.
@@ -70,19 +71,24 @@ def process_jobs():
     # Get all the jobs that have not been completed yet, in order that
     # they were created.
     #
-    jobs = GemDataJob.objects.filter(completed = False).order_by('created')
+    jobs = GemDataJob.objects.filter(state = \
+                                     GemDataJob.PENDING).order_by('created')
     if jobs.count() > 0:
         print "%d jobs to process this run." % jobs.count()
     for job in jobs:
+        job.state = GemDataJob.PROCESSING
+        job.save()
         print "Processing %s" % job
         try:
             loaddata(job.get_data_file_filename())
-        except Exception, inst:
-            print "Encountered exception while processing job: %s" % inst
+        except:
+            job.state = GemDataJob.ERROR
+            job.save()
+            raise
         else:
             # Our job finished successfully. Mark it as completed.
             #
-            job.completed = True
+            job.state = GemDataJob.COMPLETED
             job.completed_at = datetime.utcnow()
             job.save()
             print "Successuflly processed %s" % job
@@ -143,7 +149,9 @@ def process_players(svp):
 
             for player_name in players.keys():
                 player, ign = Toon.objects.get_or_create(name = player_name,
-                                                         realm = realm.name)
+                                                         realm = realm)
+                if ign:
+                    print "Created new toon %s" % player
                 update_player(player, players[player_name], realm, tz)
                 
 #############################################################################
@@ -169,6 +177,8 @@ def update_player(player, gem_player_data, realm, tz):
                 guild, created = Guild.objects.get_or_create(name = guild_name,
                                                              realm = realm)
                 GUILDS[guild_name] = guild
+                if created:
+                    print "Created guild %s" % guild
                 if created and player.faction:
                     guild.faction = player.faction
                     guild.save()
@@ -178,9 +188,10 @@ def update_player(player, gem_player_data, realm, tz):
         changed = True
 
     # See if our last login time for the player matches what we already
-    # have
-    lastlog = datetime.fromtimestamp(gem_player_data['lastlog'], tz)
-    if player.last_login_time != lastlog:
+    # have. Be sure to convert it to UTC.
+    #
+    lastlog = datetime.fromtimestamp(gem_player_data['lastlog'], tz).astimezone(pytz.UTC)
+    if player.last_login_time is None or player.last_login_time.replace(tzinfo = pytz.UTC) != lastlog:
         changed = True
         player.last_login_time = lastlog
 
@@ -190,7 +201,7 @@ def update_player(player, gem_player_data, realm, tz):
     if player.player_class is None or \
        player.player_class.name != gem_player_data['class']:
         changed = True
-        if gem_player_data['class'] is in PLAYER_CLASSES:
+        if gem_player_data['class'] in PLAYER_CLASSES:
             player.player_class = PLAYER_CLASSES[gem_player_data['class']]
         else:
             player.player_class = PlayerClass.objects.get(name = gem_player_data['class'])
@@ -212,7 +223,8 @@ def update_player(player, gem_player_data, realm, tz):
                 grank.officer = True
             if grank_changed:
                 grank.save()
-
+            if created:
+                print "Created guild rank %s" % grank
             player.guild_rank = grank
     elif player.guild_rank is not None:
         changed = True
@@ -229,9 +241,11 @@ def update_player(player, gem_player_data, realm, tz):
 
     # See if our last logout time for the player matches what we already
     # have
-    lastleave = datetime.fromtimestamp(gem_player_data['lastleave'], tz)
-    if player.last_logout_time != lastlog:
-        changed = True
+    if 'lastleave' in gem_player_data:
+        lastleave = datetime.fromtimestamp(gem_player_data['lastleave'], tz).astimezone(pytz.UTC)
+        if player.last_logout_time is None or \
+               player.last_logout_time.replace(tzinfo = pytz.UTC) != lastleave:
+            changed = True
         player.last_logout_time = lastleave
 
     # After all that, if changed is True, save the updated

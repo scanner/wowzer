@@ -8,6 +8,11 @@
 #
 from django.db import models
 from django.conf import settings
+from django.db.models import signals, Q, permalink
+
+# 3rd party imports
+#
+from tagging.fields import TagField
 
 # Wowzer imports
 #
@@ -26,6 +31,16 @@ REALM_TYPE_CHOICES = (
 
 #############################################################################
 #
+class BattleGroup(models.Model):
+    """
+    Several realms are grouped together in to a battle group which is
+    the pool for players for pvp matches.
+    """
+    name = models.CharField(db_index = True, maxlength = 128)
+    tags = TagField()
+    
+#############################################################################
+#
 class Realm(models.Model):
     """In World of Warcraft the play happens in 'realms.' A realm is a
     collection of server instances that represents one instance of the world of
@@ -33,11 +48,13 @@ class Realm(models.Model):
     """
 
     name = models.CharField(db_index = True, maxlength = 128)
+    battlegroup = models.ForeignKey(BattleGroup, null = True)
     realm_type = models.CharField(maxlength = 16,
                                   choices = REALM_TYPE_CHOICES,
                                   default = 'pve')
     timezone = models.CharField(maxlength = 128, choices = TZ_CHOICES,
                                 default = settings.TIME_ZONE)
+    tags = TagField()
     
     class Admin:
         pass
@@ -137,6 +154,7 @@ class GuildAlliance(models.Model):
     """
     name = models.CharField(maxlength = 128, db_index = True)
     realm = models.ForeignKey(Realm)
+    tags = TagField()
 
     class Admin:
         pass
@@ -163,10 +181,12 @@ class Guild(models.Model):
     """
     name = models.CharField(maxlength = 128, db_index = True)
     realm = models.ForeignKey(Realm)
-    faction = models.ForeignKey(Faction)
-    guild_alliance = models.ForeignKey(GuildAlliance)
+    faction = models.ForeignKey(Faction, null = True)
+    guild_alliance = models.ForeignKey(GuildAlliance, null = True,
+                                       blank = True)
     created = models.DateTimeField(auto_now_add = True)
     first_seen = models.DateTimeField(auto_now_add = True, editable = False)
+    tags = TagField()
     
     class Admin:
         pass
@@ -193,12 +213,21 @@ class GuildRank(models.Model):
     name = models.CharField(maxlength = 255, db_index = True)
     level = models.IntegerField(default = 0)
     officer = models.BooleanField(default = False)
+
+    #########################################################################
+    #
+    def __str__(self):
+        if self.officer:
+            return "%s (officer)" % self.name
+        else:
+            return self.name
     
 #############################################################################
 #
 class RaidGroup(models.Model):
     name = models.CharField(maxlength = 128, db_index = True)
     realm = models.ForeignKey(Realm)
+    tags = TagField()
 
     class Meta:
         row_level_permissions = True
@@ -237,6 +266,7 @@ class Toon(models.Model):
                                           blank = True, editable = False)
     last_login_time = models.DateTimeField(null = True, editable = False)
     last_logout_time = models.DateTimeField(null = True, editable = False)
+    tags = TagField()
 
     class Meta:
         ordering = ['realm','name']
@@ -254,5 +284,6 @@ class Toon(models.Model):
 
     #########################################################################
     #
+    @permalink
     def get_absolute_url(self):
-        return "/toons/toon/%d/" % self.id
+        return ("wowzer.toons.views.toon_detail", (), { 'toon_id': self.id })

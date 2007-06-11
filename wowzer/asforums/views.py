@@ -92,6 +92,12 @@ def index(request):
 
 ############################################################################
 #
+@logged_in_or_basicauth(realm = "wowzer")
+def index_feed(request):
+    raise NotImplemented
+
+############################################################################
+#
 @login_required
 @breadcrumb(name = "Forum collection list")
 def fc_list(request):
@@ -598,6 +604,27 @@ def disc_list(request):
 
 ############################################################################
 #
+@logged_in_or_basicauth(realm = "wowzer")
+def disc_feed_new(request):
+    """
+    Feed of discussions most recently created.
+    """
+    raise NotImplemented
+
+############################################################################
+#
+@logged_in_or_basicauth(realm = "wowzer")
+def disc_feed_latest(request):
+    """
+    NOTE: The user can supply arguments like 'subscribed' to only
+    learn about discussions they are subscribed to and 'unseen' to
+    only learn about discussions that have posts that they have not
+    seen yet.
+    """
+    raise NotImplemented
+
+############################################################################
+#
 @login_required
 @breadcrumb
 def disc_create(request, forum_id):
@@ -706,7 +733,7 @@ def disc_detail(request, disc_id):
 
     # Pass in a variable that tells the template if the user is subscribed
     # or not
-    if disc.subscribers.count(pk = request.user.id) = 0:
+    if disc.subscribers.count(pk = request.user.id) == 0:
         subscribed = True
     else:
         subscribed = False
@@ -768,7 +795,7 @@ def disc_subunsub (request, disc_id):
     # Check to see if they are subscribed. If so then this is an unsubscribe
     # request then we can continue. Otherwise, they get permission denied.
     #
-    if d.subscribers.count(pk = request.user.id) = 0:
+    if d.subscribers.count(pk = request.user.id) == 0:
         if not request.user.has_perm("asforums.read_discussion", object = d):
             raise PermissionDenied
         Breadcrumb.rename_last(request, "Subscribe to '%s'" % d.name)
@@ -809,7 +836,7 @@ def disc_subunsub (request, disc_id):
     c = Context(request, { 'discussion' : d,
                            'next'       : next,
                            'action'     : action })
-    read HttpResponse(t.render(c))
+    return HttpResponse(t.render(c))
     
 ############################################################################
 #
@@ -1073,9 +1100,6 @@ def post_detail(request, post_id):
         'post': post,
         })
     return HttpResponse(t.render(c))
-
-    return object_detail(request, Post.objects.readable(request.user),
-                         object_id = post_id)
 
 ############################################################################
 #

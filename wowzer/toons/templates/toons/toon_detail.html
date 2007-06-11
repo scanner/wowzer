@@ -1,13 +1,14 @@
-{% extends "base.html" %}
+{% extends "toons/base.html" %}
 {% block content %}
 <p>
 Name: {{ object.name }}<br>
 On realm: {{ object.realm }}<br>
 Home faction: {{ object.faction }}<br>
 Race: {{ object.race }}<br>
-Class: {{ object.cls }}<br>
+Guild: {% if object.guild %}{{ object.guild.name }} - {{ object.guild_rank }}{% else %}Unguilded{% endif %}<br>
+Class: {{ object.player_class }}<br>
 
-{% if object.raids_attended %}
+{% if first_raid %}
 Player has attended a total of {{ object.raids_attended.count }} raids.<br>
 Duration of raiding: {{ raiding_duration }}<br>
 Time since last raid: {{ last_raid.start_time|timesince }}<br>

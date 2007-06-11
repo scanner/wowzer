@@ -1,0 +1,12 @@
+{% load wowzertags %}
+{% extends "gem/base.html" %}
+{% spaceless %}{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="..">Event Listing</a>&nbsp&raquo;&nbsp;<a href=".">{{ job }}</a>{% endblock %}{% endspaceless %}
+{% block content %}
+<h1>{{ job }}</h1>
+Created at: {{ job.created|tz_std_date:user }}<br>
+Submitted by: <a href="{{ job.submitter.get_absolute_url }}">{{ job.submitter.username }}</a><br>
+State: {{ job.get_state_display }}
+{% if job.completed_at %}
+Completed at: {{ job.completed_at|tz_std_date:user }}<br>
+{% endif %}
+{% endblock %}

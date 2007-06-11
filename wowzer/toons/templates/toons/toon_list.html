@@ -1,39 +1,34 @@
-{% extends "base.html" %}
-{% block content %}
+{% load wowzertags tagging_tags %}
+{% extends "toons/listing.html" %}
+{% block modelcloud %}
+<h3>Player Character Tags</h3>
+{% tags_for_model toons.Toon as tags %}
 <p>
-{% if is_paginated %}
-On page {{ page }} of {{ pages }}.<br>
-{% ifnotequal page "1" %}
-<a href="./?page=1">Start</a>
-{% else %}
-Start
-{% endifnotequal %} &lt;&lt;
-{% if has_previous %}
-<a href="./?page={{ previous }}">Previous page</a>
-{% else %}
-Previous page
-{% endif %}
-||
-{% if has_next %}
-<a href="./?page={{ next }}">Next page</a>
-{% else %}
-Next page
-{% endif %} &gt;&gt;
-{% ifnotequal page pages %}
-<a href="./?page={{ pages }}">End</a>
-{% else %}
-End
-{% endifnotequal %}
-{% endif %}
-
-{% if object_list %}
-<ul>
-{% for object in object_list %}
-<li><a href="{{ object.get_absolute_url }}">{{ object }}</a></li>
+{% for tag in tags %}
+  <a href="./tag/{{ tag }}/">{{ tag }}</a>
 {% endfor %}
-</ul>
-{% else %}
-There are no toons (players).
-{% endif %}
 </p>
+{% endblock %}
+{% spaceless %}{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href=".">Player Character Listing</a>{% endblock %}{% endspaceless %}
+{% block listing %}
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Realm</th>
+    <th>Race</th>
+    <th>Class</th>
+    <th>Level</th>
+    <th>Guild</th>
+  </tr>
+  {% for toon in object_list %}
+    <tr class="{% cycle odd,even %} top">
+      <td><a href="{{ toon.get_absolute_url }}">{{ toon.name }}</a></td>
+      <td>{{ toon.realm.name }}</td>
+      <td>{% if toon.race %}{{ toon.race.name }}{% else %}currently n/a{% endif %}</td>
+      <td>{{ toon.player_class.name }}</td>
+      <td>{{ toon.level }} (last observed)</td>
+      <td>{% if toon.guild %}{{ toon.guild.name }} - {{ toon.guild_rank }}{% else %}Unguilded{% endif %}</td>
+    </tr>
+  {% endfor %}
+</table>
 {% endblock %}

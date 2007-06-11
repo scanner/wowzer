@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load wowzertags %}
+{% block pagetitle %}Event Manager{% endblock %}
+{% block title %}Event Manager{% endblock %}
+{% block subtitle %}Allabout scheduled events{% endblock %}
+{% block appsidebar %}
+  <h3>GEM Menu</h3>
+  <div>
+    <ul>
+    <li><a href="/gem/events/">Event List</a></li>
+    <li><a href="/gem/datajobs/">Data Job List</a></li>
+    <li><a href="/gem/datajobs/submit/">Submit a GEM data file</a></li>
+    </ul>
+  </div>
+  {% block modelcloud %}
+  {% endblock %}
+{% endblock %}

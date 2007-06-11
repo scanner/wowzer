@@ -1,0 +1,12 @@
+{% extends "gem/base.html" %}
+{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="..">Data job listing</a>&nbsp&raquo;&nbsp;<a href=".">Submit a data file</a>{% endblock %}
+{% block content %}
+<h1>Submit a GEM data file</h1>
+{% if form.has_errors %}
+<h2 class="errors">Please correct the following error{{ form.error_dict|pluralize }}:</h2>
+{% endif %}
+<form method="post" action="." enctype="multipart/form-data">
+{{ form.as_table }}<br>
+<input type="submit" value = "Submit" />
+</form>
+{% endblock %}

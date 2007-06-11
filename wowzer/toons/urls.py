@@ -5,11 +5,10 @@ info_dict = {
 }
 
 urlpatterns = patterns(
-    '',  # The module name prefix.
-    #
-    # Generic list & detail
-    #
-    (r'^toon/$',
-     'django.views.generic.list_detail.object_list', dict(info_dict, paginate_by=40)),
-    (r'^toon/(?P<object_id>\d+)/$', 'wowzer.toons.views.detail'),
+    'wowzer.toons.views',
+
+    (r'^$', 'index'),
+
+    (r'^toons/$', 'toon_list'),
+    (r'^toons/(?P<toon_id>\d+)/$', 'toon_detail'),
 )

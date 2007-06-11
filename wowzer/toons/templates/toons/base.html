@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load wowzertags %}
+{% block pagetitle %}Player Characters, Guilds, Realms, etc.{% endblock %}
+{% block title %}Player Characters, Guilds, Realms, etc.{% endblock %}
+{% block subtitle %}All about the characters and such.{% endblock %}
+{% block appsidebar %}
+  <h3>Toons Menu</h3>
+  <div>
+    <ul>
+    <li><a href="/toons/toons/">Player Charater List</a></li>
+    </ul>
+  </div>
+  {% block modelcloud %}
+  {% endblock %}
+{% endblock %}

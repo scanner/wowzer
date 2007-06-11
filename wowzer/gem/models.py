@@ -6,10 +6,15 @@
 #
 from django.db import models
 from django.db.models import signals, Q, permalink
+from django.dispatch import dispatcher
 
 # 3rd party imports
 #
 from tagging.fields import TagField
+
+# Wowzer imports
+#
+import wowzer.gem.signals
 
 # Import django contrib models.
 #
@@ -42,6 +47,7 @@ class Event(models.Model):
 
     class Meta:
         get_latest_by = 'created'
+        ordering = ['created']
         row_level_permissions = True
     
     #########################################################################
@@ -54,15 +60,18 @@ class Event(models.Model):
     #
     @permalink
     def get_absolute_url(self):
-        return ("views.event_detail", str(self.id))
+        return ("wowzer.gem.views.event_detail", (), { 'event_id': self.id })
 
 #############################################################################
 #
 class ClassLimit(models.Model):
     event = models.ForeignKey(Event)
     player_class = models.ForeignKey(PlayerClass)
-    min_level = models.PositiveSmallIntegerField(default = 0)
-    max_level = models.PositiveSmallIntegerField(default = 0)
+    titular = models.ForeignKey(Toon, null = True)
+    substitude = models.ForeignKey(Toon, null = True)
+    replacement = models.ForeignKey(Toon, null = True)
+    min = models.PositiveSmallIntegerField(default = 0)
+    max = models.PositiveSmallIntegerField(default = 0)
 
     #########################################################################
     #
@@ -78,7 +87,7 @@ class EventMember(models.Model):
     """
     """
     PLAYER_STATES = ((0, 'unknown'),
-                     (1, 'inraid'),
+                     (1, 'titular'),
                      (2, 'substitute'),
                      (3, 'replacement'))
     
@@ -94,6 +103,14 @@ class EventMember(models.Model):
 #############################################################################
 #
 class GemDataJob(models.Model):
+    PENDING = 0
+    PROCESSING = 1
+    COMPLETED = 2
+    ERROR = 3
+    STATES = ((PENDING,    'pending'),
+              (PROCESSING, 'processing'),
+              (COMPLETED,  'completed'),
+              (ERROR,      'error'))
     """
     This class represents a unit of work that needs to be in reading in and
     parsing a GuildEventManager2.lua file and creating the appropriate objects
@@ -101,10 +118,12 @@ class GemDataJob(models.Model):
     """
     
     data_file = models.FileField(upload_to = "uploads/gem/%Y/%m/%d")
-    created = models.DateTimeField(auto_now_add = True)
-    submitter = models.ForeignKey(User)
-    completed = models.BooleanField(default = False)
-    completed_at = models.DateTimeField(null = True)
+    created = models.DateTimeField(auto_now_add = True, editable = False,
+                                   db_index = True)
+    submitter = models.ForeignKey(User, db_index = True, editable = False)
+    state = models.PositiveSmallIntegerField(choices = STATES, default = 0,
+                                             editable = False)
+    completed_at = models.DateTimeField(null = True, editable = False)
     
     class Meta:
         get_latest_by = 'created'
@@ -113,11 +132,19 @@ class GemDataJob(models.Model):
     #########################################################################
     #
     def __str__(self):
-        return "GemDataJob %d, submitted by %s at %s, completed: %s" % \
-               (self.id, self.submitter, self.created, self.completed)
+        return "GemDataJob %d, submitted by %s at %s, state: %s" % \
+               (self.id, self.submitter, self.created,
+                self.get_state_display())
     
     #########################################################################
     #
     @permalink
     def get_absolute_url(self):
-        return ("views.datajob_detail", str(self.id))
+        return ("wowzer.gem.views.datajob_detail", (), { 'job_id': self.id })
+
+# Signals
+#
+# On post_save of a GemDataJob, call the process_jobs signal handler.
+#
+dispatcher.connect(wowzer.gem.signals.process_jobs, signal = signals.post_save,
+                   sender = GemDataJob)

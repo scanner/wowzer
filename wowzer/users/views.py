@@ -296,3 +296,33 @@ def user_detail(request, username):
                           'activate_form' : activate_form })
     return HttpResponse(t.render(c))
 
+############################################################################
+#
+@login_required
+def group_list(request):
+    raise NotImplemented
+
+############################################################################
+#
+@login_required
+def group_detail(request):
+    raise NotImplemented
+
+############################################################################
+#
+@login_required
+def group_index(request):
+    raise NotImplemented
+
+############################################################################
+#
+@login_required
+def group_create(request):
+    raise NotImplemented
+
+############################################################################
+#
+@login_required
+def group_delete(request):
+    raise NotImplemented
+

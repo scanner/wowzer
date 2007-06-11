@@ -1,0 +1,39 @@
+{% load auth wowzertags tagging_tags %}
+{% extends "gem/listing.html" %}
+{% spaceless %}
+{% block modelcloud %}
+<h3>Event Tags</h3>
+{% tags_for_model gem.Event as tags %}
+<p>
+{% for tag in tags %}
+  <a href="./tag/{{ tag }}/">{{ tag }}</a>
+{% endfor %}
+</p>
+{% endblock %}
+{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href=".">Event Listing</a>{% endblock %}{% endspaceless %}
+{% block listing %}
+<table>
+  <tr>
+    <th>When</th>
+    <th>Place</th>
+    <th>Realm</th>
+    <th>Leader</th>
+    <th>Size</th>
+    <th>Level Range</th>
+  </tr>
+  {% for event in object_list %}
+    <tr class="{% cycle odd,even %} top">
+      <td>{{ event.when|tz_std_date:user }}</td>
+      <td>{{ event.place }}</td>
+      <td>{{ event.leader.realm.name }}</td>
+      <td><a href="{{ leader.get_absolute_url }}">{{ event.leader.name }}</a><td>
+      <td>{{ event.max_size }}</td>
+      {% ifequal event.minlevel event.maxlevel %}
+      <td>{{ event.minlevel }}</td>
+      {% else %}
+      <td>{{ event.minlevel }} - {{ event.maxlevel }}</td>
+      {% endifequal %}
+    </tr>
+  {% endfor %}
+</table>
+{% endblock %}

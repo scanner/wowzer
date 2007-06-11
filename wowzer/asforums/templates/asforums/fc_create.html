@@ -1,5 +1,6 @@
 {% extends "asforums/base.html" %}
-{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="/asforums/forum_collections/">Forum Collections</a>&nbsp&raquo;&nbsp;<a href=".">Create Forum Collection</a>{% endblock %}{% block content %}{% block content %}
+{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="/asforums/forum_collections/">Forum Collections</a>&nbsp&raquo;&nbsp;<a href=".">Create Forum Collection</a>{% endblock %}
+{% block content %}
 <h1>Create a Forum Collection:</h1>
 {% if form.has_errors %}
 <h2 class="errors">Please correct the following error{{ form.error_dict|pluralize }}:</h2>

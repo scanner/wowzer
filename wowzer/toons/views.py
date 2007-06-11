@@ -14,12 +14,13 @@ from datetime import datetime, timedelta
 
 # Django imports
 #
-from django import forms
+from django import newforms as forms
+from django.newforms import widgets
 from django.shortcuts import get_object_or_404
-from django.core.paginator import ObjectPaginator, InvalidPage
+from django.views.generic.list_detail import object_list
 from django.template.loader import get_template
 from django.template import RequestContext as Context
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.http import Http404
 from django.http import HttpResponse
 from django.http import HttpResponseServerError
@@ -27,65 +28,53 @@ from django.http import HttpResponseRedirect
 
 from django.contrib.auth.decorators import login_required
 
+# Wowzer utility functions
+#
+from wowzer.utils import msg_user
+from wowzer.decorators import logged_in_or_basicauth
+from wowzer.main.views import rlp_edit
+from wowzer.main.decorators import breadcrumb
+
+# 3rd party models & utils
+#
+from tagging.models import TaggedItem
+from tagging.utils import get_tag
+
 # The data models from our apps:
 #
-from wowzer.toons.models import *
-from wowzer.items.models import *
+from wowzer.toons.models import Toon
+from wowzer.main.models import Breadcrumb
 
-#############################################################################
-#
-def index(request):
-    t = get_template('toons/index.html')
-    c = Context(request, {})
-    return HttpResponse(t.render(c))
+paginate_by = 20
 
 ############################################################################
 #
-def client_list(request):
-    """A generic view to browse objects on a specific engine instance.
+@login_required
+def index(request):
     """
-    page_number = int(request.GET.get('page', 0))
+    For now the index just redirects to the toons index.
+    """
+    return HttpResponseRedirect("toons/")
+
+############################################################################
+#
+@login_required
+@breadcrumb(name="Character List")
+def toon_list(request):
+    query_set = Toon.objects.extra(tables = ['toons_realm']).order_by('toons_realm.name', 'name')
+    return object_list(request, query_set, paginate_by = paginate_by,
+                       template_name = "toons/toon_list.html")
     
-    # Right now we build a query set of all the objects of this class. Later
-    # on this is where a submitted form of values is used to determine the
-    # query set for browsing.
-    #
-    query_set = Toon.objects.all()
-
-    # XXX the value '30' is how many object to page by. This should be settable
-    # XXX in a user's profile with some either 'system' or 'skin' default.
-    #
-    paginator = ObjectPaginator(query_set, 30)
-
-    try:
-        object_list = paginator.get_page(page_number)
-    except InvalidPage:
-        if page_number == 0:
-            object_list = []
-        else:
-            raise Http404
-    
-    t = get_template('toons/toon_list.html')
-    c = Context(request, {
-        'order_by'    : order_by,
-        'engine'      : engine,
-        'page_number' : page_number,
-        'pages'       : paginator.pages-1,
-        'hits'        : paginator.hits,
-        'has_next'    : paginator.has_next_page(page_number),
-        'has_previous': paginator.has_previous_page(page_number),
-        'next'        : page_number + 1,
-        'previous'    : page_number - 1,
-        'objects'     : object_list,
-        })
-    return HttpResponse(t.render(c))
-
 #############################################################################
 #
-def detail(request, object_id):
+@login_required
+@breadcrumb
+def toon_detail(request, toon_id):
     """Displays the details of a single toon."""
 
-    toon = get_object_or_404(Toon, pk = object_id)
+    toon = get_object_or_404(Toon, pk = toon_id)
+
+    Breadcrumb.rename_last(request, name = str(toon))
 
     # Pull out the number of raids above certain sizes that they have been in
     #
@@ -101,9 +90,14 @@ def detail(request, object_id):
     # and now find out how long they have been raiding with raids submitted by
     # tamrielo
     #
-    first_raid = toon.raids_attended.order_by('start_time')[0]
-    last_raid = toon.raids_attended.order_by('-start_time')[0]
-    time_delta = last_raid.start_time - first_raid.start_time
+    if toon.raids_attended.count() != 0:
+        first_raid = toon.raids_attended.order_by('start_time')[0]
+        last_raid = toon.raids_attended.order_by('-start_time')[0]
+        time_delta = last_raid.start_time - first_raid.start_time
+    else:
+        first_raid = None
+        last_raid = None
+        time_delta = None
     
 ##     aucts = toon.get_madhouse_auction_list(order_by = ('-last_seen',),
 ##                                            limit = 50)

@@ -1,0 +1,26 @@
+{% load wowzertags %}
+{% extends "gem/listing.html" %}
+{% spaceless %}
+{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href=".">Submitted data job listing</a>{% endblock %}{% endspaceless %}
+{% block prelisting %}
+<a href="./submit/">Submit a new GEM data file</a>
+<h1>Submitted data job listing<h1>
+{% endblock %}
+{% block listing %}
+<table>
+  <tr>
+    <th>Created</th>
+    <th>Submitter</th>
+    <th>State</th>
+    <th>Completed</th>
+  </tr>
+  {% for job in object_list %}
+    <tr class="{% cycle odd,even %} top">
+      <td>{{ job.created }}</td>
+      <td><a href="job.submitter.get_absolute_url">{{ job.submitter.username }}</a></td>
+      <td>{{ job.get_state_display }}</td>
+      <td>{% if job.completed_at %}{{ job.completed_at|tz_std_date:user }}{% endif %}</td>
+    </tr>
+  {% endfor %}
+</table>
+{% endblock %}

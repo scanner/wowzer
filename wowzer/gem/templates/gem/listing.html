@@ -1,0 +1,15 @@
+{% load wowzertags %}
+{% extends "gem/base.html" %}
+{% block hierarchy %}{{ block.super }}{% endblock %}
+{% block content %}
+{% block prelisting %}{% endblock %}
+{% if is_paginated %}
+<div class="paginator">{% paginator %}</div>
+{% endif %}
+{% block listing %}
+{% endblock %}
+{% if is_paginated %}
+<div class="paginator">{% paginator %}</div>
+{% endif %}
+{% block postlisting %}{% endblock %}
+{% endblock %}

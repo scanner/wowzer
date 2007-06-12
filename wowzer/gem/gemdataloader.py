@@ -43,7 +43,7 @@ GUILDS = {}
 #############################################################################
 #
 @transaction.commit_on_success
-def loaddata(filename):
+def loaddata(filename, job):
     """
     Given a file name, read it in and parse it. Then go through the parsed GEM
     data creating new events, updating old ones, creating new toons, and
@@ -55,9 +55,9 @@ def loaddata(filename):
     svp = SavedVarParser(open(filename).read())
     svp.parse()
 
-    process_events(svp)
-    process_templates(svp)
-    process_players(svp)
+    process_events(svp, job)
+    process_templates(svp, job)
+    process_players(svp, job)
     return
 
 #############################################################################
@@ -80,7 +80,7 @@ def process_jobs():
         job.save()
         print "Processing %s" % job
         try:
-            loaddata(job.get_data_file_filename())
+            loaddata(job.get_data_file_filename(), job)
         except:
             job.state = GemDataJob.ERROR
             job.save()
@@ -96,7 +96,7 @@ def process_jobs():
 
 #############################################################################
 #
-def process_events(svp):
+def process_events(svp, job):
     """
     Go through all the events for all the realms we have info for
     and add them to our database.
@@ -117,7 +117,7 @@ def process_events(svp):
 
 #############################################################################
 #
-def process_templates(svp):
+def process_templates(svp, job):
     
     # Right now we have no code to process templates. We need to define
     # some so that we can see what we need to do here.
@@ -126,7 +126,7 @@ def process_templates(svp):
 
 #############################################################################
 #
-def process_players(svp):
+def process_players(svp, job):
     """
     One side advantage of GEM is that it gets all sorts of interesting
     information about players in the gem channels, including the channel
@@ -139,10 +139,14 @@ def process_players(svp):
         realm, ign = Realm.objects.get_or_create(name = realm_name)
 
         # We are assuming that the 'lastlogin' is in the timezone
-        # of the realm. It is either that, or UTC, or the timezone
-        # of the computer that it was recorded on.
+        # of the submitter. If we do not have a timezone for the submitter
+        # then assume the timezone of the server.
         #
-        tz = pytz.timezone(realm.timezone)
+        submitter_tz = job.submitter.get_profile().timezone
+        if submitter_tz is None or submitter_tz == "":
+            tz = pytz.timezone(realm.timezone)
+        else:
+            tz = pytz.timezone(submitter_tz)
     
         for channel_name in svp['GEM_Players'][realm_name].keys():
             players = svp['GEM_Players'][realm_name][channel_name]

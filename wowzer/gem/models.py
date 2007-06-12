@@ -7,6 +7,7 @@
 from django.db import models
 from django.db.models import signals, Q, permalink
 from django.dispatch import dispatcher
+from django.conf import settings
 
 # 3rd party imports
 #
@@ -15,6 +16,7 @@ from tagging.fields import TagField
 # Wowzer imports
 #
 import wowzer.gem.signals
+from wowzer.utils import TZ_CHOICES
 
 # Import django contrib models.
 #
@@ -27,10 +29,12 @@ from wowzer.toons.models import Toon, PlayerClass
 #############################################################################
 #
 class Event(models.Model):
+    name = models.CharField(maxlength = 256, db_index = True)
+    submitter = models.ForeignKey(User, db_index = True, editable = False)
+    leader = models.ForeignKey(Toon, db_index = True, editable = False)
     channel = models.CharField(maxlength = 256)
     created = models.DateTimeField(auto_now_add = True)
     update_time = models.DateTimeField()
-    leader = models.ForeignKey(Toon)
     when = models.DateTimeField(null = True)
     place = models.CharField(maxlength = 256)
     comment = models.TextField(maxlength = 2048)
@@ -64,12 +68,17 @@ class Event(models.Model):
 
 #############################################################################
 #
-class ClassLimit(models.Model):
-    event = models.ForeignKey(Event)
+class ClassRule(models.Model):
+    """
+    For an event we have a set of rules for how many of each type of
+    class we need/want in the event.
+
+    Each 'ClassRule' specifies the rule (min/max) for a given class.
+
+    Only classes for which there is a class rule can signup for the event.
+    """
+    event = models.ForeignKey(Event, db_index = True)
     player_class = models.ForeignKey(PlayerClass)
-    titular = models.ForeignKey(Toon, null = True)
-    substitude = models.ForeignKey(Toon, null = True)
-    replacement = models.ForeignKey(Toon, null = True)
     min = models.PositiveSmallIntegerField(default = 0)
     max = models.PositiveSmallIntegerField(default = 0)
 
@@ -86,19 +95,24 @@ class ClassLimit(models.Model):
 class EventMember(models.Model):
     """
     """
-    PLAYER_STATES = ((0, 'unknown'),
-                     (1, 'titular'),
+    PLAYER_STATES = ((1, 'titular'),
                      (2, 'substitute'),
-                     (3, 'replacement'))
+                     (3, 'replacement'),
+                     (4, 'unknown'),
+                     (5, 'banned'))
     
-    event = models.ForeignKey(Event)
-    toon = models.ForeignKey(Toon)
+    event = models.ForeignKey(Event, db_index = True)
+    toon = models.ForeignKey(Toon, db_index = True)
     state = models.PositiveSmallIntegerField(choices = PLAYER_STATES,
-                                             default = 0)
-    position = models.CharField(maxlength = 30)
+                                             default = 4)
     update_time = models.DateTimeField()
     comment = models.TextField(maxlength = 1024, blank = True)
-    force_sub = models.PositiveSmallIntegerField(default = 0)
+    force_substitute = models.BooleanField(default = False)
+    force_titular = models.BooleanField(default = False)
+    assistant = models.BooleanField(default = False)
+
+    class Meta:
+        ordering = ['state', 'toon']
     
 #############################################################################
 #

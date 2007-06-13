@@ -87,7 +87,11 @@ def event_list(request):
 
     XXX we should support sorting and filtering
     """
-    query_set = Event.objects.all().order_by('-created')
+    if "showhidden" in request.GET:
+        query_set = Event.objects.all().order_by('-created')
+    else:
+        query_set = Event.objects.filter(hidden = False).order_by('-created')
+        
     return object_list(request, query_set, paginate_by = paginate_by,
                        template_name = "gem/event_list.html")
 
@@ -110,7 +114,9 @@ def event_tag(request):
 @breadcrumb
 def event_detail(request, event_id):
     event = get_object_or_404(Event, pk = event_id)
-    Breadcrumb.rename_last(request,"GEM Event %s" % event)
+    if not request.user.has_perm("gem.view_event", object = event):
+        raise PermissionDenied
+    Breadcrumb.rename_last(request,"GEM Event %s" % event.name)
     t = get_template("gem/event_detail.html")
     c = Context(request, {
         'event': event,
@@ -121,8 +127,26 @@ def event_detail(request, event_id):
 #
 @login_required
 @breadcrumb
-def event_update(request):
-    return "Not implemented"
+def event_update(request, event_id):
+    event = get_object_or_404(Event, pk = event_id)
+    if not request.user.has_perm("gem.change_event", object = event):
+        raise PermissionDenied
+    Breadcrumb.rename_last(request,"Update GEM Event %s" % event.name)
+    EventForm = forms.models.form_for_instance(event)
+    if request.method == "POST":
+        form = EventForm(request.POST)
+        if form.is_valid():
+            entry = form.save()
+            msg_user(request.user,
+                     "Event '%s' updated." % entry.name)
+            return HttpResponseRedirect(entry.get_absolute_url())
+    else:
+        form = EventForm()
+
+    t = get_template("asforums/event_update.html")
+    c = Context(request, { 'event' : event,
+                           'form'  : form })
+    return HttpResponse(t.render(c))
 
 ############################################################################
 #

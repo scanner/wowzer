@@ -76,23 +76,63 @@ class GemDataJob(models.Model):
 
 #############################################################################
 #
+class EventManager(models.Manager):
+    """
+    A custom Event manager that has a method that can filter an event
+    list for the ones that are viewable by a specific user.
+    """
+    def viewable(self, user, query_set = None):
+        """
+        Returns a query set of events filtered by the given user
+        having 'view' permission on any given event instance.
+
+        A query set may be passed in, in which case we filter that
+        query set instead of 'all'
+        """
+
+        # Super user can see everything.
+        #
+        if user.is_authenticated() and user.is_superuser:
+            # if we were passed in a query set, then filter that one,
+            # not the base query set.
+            #
+            if query_set is not None:
+                return query_set
+            return self.all()
+
+        evt_list = RowLevelPermission.objects.get_model_list(user, Event,
+                                                             'view_event')
+        if len(evt_list) == 0:
+            return self.none()
+        if query_set is not None:
+            return query_set.filter(id__in = evt_list)
+        return self.filter(id__in = evt_list)
+
+#############################################################################
+#
 class Event(models.Model):
     name = models.CharField(maxlength = 256, db_index = True)
     sources = models.ManyToManyField(GemDataJob, editable = False)
     realm = models.ForeignKey(Realm, db_index = True, editable = False)
     leader = models.ForeignKey(Toon, db_index = True, editable = False)
-    channel = models.CharField(maxlength = 256)
+    channel = models.CharField(maxlength = 256, editable = False)
     created = models.DateTimeField(auto_now_add = True)
-    update_time = models.DateTimeField()
-    when = models.DateTimeField()
-    place = models.CharField(maxlength = 256, default = "")
+    update_time = models.DateTimeField(editable = False)
+    when = models.DateTimeField(editable = False)
+    place = models.CharField(maxlength = 256, default = "", editable = False)
     comment = models.TextField(maxlength = 2048, null = True, blank = True)
-    max_count = models.IntegerField(default = 0)
-    min_level = models.IntegerField(default = 0)
-    max_level = models.IntegerField(default = 0)
+    max_count = models.IntegerField(default = 0, editable = False)
+    min_level = models.IntegerField(default = 0, editable = False)
+    max_level = models.IntegerField(default = 0, editable = False)
     closed_comment = models.TextField(maxlength = 2048, null = True,
                                       blank = True)
     closed = models.BooleanField(default = False)
+
+    # We may have some events that have bad data or for some reason or other
+    # we simply want to not be shown. This is above and beyond people having
+    # the 'view' permission on an event.
+    #
+    hidden = models.BooleanField(default = False)
 
     class Admin:
         pass
@@ -101,7 +141,8 @@ class Event(models.Model):
         get_latest_by = 'created'
         ordering = ['created']
         row_level_permissions = True
-    
+        permissions = (("view_event", "Can see the event"),)
+        
     #########################################################################
     #
     def __str__(self):

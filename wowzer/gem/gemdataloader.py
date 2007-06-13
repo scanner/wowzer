@@ -55,9 +55,25 @@ def loaddata(filename, job):
     svp = SavedVarParser(open(filename).read())
     svp.parse()
 
-    process_events(svp, job)
-    process_templates(svp, job)
-    process_players(svp, job)
+    # The dates in the GEM data file are in the time zone of the
+    # machine from which it was run. We assume that the timezone
+    # of the submitter matches the timezone of the machine that they
+    # have run the WoW client on, and use this to normalize the times
+    # to UTC.
+    #
+    # If we do not have a timezone for the submitter then assume
+    # the timezone of the server.
+    #
+    submitter_tz = job.submitter.get_profile().timezone
+    if submitter_tz is None or submitter_tz == "":
+        tz = pytz.timezone(realm.timezone)
+    else:
+        tz = pytz.timezone(submitter_tz)
+
+    for channel_name in svp['GEM_Players'][realm_name].keys():
+
+    process_events(svp, tz, job)
+    process_players(svp, tz)
     return
 
 #############################################################################
@@ -96,7 +112,7 @@ def process_jobs():
 
 #############################################################################
 #
-def process_events(svp, job):
+def process_events(svp, tz, job):
     """
     Go through all the events for all the realms we have info for
     and add them to our database.
@@ -108,25 +124,123 @@ def process_events(svp, job):
     for realm_name in svp['GEM_Events']['realms'].keys():
         realm, ign = Realm.objects.get_or_create(name = realm_name)
 
+        for event_name in svp['GEM_Events']['realms'][realm_name].keys():
+            evt_data = svp['GEM_Events']['realms'][realm_name][event_name]
 
-        # Right now that is all we have because we do not have a gem
-        # data file with any events in it.
-        #
+            # Make the event time be in UTC and naieve. Grr. postgres orm
+            # for django only deals with naieve datetimes.
+            #
+            when = datetime.fromtimestamp(evt_data["ev_date"], tz).\
+                astimezone(pytz.UTC).replace(tzinfo = None)
+            update_time = datetime.fromtimestamp(evt_data["update_time"], tz).\
+                astimezone(pytz.UTC).replace(tzinfo = None)
+            place = evt_data["ev_place"]
+            leader, ign = Toon.objects.get_or_create(name = evt_data['leader'],
+                                                     realm = realm)
+
+            defaults = {'sources'     : [job],
+                        'leader'      : leader,
+                        'channel'     : event_data['channel'],
+                        'update_time' : update_time,
+                        'min_level'   : event_data['min_lvl'],
+                        'max_level'   : event_data['max_lvl'],
+                        'max_count'   : event_data['max_count'],
+                        }
+
+            event, created = Event.objects.get_or_create(name = event_name,
+                                                         place = place,
+                                                         when = when,
+                                                         realm = realm,
+                                                         defaults = defaults)
+
+            if not created:
+                # This is an update of the event info. Add this job to the
+                # sources of data for this event.
+                #
+                # NOTE: Some of these fields will never change during an event's
+                # lifetime, but I am being safe and lazy by just updating them
+                # all, just in case.
+                #
+                event.sources.add(job)
+                event.leader = leader
+                event.channel = channel
+                event.update_time = update_time
+                event.min_level = event_data['min_lvl']
+                event.max_level = event_data['max_lvl']
+                event.max_count = event_data['max_count']
+                event.save()
+
+            # Go through all the types of lists of members, making sure
+            # That they relate to the event in the right fashion.
+            #
+            for state, key in Member.PLAYER_STATE_KEYS:
+                update_event_members(event, realm, state, event_data[key])
+
+            # Go through the class rules for this event and update,
+            # add or subtract the appropriate class rule.
+            #
+            for key, class_name in ClassRule.CLASSES:
+                if class_name in PLAYER_CLASSES:
+                    player_class = PLAYER_CLASSES[class_name]
+                else:
+                    player_class = PlayerClass.objects.get(name = class_name)
+
+                if key in event_data["classes"]:
+                    defaults = { 'min' : event_data["classes"][key]["min"],
+                                 'max' : event_data["classes"][key]["max"]}
+                    cr, created = ClassRule.get_or_create(event = event,
+                                                    player_class = player_class,
+                                                    defaults = defaults)
+                    if created:
+                        cr.min = event_data["classes"][key]["min"]
+                        cr.max = event_data["classes"][key]["max"]
+                        cr.save()
+                else:
+                    # This player class was not in the class rules for
+                    # this event. Make sure that there are no ClassLimit
+                    # objects defined for this class for this event.
+                    #
+                    try:
+                        cr = event.classrule_set.get(player_class=player_class):
+                        cr.delete()
+                    except ClassRule.DoesNotExist:
+                        pass
     return
 
-
 #############################################################################
 #
-def process_templates(svp, job):
-    
-    # Right now we have no code to process templates. We need to define
-    # some so that we can see what we need to do here.
+def update_event_members(event, realm, state, member_data):
+    """
+    """
+    # Delete any member objects for players that are not in our list
+    # of players for this state.
     #
-    pass
-
+    to_delete = Member.objects.filter(event = event, state = state).exclude(toon__name__in = member_data.keys())
+    for td in to_delete:
+        td.delete()
+    
+    for player_name in member_data.keys():
+        player, ign = Toon.objects.get_or_create(name = player_name,
+                                                 realm = realm)
+        member, created = Member.get_or_create(event = event,
+                                               toon = player,
+                                               state = state)
+        member.comment = member_data[player_name]["comment"]
+        member.update_time = member_data[player_name]["update_time"]
+        if member_data[player_name]["forcetit"] == 0:
+            member.force_titular = False
+        else:
+            member.force_titular = True
+        if member_data[player_name]["forcesub"] == 0:
+            member.force_substitute = False
+        else:
+            member.force_substitute = True
+        member.save()
+    return
+    
 #############################################################################
 #
-def process_players(svp, job):
+def process_players(svp, tz):
     """
     One side advantage of GEM is that it gets all sorts of interesting
     information about players in the gem channels, including the channel
@@ -138,17 +252,6 @@ def process_players(svp, job):
     for realm_name in svp['GEM_Players'].keys():
         realm, ign = Realm.objects.get_or_create(name = realm_name)
 
-        # We are assuming that the 'lastlogin' is in the timezone
-        # of the submitter. If we do not have a timezone for the submitter
-        # then assume the timezone of the server.
-        #
-        submitter_tz = job.submitter.get_profile().timezone
-        if submitter_tz is None or submitter_tz == "":
-            tz = pytz.timezone(realm.timezone)
-        else:
-            tz = pytz.timezone(submitter_tz)
-    
-        for channel_name in svp['GEM_Players'][realm_name].keys():
             players = svp['GEM_Players'][realm_name][channel_name]
 
             for player_name in players.keys():

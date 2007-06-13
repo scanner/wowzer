@@ -78,11 +78,7 @@
       {% endcomment %}
       <div id="content">
         <div id="hierarchy">{% block hierarchy %}&raquo;&nbsp;<a href="/">Top</a>{% endblock %}</div>
-        <div id="breadcrumbs">{% spaceless %}{% breadcrumbs crumbs %}
-          {% for crumb in crumbs %}
-            &nbsp;&raquo;&nbsp;<a id="crumb{{ crumb.id }}" href="{{ crumb.url }}">{{ crumb.short_name }}</a>
-          {% endfor %}
-        </div>{% endspaceless %}
+        {% spaceless %}<div id="breadcrumbs">{% breadcrumbs crumbs %}{% for crumb in crumbs %}&nbsp;&raquo;&nbsp;<a id="crumb{{ crumb.id }}" href="{{ crumb.url }}">{{ crumb.short_name }}</a>{% endfor %}</div>{% endspaceless %}
         {% if messages %}
         <div id="messages">
           <ul>

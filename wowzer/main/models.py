@@ -1,9 +1,13 @@
 #
-# This is where we define the user profile which holds the customization and
-# configuration data for various users as an extension of the user module.
-#
 # $Id$
 #
+"""
+This module defines models that are not specific to any one app in the
+wowzer project, or things that are specific to 'wowzer' itself.
+
+Such as the user profile model,
+Site styles,
+"""
 
 # System imports
 #

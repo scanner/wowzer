@@ -75,7 +75,6 @@ def index(request):
     For now the index just redirects to the events index.
     """
     return HttpResponseRedirect("events/")
-    
 
 ############################################################################
 #

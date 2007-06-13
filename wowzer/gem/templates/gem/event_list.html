@@ -1,16 +1,6 @@
 {% load auth wowzertags tagging_tags %}
 {% extends "gem/listing.html" %}
-{% spaceless %}
-{% block modelcloud %}
-<h3>Event Tags</h3>
-{% tags_for_model gem.Event as tags %}
-<p>
-{% for tag in tags %}
-  <a href="./tag/{{ tag }}/">{{ tag }}</a>
-{% endfor %}
-</p>
-{% endblock %}
-{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href=".">Event Listing</a>{% endblock %}{% endspaceless %}
+{% spaceless %}{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href=".">Event Listing</a>{% endblock %}{% endspaceless %}
 {% block listing %}
 <table>
   <tr>

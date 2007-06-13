@@ -287,8 +287,10 @@ class SavedVarParser(object):
         # Basically loop until we have no more input to swallow and parse.
         #
         try:
-            while len(self.input) > 0:
+            while True:
                 self.lstrip()
+                if len(self.input) == 0:
+                    break
                 varname = self._p_re(_varname)
                 print "Got varname: %s" % varname
                 self.lstrip()
@@ -300,7 +302,7 @@ class SavedVarParser(object):
                 #
                 self.result[varname] = self._p_expression()
         except:
-            print "Exception at line %d" % self.line_no
+            print "Input started with: '%s'" % self.input[:20]
             raise
             
         return self.result
@@ -410,29 +412,35 @@ class SavedVarParser(object):
                    | LBRACE RBRACE
                    | LBRACE (LBRACE keyvalues RBRACE,)* RBRACE
         """
-#        print "Entered _p_dictionary: line #: %d '%s'" % (self.line_no, self.input[:10])
         self._p_simple_string('{')
         self.lstrip()
 
-        # the next character should be a '[' which indicates a key value
-        # pair, or '{' which indicates that we have an implied key
-        # if it is not any of these, we should find a '}' indicating an
-        # empty dictionary.
+        # Now, either we have an empty dictionary, or we have a keyed
+        # dictionary, or we have an implied key dictionary.
         #
-        if self.input[0] not in ('[', '{'):
-            self._p_simple_string('}')
-#            print "Leaving _p_dictionary (empty dictionary)"
-            return {}
-
-        # See if we have an implied key/value pair.
+        # If the next character is '}' then we have an empty dictionary.
         #
-        if self.input.startswith('{'):
-            result = self._p_impliedkeyvalues()
-        else:
-            # Otherwise we MUST have a bracket and at least one set of
-            # keyvalues. 
+        # If the next character is '[' then we have a keyed dictionary.
+        #
+        # If the next character is anything else, then we have an implied key
+        # dictionary.
+        #
+        if self.input[0] == '[':
+            # keyed dictionary.
             #
             result = self._p_keyvalues()
+        elif self.input[0] == '}':
+            self.input = self.input[1:]
+            # Empty dictionary.
+            #
+            return {}
+        else:
+            # An implied key dictionary. We will have a series of comma
+            # separate values. The keys are implied integers starting at 1.
+            #
+            result = self._p_impliedkeyvalues()
+
+        self.lstrip()
         self._p_simple_string('}')
         self.lstrip()
 #        print "Leaving _p_dictionary"
@@ -453,19 +461,10 @@ class SavedVarParser(object):
             # all the key/values that we can. Return our result
             #
             if self._p_simple_string(',', silent = True) is None:
-#                print "   Next character is NOT a comma"
                 break
-#            print "    FOUND COMMA"
-            # Otherwise we have a comma. After the white space the
-            # next character MUST be a '[' or a '}'.
-            #
             self.lstrip()
-#            print "Input starts with: %s" % self.input[:20]
             if self.input.startswith('}'):
                 break
-            if not self.input.startswith('{'):
-                raise NoMatch
-#        print "Leaving _p_impliedkeyvalues"
         return result
 
     ###########################################################################
@@ -474,7 +473,6 @@ class SavedVarParser(object):
         '''keyvalues : keyvalue
                      | keyvalue COMMA
                      | keyvalue COMMA keyvalues'''
-#        print "Entered _p_keyvalues: line #: %d '%s'" % (self.line_no, self.input[:10])
         result = {}
 
         while True:

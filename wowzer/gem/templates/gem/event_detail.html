@@ -1,31 +1,15 @@
 {% load auth wowzertags tagging_tags %}
 {% extends "gem/base.html" %}
-{% block modelcloud %}{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="..">Event Listing</a>&nbsp&raquo;&nbsp;<a href=".">GEM Event {{ event }}</a>{% endblock %}{% endspaceless %}
+{% block hierarchy %}{{ block.super }}&nbsp&raquo;&nbsp;<a href="..">Event Listing</a>&nbsp&raquo;&nbsp;<a href=".">GEM Event {{ event }}</a>{% endblock %}
 {% block content %}
 <table>
-  <tr>
-    <td>Name</td>
-    <td>{{ event.name }}</td>
-  </tr>
-  <tr>
-    <td>Realm</td>
-    <td>{{ event.realm }}</td>
-  </tr>
-  <tr>
-    <td>Leader</td>
-    <td><a href="{{ event.leader.get_absolute_url }}">{{ event.leader.name }}</a></td>
-  </tr>
-  <tr>
-    <td>When</td>
-    <td>{{ event.when|tz_std_date:user }}</td>
-  </tr>
-  <tr>
-    <td>Where</td>
-    <td>{{ event.place }}</td>
-  </tr>
-  <tr>
-    <td>Level</td>
-    <td>
+  <tr><td>Name</td><td>{{ event.name }}</td></tr>
+  <tr><td>Realm</td><td>{{ event.realm }}</td></tr>
+  <tr><td>Leader</td><td><a href="{{ event.leader.get_absolute_url }}">{{ event.leader.name }}</a></td></tr>
+  <tr><td>When</td><td>{{ event.when|tz_std_date:user }}</td></tr>
+  <tr><td>Where</td><td>{{ event.place }}</td></tr>
+  <tr><td>Level</td>
+  <td>
       {% ifequal event.min_level event.max_level %}
         {{ event.min_level }}
       {% else %}
@@ -33,22 +17,10 @@
       {% endifequal %}
     </td>
   </tr>
-  <tr>
-    <td>Max size</td>
-    <td>{{ event.max_count }}</td>
-  </tr>
-  <tr>
-    <td>Current size</td>
-    <td>{{ event.players.count }}</td>
-  </tr>
-  <tr>
-    <td>Created</td>
-    <td>{{ event.created|tz_std_date:user }}</td>
-  </tr>
-  <tr>
-    <td>Information last updated</td>
-    <td>{{ event.update_time|tz_std_date_ago:user }}</td>
-  </tr>
+  <tr><td>Max size</td><td>{{ event.max_count }}</td></tr>
+  <tr><td>Current size</td><td>{{ event.players.count }}</td></tr>
+  <tr><td>Created</td><td>{{ event.created|tz_std_date:user }}</td></tr>
+  <tr><td>Information last updated</td><td>{{ event.update_time|tz_std_date_ago:user }}</td></tr>
 </table>
 {% if event.comment %}
 Comment:
@@ -64,50 +36,39 @@ Closed Comment:
 {% endif %}
 Classes:<br>
 <table>
-  <th>
-    <td>Class</td>
-    <td>Min</td>
-    <td>Max</td>
-    <td>Current</td>
-  </th>
-  {% for class_rule in event.classrule_set %}
+  <tr>
+    <th>Class</th>
+    <th>Min</th>
+    <th>Max</th>
+    <th>Current</th>
+  </tr>
+  {% for class_rule in event.classrule_set.all %}
     <tr class="{% cycle odd,even %}">
       <td>{{ class_rule.player_class.name }}</td>
-      <td>{{ class_rule.min }}</td>
-      <td>{{ class_rule.max }}</td>
+      <td>{{ class_rule.min_count }}</td>
+      <td>{{ class_rule.max_count }}</td>
       <td>{{ class_rule.players.count }}</td>
     </tr>
   {% endfor %}
 </table>
 <a name="players">Players:</a><br>
 <table>
-  <th>
-    <td>
-      Player
-    </td>
-    <td>
-      Class
-    </td>
-    <td>
-      Level
-    </td>
-    <td>
-      Guild
-    </td>
-  </th>
+  <tr>
+    <th>Player</th><th>Class</th><th>Level</th><th>Guild</th>
+  </tr>
   {% for player in event.players %}
     <tr class="{% cycle odd,even %}">
       <td>
-        <a href="{{ player.get_absolute_url }}">{{ player.name }}</a>
+        <a href="{{ player.toon.get_absolute_url }}">{{ player.toon.name }}</a>
       </td>
       <td>
-        {{ player.level }}
+        {{ player.toon.level }}
       </td>
       <td>
-        {{ player.player_class.name }}
+        {{ player.toon.player_class.name }}
       </td>
       <td>
-        {{ player.guild.name }}
+        {{ player.toon.guild.name }}
       </td>
     </tr>
   {% endfor %}
@@ -115,33 +76,33 @@ Classes:<br>
 <a name="substitutes">Substitutes:</a><br>
 {% if event.substitutes %}
 <table>
-  <th>
-    <td>
+  <tr>
+    <th>
       Player
-    </td>
-    <td>
+    </th>
+    <th>
       Class
-    </td>
-    <td>
+    </th>
+    <th>
       Level
-    </td>
-    <td>
+    </th>
+    <th>
       Guild
-    </td>
-  </th>
+    </th>
+  </tr>
   {% for player in event.substitutes %}
     <tr class="{% cycle odd,even %}">
       <td>
-        <a href="{{ player.get_absolute_url }}">{{ player.name }}</a>
+        <a href="{{ player.toon.get_absolute_url }}">{{ player.toon.name }}</a>
       </td>
       <td>
-        {{ player.level }}
+        {{ player.toon.level }}
       </td>
       <td>
-        {{ player.player_class.name }}
+        {{ player.toon.player_class.name }}
       </td>
       <td>
-        {{ player.guild.name }}
+        {{ player.toon.guild.name }}
       </td>
     </tr>
   {% endfor %}
@@ -150,33 +111,33 @@ Classes:<br>
 <a name="replacements">Replacements:</a><br>
 {% if event.replacements %}
 <table>
-  <th>
-    <td>
+  <tr>
+    <th>
       Player
-    </td>
-    <td>
+    </th>
+    <th>
       Class
-    </td>
-    <td>
+    </th>
+    <th>
       Level
-    </td>
-    <td>
+    </th>
+    <th>
       Guild
-    </td>
-  </th>
+    </th>
+  </tr>
   {% for player in event.replacements %}
     <tr class="{% cycle odd,even %}">
       <td>
-        <a href="{{ player.get_absolute_url }}">{{ player.name }}</a>
+        <a href="{{ player.toon.get_absolute_url }}">{{ player.toon.name }}</a>
       </td>
       <td>
-        {{ player.level }}
+        {{ player.toon.level }}
       </td>
       <td>
-        {{ player.player_class.name }}
+        {{ player.toon.player_class.name }}
       </td>
       <td>
-        {{ player.guild.name }}
+        {{ player.toon.guild.name }}
       </td>
     </tr>
   {% endfor %}
@@ -185,33 +146,33 @@ Classes:<br>
 {% if event.banned %}
 <a name="banned">Banned:</a><br>
 <table>
-  <th>
-    <td>
+  <tr>
+    <th>
       Player
-    </td>
-    <td>
+    </th>
+    <th>
       Class
-    </td>
-    <td>
+    </th>
+    <th>
       Level
-    </td>
-    <td>
+    </th>
+    <th>
       Guild
-    </td>
-  </th>
+    </th>
+  </tr>
   {% for player in event.banned %}
     <tr class="{% cycle odd,even %}">
       <td>
-        <a href="{{ player.get_absolute_url }}">{{ player.name }}</a>
+        <a href="{{ player.toon.get_absolute_url }}">{{ player.toon.name }}</a>
       </td>
       <td>
-        {{ player.level }}
+        {{ player.toon.level }}
       </td>
       <td>
-        {{ player.player_class.name }}
+        {{ player.toon.player_class.name }}
       </td>
       <td>
-        {{ player.guild.name }}
+        {{ player.toon.guild.name }}
       </td>
     </tr>
   {% endfor %}

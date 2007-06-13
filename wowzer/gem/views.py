@@ -8,6 +8,7 @@ GEM (Guild Event Manager) data views.
 # System imports
 #
 import sys
+import pytz
 from urlparse import urlparse
 from datetime import datetime, timedelta
 
@@ -40,7 +41,7 @@ from django.contrib.auth.decorators import user_passes_test
 
 # Wowzer utility functions
 #
-from wowzer.utils import msg_user
+from wowzer.utils import msg_user, TZ_CHOICES
 from wowzer.decorators import logged_in_or_basicauth
 from wowzer.main.views import rlp_edit
 from wowzer.main.decorators import breadcrumb
@@ -63,7 +64,7 @@ from tagging.utils import get_tag
 # The data models from our apps:
 #
 from wowzer.gem.models import Event, GemDataJob
-from wowzer.main.models import Breadcrumb
+from wowzer.main.models import Breadcrumb, UserProfile
 
 paginate_by = 20
 
@@ -109,7 +110,7 @@ def event_tag(request):
 @breadcrumb
 def event_detail(request, event_id):
     event = get_object_or_404(Event, pk = event_id)
-    Breadcrumb.rename_last("GEM Event %s" % event)
+    Breadcrumb.rename_last(request,"GEM Event %s" % event)
     t = get_template("gem/event_detail.html")
     c = Context(request, {
         'event': event,
@@ -144,6 +145,11 @@ class UploadForm(forms.Form):
                             label = "Data file",
                             help_text = "The GuildEventManager2.lua file "
                             "from your SavedVariables directory.")
+    timezone = forms.CharField(max_length = 128, label = "Timezone",
+                               help_text = "The timezone of the machine this "
+                               "data file was generated on.",
+                               widget = widgets.Select(choices=TZ_CHOICES))
+                               
     
 ############################################################################
 #
@@ -169,9 +175,20 @@ def datajob_submit(request):
             msg_user(request.user, "GEM data file submitted.")
             return HttpResponseRedirect(job.get_absolute_url())
     else:
-        form = UploadForm()
 
-    t = get_template("gem/datajob_submit.html")
+        # Pre-fill in the tz field with something based on the user's
+        # profile, if they have one.. otherwise use the settings
+        # timezone.
+        #
+        try:
+            profile = request.user.get_profile()
+        except UserProfile.DoesNotExist:
+            profile = UserProfile.objects.create(user = request.user)
+        tz = pytz.timezone(profile.timezone)
+        form = UploadForm(data = {'timezone'  : profile.timezone,
+                                  'data_file' : ''})
+
+    t = get_template("gem/datajob_submit.html",)
     c = Context(request, {
         'form'       : form,
         })

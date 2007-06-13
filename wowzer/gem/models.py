@@ -26,13 +26,59 @@ from django.contrib.auth.models import User
 
 # Wowzer models
 #
-from wowzer.toons.models import Toon, PlayerClass
+from wowzer.toons.models import Toon, PlayerClass, Realm
+
+#############################################################################
+#
+class GemDataJob(models.Model):
+    """
+    This class represents a unit of work that needs to be in reading in and
+    parsing a GuildEventManager2.lua file and creating the appropriate objects
+    in the database.
+    """
+    
+    PENDING = 0
+    PROCESSING = 1
+    COMPLETED = 2
+    ERROR = 3
+
+    STATES = ((PENDING,    'pending'),
+              (PROCESSING, 'processing'),
+              (COMPLETED,  'completed'),
+              (ERROR,      'error'))
+
+    data_file = models.FileField(upload_to = "uploads/gem/%Y/%m/%d")
+    created = models.DateTimeField(auto_now_add = True, editable = False,
+                                   db_index = True)
+    submitter = models.ForeignKey(User, db_index = True, editable = False)
+    timezone = models.CharField(maxlength = 128, choices = TZ_CHOICES,
+                                default = settings.TIME_ZONE)
+    state = models.PositiveSmallIntegerField(choices = STATES, default = 0,
+                                             editable = False)
+    completed_at = models.DateTimeField(null = True, editable = False)
+    
+    class Meta:
+        get_latest_by = 'created'
+        ordering = ['created']
+
+    #########################################################################
+    #
+    def __str__(self):
+        return "GemDataJob %d, submitted by %s at %s, state: %s" % \
+               (self.id, self.submitter, self.created,
+                self.get_state_display())
+    
+    #########################################################################
+    #
+    @permalink
+    def get_absolute_url(self):
+        return ("wowzer.gem.views.datajob_detail", (), { 'job_id': self.id })
 
 #############################################################################
 #
 class Event(models.Model):
     name = models.CharField(maxlength = 256, db_index = True)
-    sources = models.("GemDataJob", editable = False)
+    sources = models.ManyToManyField(GemDataJob, editable = False)
     realm = models.ForeignKey(Realm, db_index = True, editable = False)
     leader = models.ForeignKey(Toon, db_index = True, editable = False)
     channel = models.CharField(maxlength = 256)
@@ -41,11 +87,12 @@ class Event(models.Model):
     when = models.DateTimeField()
     place = models.CharField(maxlength = 256, default = "")
     comment = models.TextField(maxlength = 2048, null = True, blank = True)
-    max_count = models.PositiveSmallIntegerField(default = 0)
-    min_level = models.PositiveSmallIntegerField(default = 0)
-    max_level = models.PositiveSmallIntegerField(default = 0)
+    max_count = models.IntegerField(default = 0)
+    min_level = models.IntegerField(default = 0)
+    max_level = models.IntegerField(default = 0)
     closed_comment = models.TextField(maxlength = 2048, null = True,
                                       blank = True)
+    closed = models.BooleanField(default = False)
 
     class Admin:
         pass
@@ -129,8 +176,8 @@ class ClassRule(models.Model):
 
     event = models.ForeignKey(Event, db_index = True)
     player_class = models.ForeignKey(PlayerClass, db_index = True)
-    min = models.PositiveSmallIntegerField(default = 0)
-    max = models.PositiveSmallIntegerField(default = 0)
+    min_count = models.IntegerField(default = -1)
+    max_count = models.IntegerField(default = -1)
 
     #########################################################################
     #
@@ -141,19 +188,19 @@ class ClassRule(models.Model):
 
         This is a convenience method for easy calling inside of a template.
         """
-        return event.players.filter(toon__player_class = self.player_class)
+        return self.event.players.filter(toon__player_class = self.player_class)
     players = property(_players)
 
     #########################################################################
     #
-    def _sbustitutes(self):
+    def _substitutes(self):
         """
         Return a count of the number of that class that are actually
         players in this event.
 
         This is a convenience method for easy calling inside of a template.
         """
-        return event.substitutes.filter(toon__player_class = self.player_class)
+        return self.event.substitutes.filter(toon__player_class = self.player_class)
     substitutes = property(_substitutes)
 
     #########################################################################
@@ -165,7 +212,7 @@ class ClassRule(models.Model):
 
         This is a convenience method for easy calling inside of a template.
         """
-        return event.replacements.filter(toon__player_class = self.player_class)
+        return self.event.replacements.filter(toon__player_class = self.player_class)
     replacements = property(_replacements)
 
     #########################################################################
@@ -177,7 +224,7 @@ class ClassRule(models.Model):
 
         This is a convenience method for easy calling inside of a template.
         """
-        return event.assistants.filter(toon__player_class = self.player_class)
+        return self.event.assistants.filter(toon__player_class = self.player_class)
     assistants = property(_assistants)
 
     #########################################################################
@@ -189,16 +236,15 @@ class ClassRule(models.Model):
 
         This is a convenience method for easy calling inside of a template.
         """
-        return event.banned.filter(toon__player_class = self.player_class)
+        return self.event.banned.filter(toon__player_class = self.player_class)
     banned = property(_banned)
     
     #########################################################################
     #
     def __str__(self):
-        if self.min_level == 0 and self.max_level == 0:
-            return "A %s of any level" % self.player_class.name
-        return "A %s between %d and %d" % (self.player_class, self.min_level,
-                                           self.max_level)
+        if self.min_count == self.max_count:
+            return "%d %ss" % (self.min_count, self.player_class.name)
+        return "%d-%d %s" % (self.min_count, self.max_count, self.player_class)
 
 #############################################################################
 #
@@ -239,7 +285,7 @@ class Member(models.Model):
     state = models.PositiveSmallIntegerField(choices = PLAYER_STATES,
                                              db_index = True,
                                              default = UNKNOWN)
-    update_time = models.DateTimeField()
+    update_time = models.DateTimeField(null = True)
     comment = models.TextField(maxlength = 1024, default = "", blank = True)
     force_substitute = models.BooleanField(default = False)
     force_titular = models.BooleanField(default = False)
@@ -247,49 +293,10 @@ class Member(models.Model):
     class Meta:
         ordering = ['state', 'toon']
     
-#############################################################################
-#
-class GemDataJob(models.Model):
-    """
-    This class represents a unit of work that needs to be in reading in and
-    parsing a GuildEventManager2.lua file and creating the appropriate objects
-    in the database.
-    """
-    
-    PENDING = 0
-    PROCESSING = 1
-    COMPLETED = 2
-    ERROR = 3
-
-    STATES = ((PENDING,    'pending'),
-              (PROCESSING, 'processing'),
-              (COMPLETED,  'completed'),
-              (ERROR,      'error'))
-
-    data_file = models.FileField(upload_to = "uploads/gem/%Y/%m/%d")
-    created = models.DateTimeField(auto_now_add = True, editable = False,
-                                   db_index = True)
-    submitter = models.ForeignKey(User, db_index = True, editable = False)
-    state = models.PositiveSmallIntegerField(choices = STATES, default = 0,
-                                             editable = False)
-    completed_at = models.DateTimeField(null = True, editable = False)
-    
-    class Meta:
-        get_latest_by = 'created'
-        ordering = ['created']
-
     #########################################################################
     #
     def __str__(self):
-        return "GemDataJob %d, submitted by %s at %s, state: %s" % \
-               (self.id, self.submitter, self.created,
-                self.get_state_display())
-    
-    #########################################################################
-    #
-    @permalink
-    def get_absolute_url(self):
-        return ("wowzer.gem.views.datajob_detail", (), { 'job_id': self.id })
+        return "Member %s(%s)" % (self.toon.name, self.toon.player_class.name)
 
 # Signals
 #

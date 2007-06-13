@@ -14,16 +14,16 @@
   </tr>
   {% for event in object_list %}
     <tr class="{% cycle odd,even %} top">
-      <td><a href="event.get_absolute_url">{{ event.when|tz_std_date:user }}</a></td>
+      <td><a href="{{ event.get_absolute_url }}">{{ event.when|tz_std_date:user }}</a></td>
       <td>{{ event.place }}</td>
       <td>{{ event.leader.realm.name }}</td>
-      <td><a href="{{ leader.get_absolute_url }}">{{ event.leader.name }}</a><td>
-      <td>{{ event.max_size }}</td>
+      <td><a href="{{ leader.get_absolute_url }}">{{ event.leader.name }}</a></td>
+      <td>{{ event.max_count }}</td>
       <td>{{ event.players.count }}</td>
       {% ifequal event.minlevel event.maxlevel %}
-      <td>{{ event.minlevel }}</td>
+      <td>{{ event.min_level }}</td>
       {% else %}
-      <td>{{ event.minlevel }} - {{ event.maxlevel }}</td>
+      <td>{{ event.min_level }} - {{ event.max_level }}</td>
       {% endifequal %}
     </tr>
   {% endfor %}

@@ -29,7 +29,7 @@ from django.contrib.auth.decorators import login_required
 
 # Wowzer imports
 #
-from wowzer.utils import msg_user
+from wowzer.utils import msg_user, TZ_CHOICES
 from wowzer.main.fields import UserOrGroupField
 from wowzer.main.decorators import breadcrumb
 

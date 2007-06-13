@@ -15,6 +15,7 @@ from datetime import datetime
 # Django imports
 #
 from django.db import transaction
+from django.core.exceptions import ObjectDoesNotExist
 
 # Wowzer utilities
 #
@@ -22,7 +23,8 @@ from wowzer.savedvarparser import SavedVarParser
 
 # Wowzer models
 #
-from wowzer.gem.models import Event, ClassLimit, EventMember, GemDataJob
+from wowzer.main.models import UserProfile
+from wowzer.gem.models import Event, ClassRule, Member, GemDataJob
 from wowzer.toons.models import Toon, PlayerClass, Realm, Guild, GuildRank
 
 # We keep some variables that are global to this module for caching
@@ -55,22 +57,7 @@ def loaddata(filename, job):
     svp = SavedVarParser(open(filename).read())
     svp.parse()
 
-    # The dates in the GEM data file are in the time zone of the
-    # machine from which it was run. We assume that the timezone
-    # of the submitter matches the timezone of the machine that they
-    # have run the WoW client on, and use this to normalize the times
-    # to UTC.
-    #
-    # If we do not have a timezone for the submitter then assume
-    # the timezone of the server.
-    #
-    submitter_tz = job.submitter.get_profile().timezone
-    if submitter_tz is None or submitter_tz == "":
-        tz = pytz.timezone(realm.timezone)
-    else:
-        tz = pytz.timezone(submitter_tz)
-
-    for channel_name in svp['GEM_Players'][realm_name].keys():
+    tz = pytz.timezone(job.timezone)
 
     process_events(svp, tz, job)
     process_players(svp, tz)
@@ -124,8 +111,8 @@ def process_events(svp, tz, job):
     for realm_name in svp['GEM_Events']['realms'].keys():
         realm, ign = Realm.objects.get_or_create(name = realm_name)
 
-        for event_name in svp['GEM_Events']['realms'][realm_name].keys():
-            evt_data = svp['GEM_Events']['realms'][realm_name][event_name]
+        for event_name in svp['GEM_Events']['realms'][realm_name]['events'].keys():
+            evt_data = svp['GEM_Events']['realms'][realm_name]['events'][event_name]
 
             # Make the event time be in UTC and naieve. Grr. postgres orm
             # for django only deals with naieve datetimes.
@@ -138,13 +125,12 @@ def process_events(svp, tz, job):
             leader, ign = Toon.objects.get_or_create(name = evt_data['leader'],
                                                      realm = realm)
 
-            defaults = {'sources'     : [job],
-                        'leader'      : leader,
-                        'channel'     : event_data['channel'],
+            defaults = {'leader'      : leader,
+                        'channel'     : evt_data['channel'],
                         'update_time' : update_time,
-                        'min_level'   : event_data['min_lvl'],
-                        'max_level'   : event_data['max_lvl'],
-                        'max_count'   : event_data['max_count'],
+                        'min_level'   : evt_data['min_lvl'],
+                        'max_level'   : evt_data['max_lvl'],
+                        'max_count'   : evt_data['max_count'],
                         }
 
             event, created = Event.objects.get_or_create(name = event_name,
@@ -153,6 +139,7 @@ def process_events(svp, tz, job):
                                                          realm = realm,
                                                          defaults = defaults)
 
+            event.sources.add(job)
             if not created:
                 # This is an update of the event info. Add this job to the
                 # sources of data for this event.
@@ -161,20 +148,19 @@ def process_events(svp, tz, job):
                 # lifetime, but I am being safe and lazy by just updating them
                 # all, just in case.
                 #
-                event.sources.add(job)
                 event.leader = leader
-                event.channel = channel
+                event.channel = evt_data['channel']
                 event.update_time = update_time
-                event.min_level = event_data['min_lvl']
-                event.max_level = event_data['max_lvl']
-                event.max_count = event_data['max_count']
+                event.min_level = evt_data['min_lvl']
+                event.max_level = evt_data['max_lvl']
+                event.max_count = evt_data['max_count']
                 event.save()
 
             # Go through all the types of lists of members, making sure
             # That they relate to the event in the right fashion.
             #
             for state, key in Member.PLAYER_STATE_KEYS:
-                update_event_members(event, realm, state, event_data[key])
+                update_event_members(event, realm, state, evt_data[key], tz)
 
             # Go through the class rules for this event and update,
             # add or subtract the appropriate class rule.
@@ -185,23 +171,23 @@ def process_events(svp, tz, job):
                 else:
                     player_class = PlayerClass.objects.get(name = class_name)
 
-                if key in event_data["classes"]:
-                    defaults = { 'min' : event_data["classes"][key]["min"],
-                                 'max' : event_data["classes"][key]["max"]}
-                    cr, created = ClassRule.get_or_create(event = event,
-                                                    player_class = player_class,
-                                                    defaults = defaults)
+                if key in evt_data["classes"]:
+                    defaults = { 'min_count' : evt_data["classes"][key]["min"],
+                                 'max_count' : evt_data["classes"][key]["max"]}
+                    cr, created = ClassRule.objects.get_or_create(event = event,
+                                                                  player_class = player_class,
+                                                                  defaults = defaults)
                     if created:
-                        cr.min = event_data["classes"][key]["min"]
-                        cr.max = event_data["classes"][key]["max"]
+                        cr.min_count = evt_data["classes"][key]["min"]
+                        cr.max_count = evt_data["classes"][key]["max"]
                         cr.save()
                 else:
                     # This player class was not in the class rules for
-                    # this event. Make sure that there are no ClassLimit
+                    # this event. Make sure that there are no ClassRule
                     # objects defined for this class for this event.
                     #
                     try:
-                        cr = event.classrule_set.get(player_class=player_class):
+                        cr = event.classrule_set.get(player_class=player_class)
                         cr.delete()
                     except ClassRule.DoesNotExist:
                         pass
@@ -209,7 +195,7 @@ def process_events(svp, tz, job):
 
 #############################################################################
 #
-def update_event_members(event, realm, state, member_data):
+def update_event_members(event, realm, state, member_data, tz):
     """
     """
     # Delete any member objects for players that are not in our list
@@ -222,19 +208,26 @@ def update_event_members(event, realm, state, member_data):
     for player_name in member_data.keys():
         player, ign = Toon.objects.get_or_create(name = player_name,
                                                  realm = realm)
-        member, created = Member.get_or_create(event = event,
-                                               toon = player,
-                                               state = state)
-        member.comment = member_data[player_name]["comment"]
-        member.update_time = member_data[player_name]["update_time"]
-        if member_data[player_name]["forcetit"] == 0:
-            member.force_titular = False
-        else:
+        member, created = Member.objects.get_or_create(event = event,
+                                                       toon = player,
+                                                       state = state)
+        if 'comment' in member_data[player_name]:
+            member.comment = member_data[player_name]["comment"]
+        if 'update_time' in member_data[player_name]:
+            member.update_time = datetime.fromtimestamp(member_data[player_name]["update_time"], tz).astimezone(pytz.UTC)
+        if not created:
+            member.comment = member_data[player_name]["comment"]
+            member.update_time = update_time
+        if 'forcetit' in member_data[player_name] and \
+               member_data[player_name]["forcetit"] != 0:
             member.force_titular = True
-        if member_data[player_name]["forcesub"] == 0:
-            member.force_substitute = False
         else:
+            member.force_titular = False
+        if 'forcesub' in member_data[player_name] and \
+               member_data[player_name]["forcesub"] != 0:
             member.force_substitute = True
+        else:
+            member.force_substitute = False
         member.save()
     return
     
@@ -252,6 +245,7 @@ def process_players(svp, tz):
     for realm_name in svp['GEM_Players'].keys():
         realm, ign = Realm.objects.get_or_create(name = realm_name)
 
+        for channel_name in svp['GEM_Players'][realm_name].keys():
             players = svp['GEM_Players'][realm_name][channel_name]
 
             for player_name in players.keys():
@@ -274,7 +268,7 @@ def update_player(player, gem_player_data, realm, tz):
 
     # Check to see if we have the right guild for the player.
     #
-    if gem_player_data['guild'] != "":
+    if 'guild' in gem_player_data and gem_player_data['guild'] != "":
         guild_name = gem_player_data['guild']
         if player.guild is None or player.guild.name != guild_name:
             changed = True
@@ -315,7 +309,7 @@ def update_player(player, gem_player_data, realm, tz):
 
     # Next we do the guild rank for this player.
     #
-    if gem_player_data['grank_name'] != "":
+    if 'grank_name' in gem_player_data and gem_player_data['grank_name'] != "":
         grank_name = gem_player_data['grank_name']
         if player.guild_rank is None or player.guild_rank.name != grank_name:
             changed = True

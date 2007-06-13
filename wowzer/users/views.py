@@ -32,7 +32,7 @@ from django.contrib.auth.decorators import user_passes_test
 
 # Wowzer utility functions
 #
-from wowzer.utils import msg_user
+from wowzer.utils import msg_user, TZ_CHOICES
 from wowzer.main.decorators import breadcrumb
 
 # Data models.
@@ -210,7 +210,7 @@ def user_detail(request, username):
         profile.save()
     ProfileForm = forms.models.form_for_instance(profile)
     ProfileForm.base_fields['timezone'].widget = \
-                          widgets.Select(choices=UserProfile.TZ_CHOICES)
+                          widgets.Select(choices=TZ_CHOICES)
     ProfileForm.base_fields['markup'].widget = \
                           widgets.Select(choices=UserProfile.MARKUP_CHOICES)
 

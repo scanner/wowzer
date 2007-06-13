@@ -8,16 +8,18 @@
     <th>Place</th>
     <th>Realm</th>
     <th>Leader</th>
-    <th>Size</th>
+    <th>Max Size</th>
+    <th>Current Size</th>
     <th>Level Range</th>
   </tr>
   {% for event in object_list %}
     <tr class="{% cycle odd,even %} top">
-      <td>{{ event.when|tz_std_date:user }}</td>
+      <td><a href="event.get_absolute_url">{{ event.when|tz_std_date:user }}</a></td>
       <td>{{ event.place }}</td>
       <td>{{ event.leader.realm.name }}</td>
       <td><a href="{{ leader.get_absolute_url }}">{{ event.leader.name }}</a><td>
       <td>{{ event.max_size }}</td>
+      <td>{{ event.players.count }}</td>
       {% ifequal event.minlevel event.maxlevel %}
       <td>{{ event.minlevel }}</td>
       {% else %}

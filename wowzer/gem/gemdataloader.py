@@ -10,6 +10,7 @@ by GemDataJob objects.
 #
 import sys
 import pytz
+import traceback
 from datetime import datetime
 
 # Django imports
@@ -85,9 +86,23 @@ def process_jobs():
         try:
             loaddata(job.get_data_file_filename(), job)
         except:
+
+            # If something goes south this job enters the 'error'
+            # state.  What is more we pull out the string of the
+            # actual exception that busted us, chop off the \n, and
+            # save that as well. NOTE: That is not meant as a real
+            # debugging method. The user is expected to read the error
+            # log of the server.
+            #
+            except_strings = traceback.format_exception_only(sys.last_type,
+                                                             sys.last_value)
             job.state = GemDataJob.ERROR
+            job.error = except_strings[-1][:1][:1023]
             job.save()
-            raise
+
+            # Print the full exception information to standard error.
+            #
+            traceback.print_exc()
         else:
             # Our job finished successfully. Mark it as completed.
             #
@@ -155,6 +170,8 @@ def process_events(svp, tz, job):
                 event.max_level = evt_data['max_lvl']
                 event.max_count = evt_data['max_count']
                 event.save()
+            else:
+                print "Created new event '%s'" % event
 
             # Go through all the types of lists of members, making sure
             # That they relate to the event in the right fashion.
@@ -215,19 +232,11 @@ def update_event_members(event, realm, state, member_data, tz):
             member.comment = member_data[player_name]["comment"]
         if 'update_time' in member_data[player_name]:
             member.update_time = datetime.fromtimestamp(member_data[player_name]["update_time"], tz).astimezone(pytz.UTC)
+        if 'place' in member_data[player_name]:
+            member.place = member_data[player_name]['place']
         if not created:
             member.comment = member_data[player_name]["comment"]
             member.update_time = update_time
-        if 'forcetit' in member_data[player_name] and \
-               member_data[player_name]["forcetit"] != 0:
-            member.force_titular = True
-        else:
-            member.force_titular = False
-        if 'forcesub' in member_data[player_name] and \
-               member_data[player_name]["forcesub"] != 0:
-            member.force_substitute = True
-        else:
-            member.force_substitute = False
         member.save()
     return
     
@@ -251,8 +260,6 @@ def process_players(svp, tz):
             for player_name in players.keys():
                 player, ign = Toon.objects.get_or_create(name = player_name,
                                                          realm = realm)
-                if ign:
-                    print "Created new toon %s" % player
                 update_player(player, players[player_name], realm, tz)
                 
 #############################################################################
@@ -278,8 +285,6 @@ def update_player(player, gem_player_data, realm, tz):
                 guild, created = Guild.objects.get_or_create(name = guild_name,
                                                              realm = realm)
                 GUILDS[guild_name] = guild
-                if created:
-                    print "Created guild %s" % guild
                 if created and player.faction:
                     guild.faction = player.faction
                     guild.save()
@@ -324,8 +329,6 @@ def update_player(player, gem_player_data, realm, tz):
                 grank.officer = True
             if grank_changed:
                 grank.save()
-            if created:
-                print "Created guild rank %s" % grank
             player.guild_rank = grank
     elif player.guild_rank is not None:
         changed = True

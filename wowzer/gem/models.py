@@ -56,6 +56,7 @@ class GemDataJob(models.Model):
     state = models.PositiveSmallIntegerField(choices = STATES, default = 0,
                                              editable = False)
     completed_at = models.DateTimeField(null = True, editable = False)
+    error = models.CharField(maxlength = 1024, null = True, editable = False)
     
     class Meta:
         get_latest_by = 'created'
@@ -296,7 +297,7 @@ class Member(models.Model):
     # The list of 'states' an event member can be in.
     #
     UNKNOWN = 0
-    PLAYER = 1
+    TITULAR = 1
     ASSISTANT = 2
     SUBSTITUTE = 3
     REPLACEMENT = 4
@@ -305,7 +306,7 @@ class Member(models.Model):
     # The list of keys in the GEM lua file for each type of member in the
     # event. This maps our states in to the key used in the GEM data file
     #
-    PLAYER_STATE_KEYS = ((PLAYER,      'players'),
+    PLAYER_STATE_KEYS = ((TITULAR,      'titulars'),
                          (ASSISTANT,   'assistants'),
                          (SUBSTITUTE,  'substitutes'),
                          (REPLACEMENT, 'replacements'),
@@ -314,8 +315,11 @@ class Member(models.Model):
     # The 'states' and 'choices' used in the model and widget. This maps
     # our integer in to an appropriate human viewable string.
     #
+    # NOTE: In our display of 'titular' members we use the display
+    # value 'member' because 'titular' is confusing.
+    #
     PLAYER_STATES = ((UNKNOWN, 'unknown'),
-                     (PLAYER, 'player'),
+                     (TITULAR, 'member'),
                      (ASSISTANT, 'assistant'),
                      (SUBSTITUTE, 'substitute'),
                      (REPLACEMENT, 'replacement'),
@@ -323,13 +327,12 @@ class Member(models.Model):
     
     event = models.ForeignKey(Event, db_index = True)
     toon = models.ForeignKey(Toon, db_index = True)
+    place = models.CharField(maxlength = 10, null = True, editable = False)
     state = models.PositiveSmallIntegerField(choices = PLAYER_STATES,
                                              db_index = True,
                                              default = UNKNOWN)
     update_time = models.DateTimeField(null = True)
     comment = models.TextField(maxlength = 1024, default = "", blank = True)
-    force_substitute = models.BooleanField(default = False)
-    force_titular = models.BooleanField(default = False)
 
     class Meta:
         ordering = ['state', 'toon']

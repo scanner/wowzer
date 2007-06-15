@@ -35,6 +35,12 @@ class GemDataJob(models.Model):
     This class represents a unit of work that needs to be in reading in and
     parsing a GuildEventManager2.lua file and creating the appropriate objects
     in the database.
+
+    NOTE: We register a signal on the 'save' event of the GemDataJob
+    that will cause wowzer.gem.gemdataloader.process_jobs() to get
+    run. The purpose is to automatically load in and processes these
+    jobs as they are submitted on the website.
+
     """
     
     PENDING = 0
@@ -56,7 +62,8 @@ class GemDataJob(models.Model):
     state = models.PositiveSmallIntegerField(choices = STATES, default = 0,
                                              editable = False)
     completed_at = models.DateTimeField(null = True, editable = False)
-    error = models.CharField(maxlength = 1024, null = True, editable = False)
+    error_message = models.CharField(maxlength = 1024, null = True,
+                                     editable = False)
     
     class Meta:
         get_latest_by = 'created'
@@ -112,6 +119,13 @@ class EventManager(models.Manager):
 #############################################################################
 #
 class Event(models.Model):
+    """
+    This model represents an "Event" imported from the GuildEventManager lua
+    addon for the World of Warcraft.
+
+    These events are pretty much readonly as there is no sane way, currently
+    to feed modifications back in to the GuildEventManager mod.
+    """
     name = models.CharField(maxlength = 256, db_index = True)
     sources = models.ManyToManyField(GemDataJob, editable = False)
     realm = models.ForeignKey(Realm, db_index = True, editable = False)
@@ -158,16 +172,21 @@ class Event(models.Model):
 
     #########################################################################
     #
-    def _players(self):
+    def _titulars(self):
         """
+        Return a list of all of the members of this event that are 'titular'
+        members. A 'titular' member is one who is actually signed up to
+        participate in the event.
         """
-        return self.member_set.filter(state = Member.PLAYER)
-    players = property(_players)
+        return self.member_set.filter(state = Member.TITULAR)
+    titulars = property(_titulars)
     
     #########################################################################
     #
     def _substitutes(self):
         """
+        Return a list of all of the members of this event that are
+        'substitute' members.
         """
         return self.member_set.filter(state = Member.SUBSTITUTE)
     substitutes = property(_substitutes)
@@ -176,6 +195,8 @@ class Event(models.Model):
     #
     def _replacements(self):
         """
+        Return a list of all of the members of this event that are
+        'replacement' members.
         """
         return self.member_set.filter(state = Member.REPLACEMENT)
     replacements = property(_replacements)
@@ -184,6 +205,8 @@ class Event(models.Model):
     #
     def _banned(self):
         """
+        Return a list of all of the members of this event that are 'banned'
+        members. ie: they have been banned from signing up for this event.
         """
         return self.member_set.filter(state = Member.BANNED)
     banned = property(_banned)
@@ -192,6 +215,8 @@ class Event(models.Model):
     #
     def _assistants(self):
         """
+        Return a list of all of the members of this event that are 'assistant'
+        members.
         """
         return self.member_set.filter(state = Member.ASSISTANTS)
     assistants = property(_assistants)
@@ -204,6 +229,8 @@ class ClassRule(models.Model):
     class we need/want in the event.
 
     Each 'ClassRule' specifies the rule (min/max) for a given class.
+
+    A min/max of -1 means 'no limit'
 
     Only classes for which there is a class rule can signup for the event.
     """
@@ -223,58 +250,58 @@ class ClassRule(models.Model):
 
     #########################################################################
     #
-    def _players(self):
+    def _titulars(self):
         """
-        Return a count of the number of that class that are actually
-        players in this event.
+        Return a count of the number of the class indicated by this class
+        rule that are titular members of this event.
 
         This is a convenience method for easy calling inside of a template.
         """
-        return self.event.players.filter(toon__player_class = self.player_class)
-    players = property(_players)
+        return self.event.titulars.filter(toon__player_class = \
+                                              self.player_class)
+    titulars = property(_titulars)
 
     #########################################################################
     #
     def _substitutes(self):
         """
-        Return a count of the number of that class that are actually
-        players in this event.
+        cf: titulars, except substitutes
 
         This is a convenience method for easy calling inside of a template.
         """
-        return self.event.substitutes.filter(toon__player_class = self.player_class)
+        return self.event.substitutes.filter(toon__player_class = \
+                                                 self.player_class)
     substitutes = property(_substitutes)
 
     #########################################################################
     #
     def _replacements(self):
         """
-        Return a count of the number of that class that are actually
-        replacements in this event.
+        cf: titulars, except replacements
 
         This is a convenience method for easy calling inside of a template.
         """
-        return self.event.replacements.filter(toon__player_class = self.player_class)
+        return self.event.replacements.filter(toon__player_class = \
+                                                  self.player_class)
     replacements = property(_replacements)
 
     #########################################################################
     #
     def _assistants(self):
         """
-        Return a count of the number of that class that are actually
-        assistants in this event.
+        cf: titulars, except assistants
 
         This is a convenience method for easy calling inside of a template.
         """
-        return self.event.assistants.filter(toon__player_class = self.player_class)
+        return self.event.assistants.filter(toon__player_class = \
+                                                self.player_class)
     assistants = property(_assistants)
 
     #########################################################################
     #
     def _banned(self):
         """
-        Return a count of the number of that class that are actually
-        banned in this event.
+        cf: titulars, except that are banned
 
         This is a convenience method for easy calling inside of a template.
         """
@@ -292,6 +319,19 @@ class ClassRule(models.Model):
 #
 class Member(models.Model):
     """
+    When a character is related to an event in some fashion - either they are
+    acutally signed up for it (titular), or are a replacement, substitute,
+    assistant, even if they are banned from this event there is a
+    relationship between that character (ie: toon) and the event.
+
+    This captures that through-relationship.
+
+    The 'state' field indicates what their relationship to the event is.
+
+    The 'place' field is their position in the event, which seems to relate
+    to when they signed up for the event. I imagine this is for giving a
+    first-come-first-serve weighting to players when it is over subscribed,
+    or which replacement to pick first out of a bunch.
     """
 
     # The list of 'states' an event member can be in.

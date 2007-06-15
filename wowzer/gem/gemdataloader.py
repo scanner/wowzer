@@ -46,7 +46,7 @@ GUILDS = {}
 #############################################################################
 #
 @transaction.commit_on_success
-def loaddata(filename, job):
+def loaddata(job):
     """
     Given a file name, read it in and parse it. Then go through the parsed GEM
     data creating new events, updating old ones, creating new toons, and
@@ -55,7 +55,7 @@ def loaddata(filename, job):
     If this function raises an exception the database will be rolled back.
     """
 
-    svp = SavedVarParser(open(filename).read())
+    svp = SavedVarParser(open(job.get_data_file_filename()).read())
     svp.parse()
 
     tz = pytz.timezone(job.timezone)
@@ -77,14 +77,12 @@ def process_jobs():
     #
     jobs = GemDataJob.objects.filter(state = \
                                      GemDataJob.PENDING).order_by('created')
-    if jobs.count() > 0:
-        print "%d jobs to process this run." % jobs.count()
     for job in jobs:
         job.state = GemDataJob.PROCESSING
         job.save()
         print "Processing %s" % job
         try:
-            loaddata(job.get_data_file_filename(), job)
+            loaddata(job)
         except:
 
             # If something goes south this job enters the 'error'
@@ -170,8 +168,6 @@ def process_events(svp, tz, job):
                 event.max_level = evt_data['max_lvl']
                 event.max_count = evt_data['max_count']
                 event.save()
-            else:
-                print "Created new event '%s'" % event
 
             # Go through all the types of lists of members, making sure
             # That they relate to the event in the right fashion.
@@ -218,25 +214,27 @@ def update_event_members(event, realm, state, member_data, tz):
     # Delete any member objects for players that are not in our list
     # of players for this state.
     #
-    to_delete = Member.objects.filter(event = event, state = state).exclude(toon__name__in = member_data.keys())
+    member_names = [member_data[k]["name"] for k in member_data.keys()]
+    to_delete = Member.objects.filter(event = event,
+                                      state = state).\
+                                      exclude(toon__name__in = member_names)
     for td in to_delete:
         td.delete()
     
-    for player_name in member_data.keys():
-        player, ign = Toon.objects.get_or_create(name = player_name,
+    for i in member_data.keys():
+        player, ign = Toon.objects.get_or_create(name = member_data[i]["name"],
                                                  realm = realm)
-        member, created = Member.objects.get_or_create(event = event,
-                                                       toon = player,
-                                                       state = state)
-        if 'comment' in member_data[player_name]:
-            member.comment = member_data[player_name]["comment"]
-        if 'update_time' in member_data[player_name]:
-            member.update_time = datetime.fromtimestamp(member_data[player_name]["update_time"], tz).astimezone(pytz.UTC)
-        if 'place' in member_data[player_name]:
-            member.place = member_data[player_name]['place']
-        if not created:
-            member.comment = member_data[player_name]["comment"]
-            member.update_time = update_time
+        member, ign = Member.objects.get_or_create(event = event,
+                                                   toon = player,
+                                                   state = state)
+        if 'comment' in member_data[i]:
+            member.comment = member_data[i]["comment"]
+        if 'update_time' in member_data[i]:
+            member.update_time = datetime.fromtimestamp(member_data[i]["update_time"], tz).astimezone(pytz.UTC)
+        else:
+            member.update_time = datetime.utcnow()
+        if 'place' in member_data[i]:
+            member.place = member_data[i]['place']
         member.save()
     return
     

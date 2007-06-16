@@ -114,8 +114,8 @@ def event_tag(request):
 @breadcrumb
 def event_detail(request, event_id):
     event = get_object_or_404(Event, pk = event_id)
-    if not request.user.has_perm("gem.view_event", object = event):
-        raise PermissionDenied
+#     if not request.user.has_perm("gem.view_event", object = event):
+#         raise PermissionDenied
     Breadcrumb.rename_last(request,"GEM Event %s" % event.name)
     t = get_template("gem/event_detail.html")
     c = Context(request, {
@@ -126,6 +126,7 @@ def event_detail(request, event_id):
 ############################################################################
 #
 @login_required
+@permission_required('gem.change_event')
 @breadcrumb
 def event_update(request, event_id):
     event = get_object_or_404(Event, pk = event_id)
@@ -178,6 +179,7 @@ class UploadForm(forms.Form):
 ############################################################################
 #
 @login_required
+@permission_required('gem.add_gemdatajob')
 @breadcrumb(name="Submit a GEM Data File")
 def datajob_submit(request):
     """

@@ -29,6 +29,7 @@ class LoadAndParse(TestCase):
     #########################################################################
     #
     def setUp(self):
+        # create some users and groups
         u1, ign = User.objects.get_or_create(username="test01")
         u1.set_password("test01")
         u1.save()
@@ -90,8 +91,10 @@ class LoadAndParse(TestCase):
         self.testLoad01()
 
         # Log in our test client.
-        self.client.login("test01", "test01")
+        self.client.login(username = "test01", password = "test01")
         response = self.client.get("/gem/events/")
-        assertTemplateUsed(response, "/gem/event_list.html")
-        response = self.client.get("/gem/events/1/")
-        assertTemplateUsed(response, "/gem/event_detail.html")
+        self.assertTemplateUsed(response, "gem/event_list.html")
+
+        first_event = Event.objects.all()[0]
+        response = self.client.get(first_event.get_absolute_url())
+        self.assertTemplateUsed(response, "gem/event_detail.html")

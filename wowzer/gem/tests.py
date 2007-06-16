@@ -24,9 +24,7 @@ from wowzer.toons.models import Toon, Guild, Realm
 
 #############################################################################
 #
-class LoadAndParse(unittest.TestCase):
-
-    fixtures = ['playerclass']
+class LoadAndParse(TestCase):
 
     #########################################################################
     #
@@ -86,14 +84,14 @@ class LoadAndParse(unittest.TestCase):
     #
     # Start actually testing some views.
     #
-#     def testView01(self):
-#         # Load some test data.
-#         #
-#         self.testLoad01()
+    def testView01(self):
+        # Load some test data.
+        #
+        self.testLoad01()
 
-#         # Log in our test client.
-#         self.client.login("test01", "test01")
-#         response = self.client.get("/gem/events/")
-#         assertTemplateUsed(response, "/gem/event_list.html")
-#         response = self.client.get("/gem/events/1/")
-#         assertTemplateUsed(response, "/gem/event_detail.html")
+        # Log in our test client.
+        self.client.login("test01", "test01")
+        response = self.client.get("/gem/events/")
+        assertTemplateUsed(response, "/gem/event_list.html")
+        response = self.client.get("/gem/events/1/")
+        assertTemplateUsed(response, "/gem/event_detail.html")

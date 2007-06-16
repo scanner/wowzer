@@ -38,11 +38,6 @@ from wowzer.toons.models import Toon, PlayerClass, Realm, Guild, GuildRank
 #
 PLAYER_CLASSES = {}
 
-# Ditto for guilds. They will very likely not change in any
-# significant fashion while this script is running.
-#
-GUILDS = {}
-
 #############################################################################
 #
 @transaction.commit_on_success
@@ -277,16 +272,12 @@ def update_player(player, gem_player_data, realm, tz):
         guild_name = gem_player_data['guild']
         if player.guild is None or player.guild.name != guild_name:
             changed = True
-            if guild_name in GUILDS:
-                player.guild = GUILDS[guild_name]
-            else:
-                guild, created = Guild.objects.get_or_create(name = guild_name,
-                                                             realm = realm)
-                GUILDS[guild_name] = guild
-                if created and player.faction:
-                    guild.faction = player.faction
-                    guild.save()
-                player.guild = guild
+            guild, created = Guild.objects.get_or_create(name = guild_name,
+                                                         realm = realm)
+            if created and player.faction:
+                guild.faction = player.faction
+                guild.save()
+            player.guild = guild
     elif player.guild is not None:
         player.guild = None
         changed = True
@@ -315,6 +306,7 @@ def update_player(player, gem_player_data, realm, tz):
     if 'grank_name' in gem_player_data and gem_player_data['grank_name'] != "":
         grank_name = gem_player_data['grank_name']
         if player.guild_rank is None or player.guild_rank.name != grank_name:
+#            print "new guild rank - for %s Guild: %s, rank: %s" % (player, player.guild, grank_name)
             changed = True
             grank, created = GuildRank.objects.get_or_create(guild = player.guild,
                                                              name = grank_name)

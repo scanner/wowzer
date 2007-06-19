@@ -9,7 +9,10 @@
   Author: {{ forum.author }}<br>
   Number of discussions: {{ forum.discussion_set.count }}<br>
   Number of Active Discussions: Unimplemented<br>
-  Latest Post: Unimplemented<br>
+  {% method_arg forum latest_post user as post %}
+  {% if post %}
+  Latest Post: {% include "asforums/post_link.html" %}<br>
+  {% endif %}
 </div>
 {% tags_for_object forum as tag_list %}
 {% if tag_list %}
@@ -44,24 +47,27 @@
     <th>Discussion</th>
     <th>Posts</th>
     <th>Views</th>
+    <th>Latest Post</th>
     <th>Last Post Seen</th>
   </tr>
   {% for disc in object_list %}
     <tr class="{% cycle odd,even %}">
-      <td><a href="{{ disc.get_absolute_url }}">{{ disc.name }}</a></td>
-      <td class="count">{{ disc.post_set.count }}</td>
-      <td class="count">{{ disc.views }}</td>
+      <td><a href="{{ disc.get_absolute_url }}"><img src="{{ MEDIA_URL }}img/silk-icons/page_go.png"></a><a href="{{ disc.get_absolute_url }}">{{ disc.name }}</a></td>
+      <td class="centered">{{ disc.post_set.count }}</td>
+      <td class="centered">{{ disc.views }}</td>
       <td>
-        {% method_arg disc last_post_seen user as post %}
-        {% if post %}
-          <a href="{{ post.get_discussion_url }}">{% icon "note_go" "Go to post" %} {{ post.created|timesince }}</a> ago by <a href="{{ post.author.get_absolute_url }}">{{ post.author }} {% icon "user_go" "Go to author's profile" %}</a>
-        {% else %}
+      </td>
+        {% method_arg disc latest_post user as post %}
+        {% if post %}{% include "asforums/post_link.html" %}{% else %}
           No posts
         {% endif %}
+      <td>
+        {% method_arg disc last_post_seen user as post %}
+        {% if post %}{% include "asforums/post_link.html" %}{% endif %}
       </td>
     </tr>
     <tr class="{% cycle odd,even %}">
-      <td colspan="4"><span class="blurb">{{ disc.blurb }}</span></td>
+      <td colspan="5"><span class="blurb">{{ disc.blurb }}</span></td>
     </tr>
   {% endfor %}
 </table>

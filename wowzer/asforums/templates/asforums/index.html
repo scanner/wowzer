@@ -22,7 +22,7 @@
   {% for forum in object_list %}
     {% ifchanged forum.collection %}
     <tr>
-      <td class="title" colspan=4>
+      <td class="title" colspan="4">
       {% fancy_if or "asforums.moderate_forumcollection" forum.collection "asforums.read_forumcollection" forum.collection %}
       <a href="{{ forum.collection.get_absolute_url }}">{{ forum.collection.name }}</a>
       {% else %}
@@ -40,9 +40,9 @@
         <b><a href="{{ forum.get_absolute_url }}">{{ forum.name }}</a></b><br>
         <span class="byline">{{ forum.blurb }}</span>
       </td>
-      <td>{{ forum.discussion_set.count }}</td>
+      <td class="centered">{{ forum.discussion_set.count }}</td>
       {% method_arg forum latest_post user as post %}
-      <td><a href="{{ post.get_discussion_url }}">Post #{{ post.post_number }}</a> by <a href="{{ post.author.get_absolute_url }}">{{ post.author }}</a></td>
+      <td class="centered"><a href="{{ post.get_discussion_url }}">Post #{{ post.post_number }}</a> by <a href="{{ post.author.get_absolute_url }}">{{ post.author }}</a></td>
       {% else %}
       <td></td>
       <td>{{ forum.name }}</td>

@@ -9,7 +9,10 @@
   Creator: {{ forum_collection.author }}<br>
   Number of forums: {{ forum_collection.forum_set.count }}<br>
   Number of Active Discussions: Unimplemented<br>
-  Last Post: Unimplemented<br>
+  {% method_arg forum_collection latest_post user as post %}
+  {% if post %}
+  Last Post: {% include "asforums/post_link.html" %}<br>
+  {% endif %}
 </div>
 {% tags_for_object forum_collection as tag_list %}
 {% if tag_list %}
@@ -44,14 +47,21 @@
     <th>Forum</th>
     <th>Discussions</th>
     <th>Active Discussions</th>
-    <th>Last Post</th>
+    <th>Latest Post</th>
   </tr>
   {% for forum in object_list %}
     <tr class="{% cycle odd,even %}">
       <td><a href="{{ forum.get_absolute_url }}">{{ forum.name }}</a></td>
-      <td>{{ forum.discussion_set.count }}</td>
-      <td>Unimplemented</td>
-      <td>Unimplemented</td>
+      <td class="centered" >{{ forum.discussion_set.count }}</td>
+      <td class="centered" >Unimplemented</td>
+      {% method_arg forum latest_post user as post %}
+      <td>
+        {% if post %}
+          {% include "asforums/post_link.html" %}
+        {% else %}
+        No posts
+        {% endif %}
+      </td>
     </tr>
     <tr class="{% cycle odd,even %}">
       <td colspan="4"><span class="blurb">{{ forum.blurb }}</span></td>

@@ -16,10 +16,10 @@
   {% if discussion.closed %}
   Discussion is closed<br />
   {% endif %}
-  {% if discussion.post_set.all %}
-  Last Post: <a href="{{ discussion.post_set.latest.get_discussion_url }}">{{ discussion.post_set.latest.created|timesince }}</a> ago
-by <a href="{{ discussion.post_set.latest.author.get_absolute_url }}">{{ discussion.post_set.latest.author }}</a><br>
-  {% endif %}
+  {% method_arg discussion latest_post user as post %}
+  {% if post %}Latest post: {% include "asforums/post_link.html" %}<br>{% endif %}
+  {% method_arg discussion last_post_seen user as post %}
+  {% if post %}Last post seen: {% include "asforums/post_link.html" %}{% endif %}
 </div>
 {% tags_for_object discussion as tag_list %}
 {% if tag_list %}
@@ -56,6 +56,7 @@ by <a href="{{ discussion.post_set.latest.author.get_absolute_url }}">{{ discuss
       </td>
     </tr>
   {% endfor %}
+  {% update_last_seen user object_list|slice:"-1" %}
 </table>
 </div>
 {% else %}

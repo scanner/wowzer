@@ -22,6 +22,7 @@
         {% include "asforums/post_footer.html" %}
       </td>
     </tr>
+  {% update_last_seen user post %}
   {% endfor %}
 </table>
 </div>

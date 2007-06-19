@@ -5,25 +5,34 @@
 {% if object_list %}
 <table class="listing">
   <tr>
-    <th></th>
-    <th>Forum</th>
     <th>Discussion</th>
-    <th>Author</th>
     <th>Posts</th>
     <th>Views</th>
-    <th>Last Post</th>
+    <th>Latest Post</th>
+    <th>Last Post Seen</th>
   </tr>
   {% for disc in object_list %}
+    {% ifchanged disc.forum %}
+    <tr>
+      <td class="title" colspan="5"><a href="{{ disc.forum.get_absolute_url }}">{{ disc.forum.name }}</a><br><span class="byline">{{ forum.blurb }}</span></td>
+    </tr>
+    {% endifchanged %}
     <tr class="{% cycle odd,even %}">
-      <td><img src="{{ MEDIA_URL }}img/silk-icons/medal_gold_3.png"></td>
-      <td><a href="{{ disc.forum.get_absolute_url }}">{{ disc.forum.name }}</a></td>
       <td><a href="{{ disc.get_absolute_url }}"><img src="{{ MEDIA_URL }}img/silk-icons/page_go.png"></a><a href="{{ disc.get_absolute_url }}">{{ disc.name }}</a></td>
-      <td class="centered"><a href="{{ disc.author.get_absolute_url }}">{{ disc.author.username }}</a></td>
       <td class="centered">{{ disc.post_set.count }}</td>
       <td class="centered">{{ disc.views }}</td>
-      <td class="centered"><span class="smallerfont">{{ disc.post_set.latest.created|date:"D, M j, Y H:i" }},<br>
-      {{ disc.post_set.latest.created|timesince }} ago.</span><br>
-      <a href="{{ disc.get_absolute_url }}?post={{ disc.post_set.latest.id }}"><img src="{{ MEDIA_URL }}img/silk-icons/page_white_go.png"></a><a href="{{ disc.post_set.latest.author.get_absolute_url }}">{{ disc.post_set.latest.author }}</a></td>
+      </td>
+        {% method_arg disc latest_post user as post %}
+        {% if post %}{% include "asforums/post_link.html" %}{% else %}
+          No posts
+        {% endif %}
+      <td>
+        {% method_arg disc last_post_seen user as post %}
+        {% if post %}{% include "asforums/post_link.html" %}{% endif %}
+      </td>
+    </tr>
+    <tr class="{% cycle odd,even %}">
+      <td colspan="5"><span class="blurb">{{ disc.blurb }}</span></td>
     </tr>
   {% endfor %}
 </table>

@@ -10,8 +10,24 @@ from types import MethodType
 from django import template
 from django.template import resolve_variable
 
+from wowzer.asforums.models import LastPostSeen
+
 register = template.Library()
 
+#############################################################################
+#
+@register.simple_tag
+def update_last_seen(user, post):
+    """
+    A side-effecting tag. It is passed a 'user' and a 'post' and marks that
+    post as the last  post seen by this user in the discussion of the post.
+
+    It renders to the empty string, so it will produce no output in your
+    template.
+    """
+    LastPostSeen.update_last_seen(user, post)
+    return ""
+    
 #############################################################################
 #
 @register.tag(name="viewable_by_user")

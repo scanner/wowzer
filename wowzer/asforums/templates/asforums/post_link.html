@@ -1,0 +1,6 @@
+{% load wowzertags %}
+{% comment %}
+This is a html template fragment for a commonly use format to link to
+a post object.
+{% endcomment %}
+<span class="post_link"><a title = "Go to post #{{ post.post_number }} in discussion '{{ post.discussion.name }}'" href="{{ post.get_discussion_url }}">{% icon "note_go" "Go to post" %} Post #{{ post.post_number }}</a>{{ post.created|timesince }}, by <a title="Go to {{ post.author.username }}'s profile." href="{{ post.author.get_absolute_url }}">{{ post.author }} {% icon "user_go" "Go to author's profile" %}</a></span>

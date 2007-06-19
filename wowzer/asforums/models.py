@@ -720,11 +720,10 @@ class Discussion(models.Model):
     #
     def latest_post(self, user):
         """
-        A helper function that returns the latest post in all forums in
-        the forum collection.
+        A helper function that returns the latest post in this discussion.
         """
         try:
-            return Post.objects.readable(user).filter(discussion__forum = self).latest()
+            return Post.objects.readable(user).filter(discussion = self).latest()
         except Post.DoesNotExist:
             return None
 
@@ -1038,6 +1037,11 @@ class LastPostSeen(models.Model):
     """
     user = models.ForeignKey(User, db_index = True)
     post = models.ForeignKey(Post)
+
+    # NOTE: The discussion relationship is really only here for two things:
+    # 1) For faster lookups of LPS objects.
+    # 2) to enforce the 'one lps per user per discussion' constraint.
+    #
     discussion = models.ForeignKey(Discussion, db_index = True)
 
     class Meta:
@@ -1050,6 +1054,34 @@ class LastPostSeen(models.Model):
         return "Last Post Seen by %s in %s is %d" % (self.user,
                                                      self.discussion.name,
                                                      self.post.post_number)
+
+    #########################################################################
+    #
+    @classmethod
+    def update_last_seen(cls, user, post):
+        """
+        A helper class method on the LastPostSeen model.
+
+        It is called with a user, and a post object.
+
+        It checks to see if this post has a post number larger then
+        that of the last post seen (for the discussion the post is in)
+        and updates the relationship if this post has a higher number.
+
+        Also, if there is no such LastPostSeen relationship, one is created
+        with the given post being the last post seen for this discussion.
+        """
+        try:
+            lps = cls.objects.select_related().get(user = user,
+                                                   discussion = post.discussion)
+        except LastPostSeen.DoesNotExist:
+            lps = cls.objects.create(user = user, post = post,
+                                     discussion = post.discussion)
+        else:
+            if lps.post.post_number < post.post_number:
+                lps.post = post
+                lps.save()
+        return
 
 # Connect the signal for a new post being created to our signal function
 # that kicks off and updates various things when a post is made.

@@ -10,4 +10,5 @@ Author: <span class="author"><a href="{{ post.author.get_absolute_url }}">{{ pos
 {% include "asforums/post_header.html" %}
 {% include "asforums/post_body.html" %}
 {% include "asforums/post_footer.html" %}
+{% update_last_seen user post %}
 {% endblock %}

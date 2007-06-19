@@ -8,14 +8,21 @@
     <th>Forum</th>
     <th>Discussions</th>
     <th>Active Discussions</th>
-    <th>Last Post</th>
+    <th>Latest Post</th>
   </tr>
   {% for forum in object_list %}
     <tr class="{% cycle odd,even %}">
       <td><a href="{{ forum.get_absolute_url }}">{{ forum.name }}</a></td>
       <td>{{ forum.discussion_set.count }}</td>
-      <td>Unimplemented</td>
-      <td>Unimplemented</td>
+      <td>Not implemented</td>
+      {% method_arg forum latest_post user as post %}
+      <td>
+        {% if post %}
+          {% include "asforums/post_link.html" %}
+        {% else %}
+        No posts
+        {% endif %}
+      </td>
     </tr>
     <tr class="{% cycle odd,even %}">
       <td colspan="4"><span class="blurb">{{ forum.blurb }}</span></td>

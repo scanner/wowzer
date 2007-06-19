@@ -31,7 +31,7 @@
   {% for fc in object_list %}
     <tr class="{% cycle odd,even %} top">
       <td><a href="{{ fc.get_absolute_url }}">{{ fc.name }}</a></td>
-      <td>{% viewable_by_user fc.forum_set "count" %}</td>
+      <td class="centered">{% viewable_by_user fc.forum_set "count" %}</td>
       <td>{{ fc.author }}</td>
     </tr>
     <tr class="{% cycle odd,even %} bottom">

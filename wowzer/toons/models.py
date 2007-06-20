@@ -250,6 +250,13 @@ class Toon(models.Model):
     """
     """
 
+    GENDER_CHOICES = (('m', 'Male'),
+                      ('f', 'Female'),
+                      ('n', 'Not Set'))
+    
+    valid_order_by = ('name', 'realm', 'faction', 'race', 'player_class',
+                      'guild', 'level')
+
     name = models.CharField(maxlength = 256, db_index = True)
     realm = models.ForeignKey(Realm)
     faction = models.ForeignKey(Faction, null = True)
@@ -262,6 +269,10 @@ class Toon(models.Model):
     level = models.PositiveSmallIntegerField(default = 0)
     first_seen_time = models.DateTimeField(editable = False,
                                            auto_now_add = True)
+    gender = models.CharField(maxlength = 1, choices = GENDER_CHOICES,
+                              default = 'n')
+
+#    updated = models.DateTimeField(editable = False, auto_now_update = True)
     last_seen_location = models.CharField(maxlength = 256, null = True,
                                           blank = True, editable = False)
     last_login_time = models.DateTimeField(null = True, editable = False)

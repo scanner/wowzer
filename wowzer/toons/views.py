@@ -61,7 +61,11 @@ def index(request):
 @login_required
 @breadcrumb(name="Character List")
 def toon_list(request):
-    query_set = Toon.objects.extra(tables = ['toons_realm']).order_by('toons_realm.name', 'name')
+    if 'order_by' in request.GET and \
+       request.GET['order_by'] in Toon.valid_order_by:
+        order_by = request.GET['order_by']
+    else:
+        query_set = Toon.objects.extra(tables = ['toons_realm']).order_by('toons_realm.name', 'name')
     return object_list(request, query_set, paginate_by = paginate_by,
                        template_name = "toons/toon_list.html")
     

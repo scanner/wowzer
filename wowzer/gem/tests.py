@@ -26,6 +26,7 @@ from wowzer.toons.models import Toon, Guild, Realm
 #
 class LoadAndParse(TestCase):
 
+    fixtures = ['test_users_and_groups']
     #########################################################################
     #
     def setUp(self):

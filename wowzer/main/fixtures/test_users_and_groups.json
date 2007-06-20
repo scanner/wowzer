@@ -1,0 +1,107 @@
+[
+  {
+    "pk": "1", 
+    "model": "auth.user", 
+    "fields": {
+      "username": "user0", 
+      "first_name": "", 
+      "last_name": "", 
+      "is_active": true, 
+      "is_superuser": false, 
+      "is_staff": false, 
+      "last_login": "2007-06-20 02:13:39", 
+      "groups": [1, 2], 
+      "user_permissions": [], 
+      "password": "", 
+      "email": "", 
+      "date_joined": "2007-06-20 02:13:39"
+    }
+  }, 
+  {
+    "pk": "2", 
+    "model": "auth.user", 
+    "fields": {
+      "username": "user1", 
+      "first_name": "", 
+      "last_name": "", 
+      "is_active": true, 
+      "is_superuser": false, 
+      "is_staff": false, 
+      "last_login": "2007-06-20 02:16:09", 
+      "groups": [
+        2, 
+        1
+      ], 
+      "user_permissions": [], 
+      "password": "", 
+      "email": "", 
+      "date_joined": "2007-06-20 02:16:09"
+    }
+  }, 
+  {
+    "pk": "3", 
+    "model": "auth.user", 
+    "fields": {
+      "username": "user2", 
+      "first_name": "", 
+      "last_name": "", 
+      "is_active": true, 
+      "is_superuser": false, 
+      "is_staff": false, 
+      "last_login": "2007-06-20 02:16:09", 
+      "groups": [
+        2, 
+        1
+      ], 
+      "user_permissions": [], 
+      "password": "", 
+      "email": "", 
+      "date_joined": "2007-06-20 02:16:09"
+    }
+  }, 
+  {
+    "pk": "4", 
+    "model": "auth.user", 
+    "fields": {
+      "username": "user3", 
+      "first_name": "", 
+      "last_name": "", 
+      "is_active": true, 
+      "is_superuser": false, 
+      "is_staff": false, 
+      "last_login": "2007-06-20 02:16:09", 
+      "groups": [
+        2, 
+        1
+      ], 
+      "user_permissions": [], 
+      "password": "", 
+      "email": "", 
+      "date_joined": "2007-06-20 02:16:09"
+    }
+  }, 
+  {
+    "pk": "4", 
+    "model": "auth.group", 
+    "fields": {
+      "name": "group0", 
+      "permissions": []
+    }
+  }, 
+  {
+    "pk": "5", 
+    "model": "auth.group", 
+    "fields": {
+      "name": "group1", 
+      "permissions": []
+    }
+  }, 
+  {
+    "pk": "3", 
+    "model": "auth.group", 
+    "fields": {
+      "name": "moderators", 
+      "permissions": []
+    }
+  }
+]

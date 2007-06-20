@@ -153,8 +153,8 @@ class Event(models.Model):
         pass
 
     class Meta:
-        get_latest_by = 'created'
-        ordering = ['created']
+        get_latest_by = 'when'
+        ordering = ['-when']
 #         row_level_permissions = True
 #         permissions = (("view_event", "Can see the event"),)
         

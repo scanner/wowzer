@@ -17,7 +17,7 @@
       <td><a href="{{ event.get_absolute_url }}">{{ event.when|tz_std_date:user }}</a></td>
       <td>{{ event.place }}</td>
       <td>{{ event.leader.realm.name }}</td>
-      <td><a href="{{ leader.get_absolute_url }}">{{ event.leader.name }}</a></td>
+      <td><a href="{{ event.leader.get_absolute_url }}">{{ event.leader.name }}</a></td>
       <td>{{ event.max_count }}</td>
       <td>{{ event.players.count }}</td>
       {% ifequal event.minlevel event.maxlevel %}

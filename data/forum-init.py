@@ -76,42 +76,49 @@ def create_posts(users, d):
                                 content_html = html_text,
                                 markup = "text.bbcode" )
 
-for index in range(2):
-    name = 'group%d' % index
-    g, created = Group.objects.get_or_create(name = name)
-    groups.append(g)
+def create_users_groups():
+    users = []
+    groups = []
+    
+    for index in range(2):
+        name = 'group%d' % index
+        g, created = Group.objects.get_or_create(name = name)
+        groups.append(g)
 
-for index in range(4):
-    name = 'user%d' % index
-    u, created = User.objects.get_or_create(username = name)
+    for index in range(4):
+        name = 'user%d' % index
+        u, created = User.objects.get_or_create(username = name)
+        if created:
+            u.set_password(name)
+            # Every user is in the 'everyone' and 'authenticated' groups.
+            #
+            u.groups.add(everyone)
+            u.groups.add(authenticated)
+
+            # Stick alternating useres in different groups.
+            #
+            u.groups.add(groups[index % 2])
+            u.save()
+        users.append(u)
+
+    # Make sure scanner exists, and is in the 'everyone' group and is
+    # in the moderator group.
+    #
+    scanner, created = User.objects.get_or_create(username = 'scanner',
+                                                 defaults = { 'is_staff' : True,
+                                                              'is_active' : True })
     if created:
-        u.set_password(name)
-        # Every user is in the 'everyone' and 'authenticated' groups.
-        #
-        u.groups.add(everyone)
-        u.groups.add(authenticated)
+        scanner.set_password('testtest')
+    scanner.groups.add(everyone)
+    scanner.groups.add(moderators)
+    scanner.groups.add(authenticated)
+    scanner.save()
 
-        # Stick alternating useres in different groups.
-        #
-        u.groups.add(groups[index % 2])
-        u.save()
-    users.append(u)
-
-# Make sure scanner exists, and is in the 'everyone' group and is
-# in the moderator group.
-#
-scanner, created = User.objects.get_or_create(username = 'scanner',
-                                             defaults = { 'is_staff' : True,
-                                                          'is_active' : True })
-if created:
-    scanner.set_password('testtest')
-scanner.groups.add(everyone)
-scanner.groups.add(moderators)
-scanner.groups.add(authenticated)
-scanner.save()
+    return users
 
 # Create a bunch of forum collections that have a bunch of forums in them.
 # The forums have a bunch of discussions, and the discussions have posts
 # in them. Set up some permissions on who can see these forums.
 #
+users = create_users_groups()
 create_fcs(users)

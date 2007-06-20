@@ -80,6 +80,10 @@ def process_jobs():
             loaddata(job)
         except:
 
+            # Print the full exception information to standard error.
+            #
+            traceback.print_exc()
+
             # If something goes south this job enters the 'error'
             # state.  What is more we pull out the string of the
             # actual exception that busted us, chop off the \n, and
@@ -87,15 +91,12 @@ def process_jobs():
             # debugging method. The user is expected to read the error
             # log of the server.
             #
-            except_strings = traceback.format_exception_only(sys.last_type,
-                                                             sys.last_value)
+            except_strings = traceback.format_exception_only(sys.exc_type,
+                                                             sys.exc_value)
             job.state = GemDataJob.ERROR
             job.error = except_strings[-1][:1][:1023]
             job.save()
 
-            # Print the full exception information to standard error.
-            #
-            traceback.print_exc()
         else:
             # Our job finished successfully. Mark it as completed.
             #

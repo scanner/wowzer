@@ -88,9 +88,9 @@ def event_list(request):
     XXX we should support sorting and filtering
     """
     if "showhidden" in request.GET:
-        query_set = Event.objects.all().order_by('-created')
+        query_set = Event.objects.all().order_by('-when')
     else:
-        query_set = Event.objects.filter(hidden = False).order_by('-created')
+        query_set = Event.objects.filter(hidden = False).order_by('-when')
         
     return object_list(request, query_set, paginate_by = paginate_by,
                        template_name = "gem/event_list.html")
